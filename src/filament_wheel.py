@@ -3,7 +3,8 @@ Generates the part for the filament wheel of our filament bank design
 """
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, JernArc, BuildLine, Line, make_face, add,
-                PolarLocations, RegularPolygon, sweep, Location)
+                PolarLocations, RegularPolygon, sweep, Location,
+                export_stl)
 from ocp_vscode import show
 from bank_config import BankConfig
 
@@ -54,4 +55,7 @@ with BuildPart() as filament_wheel:
     add(diamond_torus(wheel_configuration.wheel_radius, wheel_configuration.bearing_depth/2).
         move(Location((0,0,wheel_configuration.bearing_depth/2))), mode=Mode.SUBTRACT)
 
-show(filament_wheel)
+part = filament_wheel.part
+part.label = "filament wheel"
+show(part)
+export_stl(part, '../stl/filament_wheel.stl')

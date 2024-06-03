@@ -10,14 +10,16 @@ class BankConfig:
     """
     bearing_diameter: float = 12
     bearing_inner_diameter = 6.1
+    bearing_shelf_diameter = 8.5
     bearing_depth: float = 4
 
-    wheel_diameter:float = 75
-    spoke_count: float = 5
-    wheel_float: float = 0.4
+    wheel_diameter:float = 95
+    spoke_count: int = 5
+    wheel_lateral_tolerance: float = 0.4
+    wheel_radial_tolerance: float = 0.2
 
-    minimum_structural_thickness = 2
-    minimum_thickness = .5
+    minimum_structural_thickness = 4
+    minimum_thickness = 1
 
     connector_diameter: float = 10.1
     connector_length: float = 6.7
@@ -27,6 +29,15 @@ class BankConfig:
     tube_inner_diameter = 3.5
     tube_outer_diameter = 6.5
 
+    fillet_ratio = 4
+
+    @property
+    def bearing_shelf_radius(self):
+        """
+        returns the radius of the bearing shelf
+        """
+        return self.bearing_shelf_diameter/2
+    
     @property
     def wheel_radius(self):
         """
@@ -40,6 +51,13 @@ class BankConfig:
         returns the radius of the bearing
         """
         return self.bearing_diameter/2
+
+    @property
+    def bearing_inner_radius(self):
+        """
+        returns the inner_radius of the bearing
+        """
+        return self.bearing_inner_diameter/2
 
     @property
     def connector_radius(self):
@@ -74,19 +92,27 @@ class BankConfig:
         """
         returns the width of the bracket
         """
-        return self.wheel_diameter+self.connector_diameter+self.minimum_structural_thickness*2
+        return self.wheel_diameter+self.minimum_structural_thickness*4+self.fillet_radius*2
 
     @property
     def bracket_height(self):
         """
         returns the height of the bracket
         """
-        return self.wheel_radius+self.minimum_structural_thickness*2
+        return self.wheel_radius+self.wheel_radial_tolerance+self.minimum_structural_thickness*2
 
     @property
     def bracket_depth(self):
         """
         returns the depth of the bracket
         """
-        return max(self.bearing_depth+self.wheel_float*2+self.minimum_structural_thickness*2, 
+        return max(self.bearing_depth+self.wheel_lateral_tolerance*2 + \
+                   self.minimum_structural_thickness*2,
                    self.connector_diameter+self.minimum_thickness*2)
+
+    @property
+    def fillet_radius(self):
+        """
+        returns the fillet radis for bracket parts
+        """
+        return self.bracket_depth/self.fillet_ratio

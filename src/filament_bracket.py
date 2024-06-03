@@ -1,70 +1,15 @@
 """
 Generates the part for the filament bracket of our filament bank design
 """
-from math import sqrt, radians, cos, sin, hypot
+from math import sqrt, radians, cos, sin, hypot, atan2, degrees
+from enum import Enum
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Axis, Box, Align, Cylinder,
-                export_stl)
+                export_stl, offset)
 from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from bank_config import BankConfig
-
-def connector_guide(tube_radius: float, length: float, 
-                    connector_radius: float, connector_length: float, 
-                    box_width:float, thread_pitch: float=1, thread_angle: float=30) -> Part:
-    # threads = TrapezoidalThread(
-    #             diameter=connector_radius*2,
-    #             pitch=thread_pitch,
-    #             length=connector_length,
-    #             thread_angle = thread_angle,
-    #             external=False,
-    #             hand="right",
-    #             align=(Align.CENTER, Align.CENTER, Align.MAX)
-    #             )
-    with BuildPart() as guide:
-        with BuildPart() as post:
-            Box(length=box_width, width=box_width,
-                height=length,
-                align=(Align.CENTER, Align.CENTER, Align.MAX))
-            fillet(post.faces().sort_by(Axis.X)[0].edges().filter_by(Axis.Z), box_width/4)
-        with BuildPart(mode=Mode.SUBTRACT) as cut:
-            Cylinder(radius=tube_radius, height=length, 
-                        align=(Align.CENTER, Align.CENTER, Align.MAX))
-            Cylinder(radius=connector_radius, height=connector_length,
-                        align=(Align.CENTER, Align.CENTER, Align.MAX))
-    # return Part(label="connector guide", children=[guide.part, threads])
-    return guide.part
-
-def wheel_cut(inner_radius:float, outer_radius: float, arc_size: float, depth: float) -> Part:
-    """
-    returns the shape of the cut from the wheel support
-    """
-    with BuildPart() as cut:
-        with BuildSketch(Plane(origin=(0,0,0), z_dir=(0,0,1))) as base:
-            with BuildLine():
-                l1=CenterArc(center=((0,0)), radius=outer_radius,
-                            start_angle=90-arc_size/2, arc_size=arc_size)
-                l2=CenterArc(center=((0,0)),
-                            radius=inner_radius,
-                            start_angle=90-arc_size/2, arc_size=arc_size)
-                Line(l1 @ 0, l2 @ 0)
-                Line(l1 @ 1, l2 @ 1)
-            make_face()
-            fillet(base.vertices(), l1.length/16)
-        with BuildSketch(Plane(origin=(0,0,depth), z_dir=(0,0,1))) as top:
-            with BuildLine():
-                l1=CenterArc(center=((0,-depth)), radius=outer_radius,
-                            start_angle=90-arc_size/2, arc_size=arc_size)
-                l2=CenterArc(center=((0,-depth)),
-                            radius=inner_radius,
-                            start_angle=90-arc_size/2, arc_size=arc_size)
-                Line(l1 @ 0, l2 @ 0)
-                Line(l1 @ 1, l2 @ 1)
-            make_face()
-            fillet(top.vertices(), l1.length/16)
-        loft()
-    return cut
 
 bracket_configuration = BankConfig()
 
@@ -77,6 +22,14 @@ def point_distance(p1, p2):
     x1,y1 = p1
     x2,y2 = p2
     return hypot(x2-x1, y2-y1)
+
+def x_point_to_angle(radius, x_position):
+    y_position = distance_to_circle_edge(radius, (x_position, 0), 90)
+    return degrees(atan2(y_position, x_position))
+
+def y_point_to_angle(radius, y_position):
+    x_position = distance_to_circle_edge(radius, (0, y_position), 90)
+    return degrees(atan2(y_position, x_position))
 
 def distance_to_circle_edge(radius, point, angle):
     """
@@ -113,80 +66,285 @@ outer_edge_distance = bracket_configuration.wheel_radius+connector_distance
 inner_angled_distance = inner_edge_distance*sqrt(2)/2
 outer_angled_distance = outer_edge_distance*sqrt(2)/2
 
-tube_length = distance_to_circle_edge(bracket_configuration.wheel_radius,
-                (inner_angled_distance,-inner_angled_distance), 45) \
-                    + bracket_configuration.connector_length \
-                    + bracket_configuration.minimum_thickness
+tube_length = distance_to_circle_edge(bracket_configuration.bracket_width/2,
+                (inner_angled_distance,-inner_angled_distance), 45)
 inner_bottom_corner =  (inner_angled_distance, -inner_angled_distance)
 outer_bottom_corner =  (outer_angled_distance, -outer_angled_distance)
 inner_top_corner= find_related_point(inner_bottom_corner, tube_length, 45)
 outer_top_corner = find_related_point(outer_bottom_corner, tube_length, 45)
 bracket_width = abs(inner_bottom_corner[1]) - abs(inner_top_corner[1])
 
-with BuildPart() as brace:
-    with BuildSketch() as sketch:
-        with BuildLine() as line:
-            l1 = Line((abs(inner_bottom_corner[1])-bracket_width,inner_bottom_corner[1]),
-                    inner_bottom_corner)
-            l2 = Line(l1 @ 1, inner_top_corner)
-            l3 = Line(l2 @ 1, (abs(inner_top_corner[1])+bracket_width/2,inner_top_corner[1]))
 
-            l4 = Line((-abs(inner_top_corner[1])-bracket_width/2,abs(inner_top_corner[1])),
-                    (-bracket_configuration.wheel_radius, abs(inner_top_corner[1])))
-            l5 = Line(l4 @ 1,
-                    (-bracket_configuration.wheel_radius+connector_distance, abs(inner_bottom_corner[1])))
-            l6 = Line(l5 @ 1, (-abs(inner_bottom_corner[1])+bracket_width, abs(inner_bottom_corner[1])))
+angled_distance = bracket_configuration.wheel_radius*sqrt(2)/2
+bottom_outlet_origin = (angled_distance, -angled_distance)
+top_outlet_origin = find_related_point((angled_distance, -angled_distance), tube_length, 45)
 
-            Line(l4 @0, l1 @ 0)
-            Line(l6@1, l3@1)
+right_connnector_location = Location((top_outlet_origin[0], top_outlet_origin[1],
+                                    bracket_configuration.bracket_depth/2),
+                                    (90,-45,0))
+left_connector_location = Location((-bracket_configuration.wheel_radius, 
+                                    bracket_configuration.bracket_height,bracket_configuration.bracket_depth/2), (90,0,0))
+def cut_spokes() -> Part:
+    """
+    returns the wheel spokes cut down to the correct size
+    """
+    with BuildPart() as spokes:
+        with BuildSketch() as sketch:
+            with BuildLine():
+                l1 = Line((abs(inner_bottom_corner[1])-bracket_width,inner_bottom_corner[1]),
+                        (bracket_configuration.bracket_width/2,inner_bottom_corner[1]))
+                l2 = Line(l1 @ 1, (bracket_configuration.bracket_width/2, 0))
+                l3 = Line(l2 @ 1, (abs(inner_top_corner[1])+bracket_width/2,0))
 
-        make_face()
-        fillet(sketch.vertices().filter_by_position(axis=Axis.X, minimum=-inner_bottom_corner[0], maximum=inner_bottom_corner[0], inclusive=(False, False)), bracket_width/2)
-    extrude(sketch.face(), amount=bracket_configuration.minimum_structural_thickness)
-    fillet(brace.edges(), bracket_configuration.minimum_structural_thickness/4)
-    
-    with BuildPart(mode=Mode.ADD):
-        with BuildPart(Location((-bracket_configuration.wheel_radius,
-                                 abs(inner_bottom_corner[1])+bracket_configuration.connector_length,
-                                 bracket_configuration.bracket_depth/2), (-90,0,0))) as left_connector:
-            add(connector_guide(bracket_configuration.tube_outer_radius, bracket_width+bracket_configuration.connector_length,
-                                bracket_configuration.connector_radius, bracket_configuration.connector_length,
-                                bracket_configuration.bracket_depth))
-        top_center_x, top_center_y = find_related_point(outer_top_corner, connector_distance, 135)
-        with BuildPart(Location((inner_top_corner[0], inner_top_corner[1],
-                                 bracket_configuration.bracket_depth/2), (-90,45,180))) as right_connector:
-            add(connector_guide(bracket_configuration.tube_outer_radius, tube_length,
-                                bracket_configuration.connector_radius, bracket_configuration.connector_length,
-                                bracket_configuration.bracket_depth).move(Location((0,0,bracket_configuration.bracket_height/4))))
+                l4 = Line((-abs(inner_top_corner[1])-bracket_width/2,0),
+                        (-bracket_configuration.wheel_radius-bracket_configuration.minimum_structural_thickness, 0))
+                l5 = Line(l4 @ 1,
+                        (-bracket_configuration.wheel_radius-bracket_configuration.minimum_structural_thickness, abs(inner_bottom_corner[1])))
+                l6 = Line(l5 @ 1, (-abs(inner_bottom_corner[1])+bracket_width, abs(inner_bottom_corner[1])))
+                Line(l4 @0, l1 @ 0)
+                Line(l6@1, l3@1)
+            make_face()
+            fillet(sketch.vertices().filter_by_position(axis=Axis.X, 
+                    minimum=-inner_bottom_corner[0],
+                    maximum=inner_bottom_corner[0],
+                    inclusive=(False, False)), bracket_width/2)
+        extrude(sketch.face(), amount=bracket_configuration.minimum_structural_thickness)
+        fillet(spokes.edges(), bracket_configuration.minimum_structural_thickness/4)
+        with BuildPart(mode=Mode.INTERSECT):
+            add(wheel_guide_cut())
+        #     Cylinder(radius=bracket_configuration.wheel_radius+bracket_configuration.wheel_radial_tolerance, height=bracket_configuration.bracket_depth)
+    return spokes.part
 
-    with BuildPart(Plane(origin=(0,0,bracket_configuration.minimum_structural_thickness),
-                                z_dir=(0,0,1)), mode=Mode.SUBTRACT) as wheel_cut:
-        Cylinder(radius=bracket_configuration.wheel_radius, 
-                 height=bracket_configuration.bracket_depth,
-                 align=(Align.CENTER, Align.CENTER, Align.MIN))
+def wheel_axis() -> Part:
+    with BuildPart() as constructed_brace:
+        add(cut_spokes())
+        with BuildPart() as bearing_post:
+            Cylinder(radius=bracket_configuration.bearing_shelf_radius,
+                        height=bracket_configuration.minimum_structural_thickness+bracket_configuration.wheel_lateral_tolerance,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN))
+        with BuildPart(bearing_post.faces().sort_by(Axis.Z)[-1], mode=Mode.SUBTRACT):
+            Cylinder(radius=bracket_configuration.bearing_inner_radius,
+                        height=bracket_configuration.minimum_structural_thickness+bracket_configuration.wheel_lateral_tolerance-bracket_configuration.minimum_thickness,
+                        align=(Align.CENTER, Align.CENTER, Align.MAX))
+        #todo -- make this read options
+        Cylinder(radius=bracket_configuration.bearing_inner_radius,
+                        height=bracket_configuration.bracket_depth/2,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN))
+    part = constructed_brace.part
+    part.label = "spokes"
+    return part
 
-with BuildPart() as wheel_brace:
-    with BuildPart() as outer:
+def wheel_guide_cut() -> Part:
+    with BuildPart() as wheelcut:
+        base_radius=bracket_configuration.wheel_radius + \
+                bracket_configuration.wheel_radial_tolerance
         with BuildSketch() as base:
-            Circle(radius=bracket_configuration.wheel_radius).face() \
-                .offset(bracket_configuration.minimum_structural_thickness)
-            #Circle(radius=bracket_configuration.wheel_radius + \
-            #       bracket_configuration.minimum_structural_thickness)
-        with BuildSketch(Plane(origin=(0,0,bracket_configuration.minimum_structural_thickness),
-                            z_dir=(0,0,1))) as lofted:
-            Circle(radius=bracket_configuration.wheel_radius)
+            Circle(base_radius*.8)
+            offset(amount=bracket_configuration.minimum_structural_thickness)
+        with BuildSketch(Plane.XY.offset(bracket_configuration.minimum_structural_thickness)) as lofted:
+            Circle(base_radius*.8)
         loft()
-    with BuildPart(mode=Mode.SUBTRACT) as wheel_cut:
+    return wheelcut.part
+
+def wheel_guide() -> Part:
+    base_radius=bracket_configuration.wheel_radius + \
+                    bracket_configuration.wheel_radial_tolerance
+                    
+    with BuildPart() as wheel_brace:
+        with BuildPart() as outer:
+            with BuildSketch() as base:
+                Circle(base_radius)
+                offset(amount=bracket_configuration.minimum_structural_thickness)
+            with BuildSketch(Plane.XY.offset(bracket_configuration.minimum_structural_thickness)) as lofted:
+                Circle(base_radius)
+            loft()
+        with BuildPart(mode=Mode.SUBTRACT) as outer:
+            add(wheel_guide_cut())
+    part = wheel_brace.part
+    part.label = "rim"
+    return part
+
+def left_connector_threads() -> Part:
+    """
+    returns the threads for the left connector
+    """
+    with BuildPart(left_connector_location) as left_threads:
+        TrapezoidalThread(
+                diameter=bracket_configuration.connector_radius*2,
+                pitch=bracket_configuration.connector_thread_pitch,
+                length=bracket_configuration.connector_length,
+                thread_angle = bracket_configuration.connector_thread_angle,
+                external=False,
+                hand="right",
+                align=(Align.CENTER, Align.CENTER, Align.MIN)
+                )
+    part = left_threads.part
+    part.label = "left threads"
+    return part
+
+
+def right_connector_threads() -> Part:
+    """
+    returns the threads for the angled connector
+    """
+    with BuildPart(right_connnector_location) as right_threads:
+        TrapezoidalThread(
+                diameter=bracket_configuration.connector_radius*2,
+                pitch=bracket_configuration.connector_thread_pitch,
+                length=bracket_configuration.connector_length,
+                thread_angle = bracket_configuration.connector_thread_angle,
+                external=False,
+                hand="right",
+                align=(Align.CENTER, Align.CENTER, Align.MIN)
+                )
+    part = right_threads.part
+    part.label = "right threads"
+    return part
+
+def bottom_frame() -> Part:
+    """
+    returns the outer frame for the bottom bracket
+    """
+    #box_max_y = bracket_configuration.wheel_radius+bracket_configuration.wheel_radial_tolerance+bracket_configuration.minimum_structural_thickness+bracket_configuration.fillet_radius
+    box_max_y = bracket_configuration.bracket_height
+    # right_connnector_location = Location((top_outlet_origin[0], top_outlet_origin[1],
+    #                                 bracket_configuration.bracket_depth/2),
+    #                                 (90,-45,0))
+    with BuildPart() as constructed_bracket:
+        with BuildPart() as left_bracket:
+            with BuildSketch() as block:
+                with BuildLine() as outline:
+                    l1 = Line((0,0), (-bracket_configuration.bracket_width/2, 0))
+                    l2 = Line(l1 @ 1,(-bracket_configuration.bracket_width/2, box_max_y))
+                    l3 = Line(l2@1, (bracket_configuration.bracket_width/2,box_max_y))
+                    l4 = Line(l3 @ 1, (bracket_configuration.bracket_width/2,outer_top_corner[1]))
+                    l5 = Line(l4@1, inner_bottom_corner)
+                    Line(l5@1, l1@0)
+                make_face()
+            extrude(block.face(), bracket_configuration.bracket_depth)
+            with BuildPart(right_connnector_location, mode=Mode.ADD) as right_connector_bracket:
+                Box(bracket_configuration.bracket_depth, bracket_configuration.bracket_depth, tube_length,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+        fillet(left_bracket.faces().sort_by(Axis.Y)[-1].edges() + \
+               left_bracket.faces().sort_by(Axis.X, reverse=True)[0:-1].edges(), bracket_configuration.fillet_radius)
+        with BuildPart(left_connector_location) as cut_foundation:
+            Box(bracket_configuration.bracket_depth,
+                bracket_configuration.bracket_depth,
+                bracket_configuration.bracket_depth,
+#                align=(Align.MIN,Align.MAX, Align.CENTER)
+                align=(Align.CENTER,Align.CENTER, Align.MIN)
+            )
+            fillet(cut_foundation.faces().filter_by(Axis.X).edges().filter_by(Axis.Y), bracket_configuration.fillet_radius)
+        with BuildPart(right_connnector_location) as right_cut_foundation:
+            Box(bracket_configuration.bracket_depth,
+                bracket_configuration.bracket_depth,
+                bracket_configuration.bracket_depth,
+                align=(Align.CENTER,Align.CENTER, Align.MIN)
+            )
+            fillet(right_cut_foundation.faces().sort_by_distance((0,0,bracket_configuration.bracket_depth/2))[-1].edges().group_by(Axis.X, reverse=True)[-2], bracket_configuration.fillet_radius)
+        with BuildPart(left_connector_location, mode=Mode.SUBTRACT):
+            Cylinder(radius=bracket_configuration.tube_inner_radius, height=box_max_y,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN))
+            Cylinder(radius=bracket_configuration.connector_radius, height=bracket_configuration.connector_length,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN))
+    #    with BuildPart(Location((top_outlet_origin[0], top_outlet_origin[1],
+    #                              bracket_configuration.bracket_depth/2),
+    #                              (-90,45,180))) as right_connector:
+        with BuildPart(right_connnector_location, mode=Mode.SUBTRACT) as right_connector_bracket:
+            Cylinder(radius=bracket_configuration.tube_inner_radius, height=tube_length,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN))
+            Cylinder(radius=bracket_configuration.connector_radius, height=bracket_configuration.connector_length*2,
+                        align=(Align.CENTER, Align.CENTER, Align.CENTER))
+        # with BuildPart(cut_foundation.faces().sort_by(Axis.Y)[-1], mode=Mode.PRIVATE) as threads:
+        #     TrapezoidalThread(
+        #         diameter=bracket_configuration.connector_radius*2,
+        #         pitch=bracket_configuration.connector_thread_pitch,
+        #         length=bracket_configuration.connector_length,
+        #         thread_angle = bracket_configuration.connector_thread_angle,
+        #         external=False,
+        #         hand="right",
+        #         align=(Align.CENTER, Align.CENTER, Align.MAX)
+        #         )
+
+
+        with BuildPart(mode=Mode.SUBTRACT):
+            Cylinder(radius=bracket_configuration.wheel_radius+bracket_configuration.wheel_radial_tolerance,
+                     height=bracket_configuration.bracket_depth, align=(Align.CENTER, Align.CENTER, Align.MIN))
+            add(top_cut_template().mirror().move(Location((0,0,bracket_configuration.bracket_depth))))
+    part = constructed_bracket.part
+    part.label = "bracket"
+    return part
+
+
+def top_cut_template(tolerance:float=0) -> Part:
+    """
+    returns the shape defining the top cut of the bracket
+    provide a tolerance for the actual part to make it easier to assemble
+    """
+    base_outer_radius = bracket_configuration.wheel_radius + \
+                    bracket_configuration.wheel_radial_tolerance + \
+                    bracket_configuration.minimum_structural_thickness - tolerance
+    base_rectangle_width = bracket_configuration.bracket_width-(bracket_configuration.fillet_radius+bracket_configuration.connector_diameter+bracket_configuration.minimum_structural_thickness*2-tolerance)*2
+    with BuildPart() as template:
         with BuildSketch():
-            Circle(radius=bracket_configuration.wheel_radius * .8).face() \
-                .offset(bracket_configuration.minimum_structural_thickness)
+            with BuildLine():
+                start_angle = x_point_to_angle(base_outer_radius-tolerance, base_rectangle_width/2-tolerance)
+                inner_rcurve = CenterArc((0,0), base_outer_radius-tolerance, 0, start_angle)
+                inner_lcurve = CenterArc((0,0), base_outer_radius-tolerance, 180-start_angle, start_angle)
+                inner_left_up = Line(inner_rcurve @ 1, (base_rectangle_width/2-tolerance, bracket_configuration.bracket_height))
+                inner_topline = Line(inner_left_up @ 1, (-base_rectangle_width/2+tolerance, bracket_configuration.bracket_height))
+                Line(inner_topline @ 1, inner_lcurve @0)
+                inner_downl = Line(inner_lcurve @1, (-base_outer_radius+tolerance, -bracket_configuration.bracket_height))
+                inner_downr = Line(inner_rcurve @0, (base_outer_radius-tolerance, -bracket_configuration.bracket_height))
+                Line(inner_downl @1, inner_downr @ 1)
+            make_face()
         with BuildSketch(Plane(origin=(0,0,bracket_configuration.minimum_structural_thickness),
-                                z_dir=(0,0,1))):
-            Circle(radius=bracket_configuration.wheel_radius*.8)
+                            z_dir=(0,0,1))) as sk_top:
+            with BuildLine() as lntop:
+                start_angle = x_point_to_angle(base_outer_radius+bracket_configuration.minimum_structural_thickness-tolerance, base_rectangle_width/2+bracket_configuration.minimum_structural_thickness-tolerance)
+                outer_rcurve = CenterArc((0,0), base_outer_radius+bracket_configuration.minimum_structural_thickness-tolerance, 0, start_angle)
+                outer_lcurve = CenterArc((0,0), base_outer_radius+bracket_configuration.minimum_structural_thickness-tolerance, 180-start_angle, start_angle)
+                outer_left_up = Line(outer_rcurve @ 1, (base_rectangle_width/2+bracket_configuration.minimum_structural_thickness-tolerance, bracket_configuration.bracket_height))
+                outer_topline = Line(outer_left_up @ 1, (-base_rectangle_width/2-bracket_configuration.minimum_structural_thickness+tolerance, bracket_configuration.bracket_height))
+                Line(outer_topline @ 1, outer_lcurve @0)
+                outer_downl = Line(outer_lcurve @1, (-base_outer_radius-bracket_configuration.minimum_structural_thickness+tolerance, -bracket_configuration.bracket_height))
+                outer_downr = Line(outer_rcurve @0, (base_outer_radius+bracket_configuration.minimum_structural_thickness-tolerance, -bracket_configuration.bracket_height))
+                Line(outer_downl @1, outer_downr @ 1)
+            make_face()
         loft()
+    return template.part
 
+def top_frame(tolerance:float=0) -> Part:
+    """
+    returns the outer frame for the top bracket
+    """
+    with BuildPart() as top_bracket:
+        add(top_cut_template(tolerance))
+        with BuildPart(mode=Mode.INTERSECT):
+            add(outer_bracket().mirror(Plane.YZ))
+    part = top_bracket.part
+    part.label = "frame"
+    return part
 
-combo = Part(label="wheel brace", children=[wheel_brace.part, brace.part])
-show(combo)
-export_stl(combo, '../stl/bottom_bracket.stl')
-#show(wheel_brace, brace, base)
+def bottom_bracket() -> Part:
+    """
+    returns a complete bottom bracket
+    """
+    return Part(label="bottom bracket", 
+                children=[wheel_axis(), 
+                          bottom_frame(), wheel_guide(),right_connector_threads(),left_connector_threads()])
+
+def top_bracket() -> Part:
+    """
+    returns a complete top bracket
+    """
+    return Part(label="top bracket", children=[wheel_guide(), top_frame(tolerance=0.1), wheel_axis().mirror(Plane.XZ)])
+
+def main():
+    bottom = bottom_bracket()
+    top = top_bracket()
+    show(bottom.move(Location((bracket_configuration.bracket_width/2+5,0,0))), top.move(Location((-bracket_configuration.bracket_width/2+5,0,0))))
+    export_stl(bottom, '../stl/bottom_bracket.stl')
+    export_stl(top, '../stl/top_bracket.stl')
+
+main()
