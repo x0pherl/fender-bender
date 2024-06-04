@@ -13,15 +13,15 @@ class BankConfig:
     bearing_shelf_diameter = 8.5
     bearing_depth: float = 4
 
-    wheel_diameter:float = 95
+    wheel_diameter:float = 75
     spoke_count: int = 5
-    wheel_lateral_tolerance: float = 0.4
+    wheel_lateral_tolerance: float = 0.2
     wheel_radial_tolerance: float = 0.2
 
     minimum_structural_thickness = 4
     minimum_thickness = 1
 
-    connector_diameter: float = 10.1
+    connector_diameter: float = 10.2
     connector_length: float = 6.7
     connector_thread_pitch:float = 1
     connector_thread_angle:float = 30
@@ -32,11 +32,25 @@ class BankConfig:
     fillet_ratio = 4
 
     @property
+    def clip_length(self):
+        """
+        returns the length of the clip that will hold in the bracket
+        """
+        return self.fillet_radius+(self.connector_radius-self.tube_outer_radius)*.6
+
+    @property
     def bearing_shelf_radius(self):
         """
         returns the radius of the bearing shelf
         """
         return self.bearing_shelf_diameter/2
+    
+    @property
+    def bearing_shelf_height(self):
+        """
+        returns the appropriate height for the bearing shelf
+        """
+        return (self.bracket_depth - self.bearing_depth)/2
     
     @property
     def wheel_radius(self):
@@ -92,7 +106,7 @@ class BankConfig:
         """
         returns the width of the bracket
         """
-        return self.wheel_diameter+self.minimum_structural_thickness*4+self.fillet_radius*2
+        return self.wheel_diameter+self.wheel_support_height*5+self.fillet_radius*2
 
     @property
     def bracket_height(self):
@@ -108,7 +122,8 @@ class BankConfig:
         """
         return max(self.bearing_depth+self.wheel_lateral_tolerance*2 + \
                    self.minimum_structural_thickness*2,
-                   self.connector_diameter+self.minimum_thickness*2)
+                   self.connector_diameter+self.minimum_thickness*2,
+                   self.tube_outer_diameter+self.minimum_structural_thickness*2)
 
     @property
     def fillet_radius(self):
@@ -116,3 +131,10 @@ class BankConfig:
         returns the fillet radis for bracket parts
         """
         return self.bracket_depth/self.fillet_ratio
+
+    @property
+    def wheel_support_height(self):
+        """
+        returns the appropriate height for the bearing shelf
+        """
+        return (self.bracket_depth - self.bearing_depth - self.wheel_lateral_tolerance)/2
