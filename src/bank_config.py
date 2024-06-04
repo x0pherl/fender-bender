@@ -47,14 +47,14 @@ class BankConfig:
         returns the radius of the bearing shelf
         """
         return self.bearing_shelf_diameter/2
-    
+
     @property
     def bearing_shelf_height(self):
         """
         returns the appropriate height for the bearing shelf
         """
         return (self.bracket_depth - self.bearing_depth)/2
-    
+
     @property
     def wheel_radius(self):
         """

@@ -20,7 +20,7 @@ def spoke(config: BankConfig) -> Part:
         with BuildLine():
             l1=CenterArc(center=((spoke_shift,0)), radius=spoke_outer_radius,
                          start_angle=0, arc_size=180)
-            l2=CenterArc(center=((spoke_shift,0)), 
+            l2=CenterArc(center=((spoke_shift,0)),
                          radius=spoke_outer_radius-config.rim_thickness,
                          start_angle=0, arc_size=180)
             Line(l1 @ 0, l2 @ 0)

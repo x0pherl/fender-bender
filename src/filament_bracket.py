@@ -104,7 +104,7 @@ top_outlet_origin = find_related_point((angled_distance, -angled_distance), tube
 right_connnector_location = Location((top_outlet_origin[0], top_outlet_origin[1],
                                     bracket_configuration.bracket_depth/2),
                                     (90,-45,0))
-left_connector_location = Location((-bracket_configuration.wheel_radius, 
+left_connector_location = Location((-bracket_configuration.wheel_radius,
                                     bracket_configuration.bracket_height,
                                     bracket_configuration.bracket_depth/2), (90,0,0))
 
@@ -112,11 +112,11 @@ def curvebar(length, bar_width, depth, climb, angle):
     """
     returns a zig-zag ish line
     """
-    with BuildPart() as curvebar:
+    with BuildPart() as curve_part:
         with BuildSketch() as sketch:
             x_distance = find_angle_intersection(climb/2, angle)
             angled_bar_width = find_angle_intersection(bar_width/2, angle)/2
-            with BuildLine() as ln:
+            with BuildLine():
                 Polyline(
                     (-length/2,-climb/2+bar_width/2),
                     (-length/2,-climb/2-bar_width/2),
@@ -134,9 +134,9 @@ def curvebar(length, bar_width, depth, climb, angle):
                     maximum=length/2,
                     inclusive=(False, False)), bar_width/2)
         extrude(amount=depth)
-    bar = curvebar.part
-    bar.label = "curvebar"
-    return bar
+    curve = curve_part.part
+    curve.label = "curvebar"
+    return curve
 
 def cut_spokes() -> Part:
     """
@@ -176,10 +176,10 @@ def wheel_guide_cut() -> Part:
     with BuildPart() as wheelcut:
         base_radius=bracket_configuration.wheel_radius + \
                 bracket_configuration.wheel_radial_tolerance
-        with BuildSketch() as base:
+        with BuildSketch():
             Circle(base_radius*.8)
             offset(amount=bracket_configuration.wheel_support_height)
-        with BuildSketch(Plane.XY.offset(bracket_configuration.wheel_support_height)) as lofted:
+        with BuildSketch(Plane.XY.offset(bracket_configuration.wheel_support_height)):
             Circle(base_radius*.8)
         loft()
     return wheelcut.part
@@ -411,11 +411,11 @@ def top_frame(tolerance:float=0) -> Part:
     """
     returns the outer frame for the top bracket
     """
-    with BuildPart() as top_bracket:
+    with BuildPart() as frame:
         add(top_cut_template(tolerance))
         with BuildPart(mode=Mode.INTERSECT):
             add(bottom_frame().mirror(Plane.YZ))
-    part = top_bracket.part
+    part = frame.part
     part.label = "frame"
     return part
 
@@ -430,7 +430,7 @@ def bottom_bracket(draft:bool = False) -> Part:
     if not draft:
         child_list.extend([right_connector_threads(),
                            left_connector_threads()])
-        
+
     return Part(label="bottom bracket",
                 children=child_list)
 
