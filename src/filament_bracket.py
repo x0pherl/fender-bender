@@ -163,7 +163,7 @@ def spoke_assembly() -> Part:
                         align=(Align.CENTER, Align.CENTER, Align.MIN))
         Cylinder(radius=bracket_configuration.bearing_inner_radius,
                         height=bracket_configuration.bracket_depth/2 - \
-                            bracket_configuration.wheel_radial_tolerance*2,
+                            bracket_configuration.wheel_lateral_tolerance,
                         align=(Align.CENTER, Align.CENTER, Align.MIN))
     part = constructed_brace.part
     part.label = "spoke assembly"
@@ -216,7 +216,7 @@ def left_connector_threads() -> Part:
                 length=bracket_configuration.connector_length,
                 thread_angle = bracket_configuration.connector_thread_angle,
                 external=False,
-                interference=0.3,
+                interference=bracket_configuration.connector_thread_interference,
                 hand="right",
                 align=(Align.CENTER, Align.CENTER, Align.MIN)
                 )
@@ -235,7 +235,7 @@ def right_connector_threads() -> Part:
                 pitch=bracket_configuration.connector_thread_pitch,
                 length=bracket_configuration.connector_length,
                 thread_angle = bracket_configuration.connector_thread_angle,
-                interference=0.3,
+                interference=bracket_configuration.connector_thread_interference,
                 external=False,
                 hand="right",
                 align=(Align.CENTER, Align.CENTER, Align.MIN)
@@ -419,17 +419,20 @@ def top_frame(tolerance:float=0) -> Part:
     part.label = "frame"
     return part
 
-def bottom_bracket() -> Part:
+def bottom_bracket(draft:bool = False) -> Part:
     """
     returns a complete bottom bracket
     """
-    return Part(label="bottom bracket",
-                children=[spoke_assembly(),
+    child_list = [spoke_assembly(),
                           bottom_frame(),
                           wheel_guide(),
-                          right_connector_threads(),
-                          left_connector_threads()
-                          ])
+                          ]
+    if not draft:
+        child_list.extend([right_connector_threads(),
+                           left_connector_threads()])
+        
+    return Part(label="bottom bracket",
+                children=child_list)
 
 def top_bracket() -> Part:
     """
@@ -440,11 +443,11 @@ def top_bracket() -> Part:
                           top_frame(tolerance=0.1),
                           spoke_assembly().mirror(Plane.XZ)])
 
-def main():
+def main(draft:bool = False):
     """
     shows and saves the parts
     """
-    bottom = bottom_bracket()
+    bottom = bottom_bracket(draft=draft)
     top = top_bracket()
     show(bottom.move(Location((bracket_configuration.bracket_width/2+5,0,0))),
          top.move(Location((-bracket_configuration.bracket_width/2+5,0,0))))

@@ -13,18 +13,19 @@ class BankConfig:
     bearing_shelf_diameter = 8.5
     bearing_depth: float = 4
 
-    wheel_diameter:float = 75
+    wheel_diameter:float = 70
     spoke_count: int = 5
-    wheel_lateral_tolerance: float = 0.2
+    wheel_lateral_tolerance: float = 0.6
     wheel_radial_tolerance: float = 0.2
 
     minimum_structural_thickness = 4
     minimum_thickness = 1
 
-    connector_diameter: float = 10.2
+    connector_diameter: float = 10.3
     connector_length: float = 6.7
     connector_thread_pitch:float = 1
     connector_thread_angle:float = 30
+    connector_thread_interference = 0.4
 
     tube_inner_diameter = 3.5
     tube_outer_diameter = 6.5
@@ -122,10 +123,10 @@ class BankConfig:
         """
         returns the depth of the bracket
         """
-        return max(self.bearing_depth+self.wheel_lateral_tolerance*2 + \
+        return max(self.bearing_depth+self.wheel_lateral_tolerance + \
                    self.minimum_structural_thickness*2,
                    self.connector_diameter+self.minimum_thickness*2,
-                   self.tube_outer_diameter+self.minimum_structural_thickness*2)
+                   self.tube_outer_diameter+self.minimum_thickness*2)
 
     @property
     def fillet_radius(self):
