@@ -458,4 +458,8 @@ def main(draft:bool = False):
     export_stl(bottom, '../stl/bottom_bracket.stl')
     export_stl(top, '../stl/top_bracket.stl')
 
+<<<<<<< HEAD
 main(draft=False)
+=======
+main(draft=True)
+>>>>>>> 8cea0790938ce5e639c9f57d733a0648f6a4758c
