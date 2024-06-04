@@ -5,7 +5,7 @@ from math import sqrt, radians, cos, sin, hypot, atan2, degrees, tan
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Axis, Box, Align, Cylinder,
-                export_stl, offset, Polyline)
+                export_stl, offset, Polyline, Rectangle)
 from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from bank_config import BankConfig
@@ -262,6 +262,10 @@ def tube_cut(length):
                 Circle(radius=bracket_configuration.tube_inner_radius)
             with BuildSketch(Plane.XY.offset(length)):
                 Circle(radius=bracket_configuration.tube_outer_diameter*.75)
+                Rectangle(width=bracket_configuration.tube_outer_diameter*2,
+                          height=bracket_configuration.bearing_depth + \
+                            bracket_configuration.wheel_lateral_tolerance,
+                            mode=Mode.INTERSECT)
             loft()
     part = tube.part
     part.label = "tube cut"
@@ -454,4 +458,4 @@ def main(draft:bool = False):
     export_stl(bottom, '../stl/bottom_bracket.stl')
     export_stl(top, '../stl/top_bracket.stl')
 
-main()
+main(draft=False)
