@@ -1,7 +1,7 @@
 """
 Generates the part for the filament bracket of our filament bank design
 """
-from math import sqrt, radians, cos, sin, hypot, atan2, degrees, tan
+from math import sqrt
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Axis, Box, Align, Cylinder,
@@ -9,78 +9,11 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
 from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from bank_config import BankConfig
+from geometry_utils import (distance_to_circle_edge,
+            find_related_point, x_point_to_angle)
+from curvebar import curvebar
 
 bracket_configuration = BankConfig()
-
-def find_angle_intersection(known_distance, angle):
-    """
-    given an angle and the length along the adjascent axis, 
-    calculates the distance along the opposite axis
-    """
-    return known_distance * tan(radians(angle))
-
-def find_related_point(origin:tuple, distance:float, angle:float):
-    """
-    from a given origin, find the point along a given angle and distance
-    """
-    x,y = origin
-    return ((x + (distance * cos(radians(angle)))),
-            (y + (distance * sin(radians(angle)))))
-
-def point_distance(p1, p2):
-    """
-    returns the distance between two points
-    """
-    x1,y1 = p1
-    x2,y2 = p2
-    return hypot(x2-x1, y2-y1)
-
-def x_point_to_angle(radius, x_position):
-    """
-    for a circle with a given radius, given an x axis position,
-    returns the angle at which an intersection will occur with the
-    circle's edge
-    """
-    y_position = distance_to_circle_edge(radius, (x_position, 0), 90)
-    return degrees(atan2(y_position, x_position))
-
-def y_point_to_angle(radius, y_position):
-    """
-    for a circle with a given radius, given a y axis position,
-    returns the angle at which an intersection will occur with the
-    circle's edge
-    """
-    x_position = distance_to_circle_edge(radius, (0, y_position), 90)
-    return degrees(atan2(y_position, x_position))
-
-def distance_to_circle_edge(radius, point, angle):
-    """
-    for a circle with the given radius, find the distance from the
-    given point to the edge of the circle in the direction determined
-    by the given angle
-    """
-    x1, y1 = point
-    theta = radians(angle)  # Convert angle to radians if it's given in degrees
-
-    # Coefficients of the quadratic equation
-    a = 1
-    b = 2 * (x1 * cos(theta) + y1 * sin(theta))
-    c = x1**2 + y1**2 - radius**2
-
-    # Calculate the discriminant
-    discriminant = b**2 - 4 * a * c
-
-    if discriminant < 0:
-        return None  # No real intersection, should not happen as point is within the circle
-
-    # Solve the quadratic equation for t
-    t1 = (-b + sqrt(discriminant)) / (2 * a)
-    t2 = (-b - sqrt(discriminant)) / (2 * a)
-
-    # We need the positive t, as we are extending outwards
-    t = max(t1, t2)
-
-    return t
 
 connector_distance = bracket_configuration.connector_radius+bracket_configuration.minimum_thickness
 inner_edge_distance = bracket_configuration.wheel_radius-connector_distance
@@ -107,36 +40,6 @@ right_connnector_location = Location((top_outlet_origin[0], top_outlet_origin[1]
 left_connector_location = Location((-bracket_configuration.wheel_radius,
                                     bracket_configuration.bracket_height,
                                     bracket_configuration.bracket_depth/2), (90,0,0))
-
-def curvebar(length, bar_width, depth, climb, angle):
-    """
-    returns a zig-zag ish line
-    """
-    with BuildPart() as curve_part:
-        with BuildSketch() as sketch:
-            x_distance = find_angle_intersection(climb/2, angle)
-            angled_bar_width = find_angle_intersection(bar_width/2, angle)/2
-            with BuildLine():
-                Polyline(
-                    (-length/2,-climb/2+bar_width/2),
-                    (-length/2,-climb/2-bar_width/2),
-                    (-x_distance-angled_bar_width+bar_width/2,-climb/2-bar_width/2),
-                    (x_distance-angled_bar_width+bar_width/2,climb/2-bar_width/2),
-                    (length/2,climb/2-bar_width/2),
-                    (length/2,climb/2+bar_width/2),
-                    (x_distance+angled_bar_width-bar_width/2,climb/2+bar_width/2),
-                    (-x_distance+angled_bar_width-bar_width/2, -climb/2+bar_width/2),
-                    (-length/2,-climb/2+bar_width/2),
-                )
-            make_face()
-            fillet(sketch.vertices().filter_by_position(axis=Axis.X,
-                    minimum=-length/2,
-                    maximum=length/2,
-                    inclusive=(False, False)), bar_width/2)
-        extrude(amount=depth)
-    curve = curve_part.part
-    curve.label = "curvebar"
-    return curve
 
 def cut_spokes() -> Part:
     """
@@ -387,13 +290,13 @@ def bottom_frame() -> Part:
             with BuildSketch():
                 with BuildLine():
                     arc=CenterArc((-bracket_configuration.bracket_width/2,
-                                   bracket_configuration.bracket_height*.5),
+                                   bracket_configuration.bracket_height*.25),
                                    radius=bracket_configuration.clip_length,
                                    start_angle=270, arc_size=90)
                     Line(arc @ 1, (-bracket_configuration.bracket_width/2,
-                                   bracket_configuration.bracket_height*.5))
+                                   bracket_configuration.bracket_height*.25))
                     Line(arc @ 0, (-bracket_configuration.bracket_width/2,
-                                   bracket_configuration.bracket_height*.5))
+                                   bracket_configuration.bracket_height*.25))
                 make_face()
             extrude(amount=bracket_configuration.bracket_depth)
         with BuildPart(right_connnector_location, mode=Mode.SUBTRACT):

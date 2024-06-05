@@ -32,7 +32,8 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    top_frame_wall_thickness = 4
+    top_frame_wall_thickness = 1
+    top_frame_bracket_tolerance = 0.2
 
     @property
     def clip_length(self):
