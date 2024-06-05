@@ -32,7 +32,7 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    top_frame_wall_thickness = 1
+    top_frame_wall_thickness = 2
     top_frame_bracket_tolerance = 0.2
 
     @property
