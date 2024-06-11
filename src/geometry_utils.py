@@ -1,7 +1,7 @@
 """
 Useful geometry utilities for design
 """
-from math import sqrt, radians, cos, sin, hypot, atan2, degrees, tan
+from math import sqrt, radians, cos, sin, atan2, degrees, tan
 from shapely.geometry import Point
 
 def find_angle_intersection(known_distance, angle):

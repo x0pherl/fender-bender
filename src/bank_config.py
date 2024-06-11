@@ -36,6 +36,8 @@ class BankConfig:
 
     fillet_ratio = 4
 
+    filament_count = 3
+
     top_frame_wall_thickness = 2
     top_frame_bracket_tolerance = 0.2
 
@@ -56,9 +58,40 @@ class BankConfig:
         """
         right_bottom_bar_distance = -self.spoke_climb/2-self.spoke_bar_height/2
         right_top_intersection = self.find_point_along_right(right_bottom_bar_distance + self.spoke_bar_height)
+        right_bottom_bar_distance = -self.spoke_climb/2 - \
+            self.spoke_bar_height/2
+        # right_bottom_intersection = self.find_point_along_right(
+        #                 right_bottom_bar_distance)
+        right_top_intersection = self.find_point_along_right(
+                        right_bottom_bar_distance + self.spoke_bar_height)
     
-        barpoint = find_related_point_by_y(right_top_intersection, -self.clip_length, 225)
+        barpoint = find_related_point_by_distance(right_top_intersection, self.clip_length, 225)
         return Point(barpoint.x, barpoint.y)
+        #return Point(right_top_intersection.x, right_top_intersection.y)
+    
+    @property
+    def frame_click_sphere_point(self) -> Point:
+        return Point(-self.bracket_width/2 + \
+                        self.fillet_radius + \
+                        self.clip_length,
+                        -self.frame_clip_point.y + \
+                        self.spoke_bar_height/2)
+
+    @property
+    def frame_click_sphere_radius(self) -> Point:
+        return self.clip_length/3
+
+    @property
+    def frame_interior_width(self) -> float:
+        return ((self.bracket_depth + \
+            self.top_frame_wall_thickness + \
+            self.top_frame_bracket_tolerance*2) * \
+            self.filament_count) - \
+            self.top_frame_wall_thickness
+
+    @property
+    def frame_exterior_width(self) -> float:
+        return self.frame_interior_width + (self.minimum_structural_thickness*2)
 
     @property
     def exit_tube_entry_point(self) -> Point:
@@ -133,6 +166,7 @@ class BankConfig:
         """
         #return (self.connector_radius-self.tube_outer_radius+self.minimum_thickness)
         return (self.bracket_depth/2-self.tube_outer_radius-min(self.wheel_radial_tolerance, self.wheel_lateral_tolerance))
+
     @property
     def bearing_shelf_radius(self) -> float:
         """
