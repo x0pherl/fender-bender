@@ -6,7 +6,8 @@ from shapely import LineString, Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location, Locations,
                 Plane, loft, fillet, Axis, Box, Align, Cylinder, Sphere,
-                export_stl, offset, Polyline, Rectangle, Vector, sweep)
+                export_stl, offset, Polyline, Rectangle, Vector, sweep,
+                Until)
 from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from bank_config import BankConfig
@@ -15,6 +16,8 @@ from curvebar import curvebar
 from bank_config import BankConfig
 
 bracket_configuration = BankConfig()
+frame_configuration = BankConfig()
+
 
 def sweep_cut() -> Part:
     arc_radius = point_distance(bracket_configuration.frame_click_sphere_point,
@@ -50,13 +53,14 @@ def divot() -> Part:
     
     return bump.part
 
-    
-with BuildPart() as main:
-    #Cylinder(bracket_configuration.bracket_width/2, bracket_configuration.bracket_depth, align=(Align.CENTER, Align.CENTER, Align.MAX))
-    with Locations(Location((0,0,0)), Location((0,0,-bracket_configuration.bracket_depth))):
-        add(divot())
-        
-    # add(sweep_cut())
-    # add(sweep_cut().move(Location((0,0,-bracket_configuration.bracket_depth))))
+right_bottom_bar_distance = -frame_configuration.spoke_climb/2 - \
+    frame_configuration.spoke_bar_height/2
+right_bottom_intersection = frame_configuration.find_point_along_right(
+                right_bottom_bar_distance)
+right_top_intersection = frame_configuration.find_point_along_right(
+                right_bottom_bar_distance + frame_configuration.spoke_bar_height)
+
+with BuildPart(Location((-62,20,0), (90,60,0))) as main:
+        Cylinder(radius=4, height=10, align=(Align.CENTER, Align.CENTER, Align.MIN))
 
 show(main)

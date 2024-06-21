@@ -6,7 +6,8 @@ from shapely import Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Locations, Plane, loft, fillet, Axis, Box, Align, Cylinder,
-                export_stl, offset, Polyline, Rectangle, Sphere, sweep)
+                export_stl, offset, Polyline, Rectangle, Sphere, sweep,
+                GridLocations)
 from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from bank_config import BankConfig
@@ -173,29 +174,31 @@ def tube_cut(length):
     return part
 
 def sweep_cut() -> Part:
-    arc_radius = point_distance(bracket_configuration.frame_click_sphere_point,
-                bracket_configuration.frame_clip_point)
-    x_distance = bracket_configuration.frame_clip_point.x + \
-        abs(bracket_configuration.frame_click_sphere_point.x)
-    top_angle = 180-x_point_to_angle(radius=arc_radius, x_position=x_distance)
-    bottom_angle = 180-y_point_to_angle(radius=arc_radius,
-    y_position=abs(bracket_configuration.frame_clip_point.y))
+    """
+    the cut for the clip point on the back of the top frame
+    to easily slide through
+    """
+    # arc_radius = point_distance(bracket_configuration.frame_click_sphere_point,
+    #             bracket_configuration.frame_clip_point)
+    # x_distance = bracket_configuration.frame_clip_point.x + \
+    #     abs(bracket_configuration.frame_click_sphere_point.x)
+    # top_angle = 180-x_point_to_angle(radius=arc_radius, x_position=x_distance)
+    # bottom_angle = 180-y_point_to_angle(radius=arc_radius,
+    # y_position=abs(bracket_configuration.frame_clip_point.y))
 
-    with BuildPart() as cut:
+    with BuildPart(mode=Mode.PRIVATE) as cut:
         with BuildLine():
-            ln=CenterArc(center=(bracket_configuration.frame_clip_point.x,
-                        bracket_configuration.frame_clip_point.y),
-                        radius=arc_radius, start_angle=bottom_angle,
-                        arc_size=-bottom_angle+top_angle)
+            ln=bracket_configuration.sweep_cut_arc
         with BuildSketch(Plane(origin=ln @ 0, z_dir=ln % 0)):
-            Circle(bracket_configuration.clip_length/3 + \
-                        bracket_configuration.top_frame_bracket_tolerance)
+            Circle(bracket_configuration.sweep_cut_width/2)
         sweep()
+
     return cut.part
 
 def top_cut_template(tolerance:float=0) -> Part:
     """
     returns the shape defining the top cut of the bracket
+    (the part that slides into place to hold the filament wheel in place)
     provide a tolerance for the actual part to make it easier to assemble
     """
     base_outer_radius = bracket_configuration.wheel_radius + \
@@ -261,6 +264,27 @@ def top_cut_template(tolerance:float=0) -> Part:
         loft()
     return template.part
 
+def support_cut() -> Part:
+    """
+    the cutout for the angled part tube box to clip into the front of the
+    frame bracket
+    """
+    
+    with BuildPart()as clip_cut:
+        with BuildSketch():
+            with BuildLine():
+                arc=CenterArc((float(bracket_configuration.frame_clip_point.x), float(bracket_configuration.frame_clip_point.y)),
+                                radius=bracket_configuration.clip_length,
+                                start_angle=45, arc_size=90)
+                Line(arc @ 1, (float(bracket_configuration.frame_clip_point.x), float(bracket_configuration.frame_clip_point.y)))
+                Line(arc @ 0, (float(bracket_configuration.frame_clip_point.x), float(bracket_configuration.frame_clip_point.y)))
+            make_face()
+        extrude(amount=bracket_configuration.bracket_depth)
+    part =clip_cut
+    clip_cut.label = "clip cut"
+    return part
+
+
 def bottom_frame() -> Part:
     """
     returns the outer frame for the bottom bracket
@@ -306,52 +330,22 @@ def bottom_frame() -> Part:
                         .group_by(Axis.X, reverse=True)[-2], bracket_configuration.fillet_radius)
 
         with BuildPart(mode=Mode.SUBTRACT):
-            with BuildSketch():
-                with BuildLine():
-                    arc=CenterArc((float(bracket_configuration.frame_clip_point.x), float(bracket_configuration.frame_clip_point.y)),
-                                  radius=bracket_configuration.clip_length,
-                                    start_angle=45, arc_size=90)
-                    Line(arc @ 1, (float(bracket_configuration.frame_clip_point.x), float(bracket_configuration.frame_clip_point.y)))
-                    Line(arc @ 0, (float(bracket_configuration.frame_clip_point.x), float(bracket_configuration.frame_clip_point.y)))
-                make_face()
-            extrude(amount=bracket_configuration.bracket_depth)
-
-        #todo definitely need to figure out how to use gridlocations along the z axis!!!
-        # arc_radius = point_distance(bracket_configuration.frame_click_sphere_point,
-        #             bracket_configuration.frame_clip_point)
-        # x_distance = bracket_configuration.frame_clip_point.x + \
-        #     abs(bracket_configuration.frame_click_sphere_point.x)
-        # top_angle = 180-x_point_to_angle(radius=arc_radius, x_position=x_distance)
-        # bottom_angle = 180-y_point_to_angle(radius=arc_radius,
-        #     y_position=abs(bracket_configuration.frame_clip_point.y))
-
-        with Locations(((0,0,0))):
-            with BuildPart(mode=Mode.ADD):
+            add(support_cut())
+            with Locations(Location((0,0,0)), Location((0,0,bracket_configuration.bracket_depth))):
                 add(sweep_cut())
-        #     with BuildLine():
-        #         ln=CenterArc(center=(bracket_configuration.frame_clip_point.x,
-        #                     bracket_configuration.frame_clip_point.y),
-        #                     radius=arc_radius, start_angle=bottom_angle,
-        #                     arc_size=-bottom_angle+top_angle)
-        #     with BuildSketch(Plane(origin=ln @ 0, z_dir=ln % 0)):
-        #         Circle(bracket_configuration.clip_length/3 + \
-        #                     bracket_configuration.top_frame_bracket_tolerance)
-        #     sweep()
+        with BuildPart():
+            with bracket_configuration.sweep_cut_break_channel_locations:
+                Cylinder(radius=(bracket_configuration.sweep_cut_width/2)*.9,
+                        height=bracket_configuration.sweep_cut_width*2)
 
-        with BuildPart(Location((bracket_configuration.frame_click_sphere_point.x,
+        with BuildPart(mode=Mode.SUBTRACT):
+            with Locations(Location((bracket_configuration.frame_click_sphere_point.x,
                         bracket_configuration.frame_click_sphere_point.y,
-                        bracket_configuration.bracket_depth)),
-                        mode=Mode.SUBTRACT):
-            Sphere(radius=bracket_configuration.clip_length/3 + \
-                       bracket_configuration.top_frame_bracket_tolerance)
-
-
-        with BuildPart(Location((bracket_configuration.frame_click_sphere_point.x,
+                        0)), Location((bracket_configuration.frame_click_sphere_point.x,
                         bracket_configuration.frame_click_sphere_point.y,
-                        0)),
-                        mode=Mode.SUBTRACT):
-            Sphere(radius=bracket_configuration.clip_length/3 + \
-                       bracket_configuration.top_frame_bracket_tolerance)
+                        bracket_configuration.bracket_depth))):
+                Sphere(radius=bracket_configuration.sweep_cut_width/2)
+
         with BuildPart(right_connector_location, mode=Mode.SUBTRACT):
             add(tube_cut(bracket_configuration.tube_length))
         with BuildPart(left_connector_location, mode=Mode.SUBTRACT):

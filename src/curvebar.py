@@ -5,6 +5,7 @@ from build123d import (BuildPart, BuildSketch, BuildLine, Polyline,
                        make_face, fillet, extrude, Axis)
 from geometry_utils import find_angle_intersection
 
+
 def curvebar(length, bar_width, depth, climb, angle=45):
     """
     returns a zig-zag ish line
