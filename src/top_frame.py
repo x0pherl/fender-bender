@@ -122,12 +122,13 @@ def frame() -> Part:
                 align=(Align.MIN, Align.CENTER, Align.MAX))
         with GridLocations(0,frame_configuration.top_frame_interior_width+frame_configuration.minimum_structural_thickness, 1, 2):
            add(frame_side(frame_configuration.minimum_structural_thickness))
-        fillet_edges = top_frame.edges().filter_by_position(Axis.Y, minimum=frame_configuration.top_frame_exterior_width/2-.01, maximum=frame_configuration.top_frame_exterior_width/2+.02, inclusive=(True,True)) + \
+        fillet_edges = \
+                top_frame.edges().filter_by_position(Axis.Y, minimum=frame_configuration.top_frame_exterior_width/2-.01, maximum=frame_configuration.top_frame_exterior_width/2+.02, inclusive=(True,True)) + \
                 top_frame.edges().filter_by_position(Axis.Y, minimum=-frame_configuration.top_frame_exterior_width/2-.01, maximum=-frame_configuration.top_frame_exterior_width/2+.02, inclusive=(True,True)) + \
                 top_frame.edges().filter_by_position(Axis.X, minimum=-frame_configuration.spoke_length/2-frame_configuration.minimum_structural_thickness-.01, maximum=-frame_configuration.spoke_length/2+.01, inclusive=(True,True)) + \
                 top_frame.edges().filter_by_position(Axis.X, minimum=right_top_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.top_frame_bracket_tolerance-.01, maximum=right_top_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.top_frame_bracket_tolerance+.01, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.Z, minimum=-frame_configuration.spoke_height/2-.01, maximum=-frame_configuration.spoke_height/2+.01, inclusive=(True,True))
-        
+                top_frame.edges().filter_by_position(Axis.X, minimum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.top_frame_bracket_tolerance-.01, maximum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.top_frame_bracket_tolerance+.01, inclusive=(True,True))
+
         fillet(fillet_edges, frame_configuration.minimum_structural_thickness/frame_configuration.fillet_ratio)
 
         with BuildPart(Location((right_top_intersection.x +\
@@ -170,10 +171,6 @@ def bracket():
     part = fil_bracket
     part.label = "bracket"
     return part
-
-################
-#todo: filet the top of the curvebars
-#################
 
 #frame()
 show(frame(), bracket())
