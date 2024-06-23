@@ -156,7 +156,7 @@ def frame() -> Part:
     part = top_frame.part
     return part
 
-def bracket():
+def bracket() -> Part:
     """
     returns enough of the filament bracket to help display the frame alignment
     useful in debugging
@@ -168,7 +168,7 @@ def bracket():
             (0,frame_configuration.bracket_depth/2, 0))))
         add(wheel_guide().rotate(axis=Axis.X, angle=90).move(Location(
             (0,frame_configuration.bracket_depth/2, 0))))
-    part = fil_bracket
+    part = fil_bracket.part
     part.label = "bracket"
     return part
 
@@ -176,4 +176,4 @@ def bracket():
 show(frame(), bracket())
 #show(frame())
 
-#export_stl(demo().part, '../stl/frame_test.stl')
+export_stl(frame(), '../stl/top_frame.stl')

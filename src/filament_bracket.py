@@ -409,24 +409,4 @@ def main(draft:bool = False):
     export_stl(top, '../stl/top_bracket.stl')
 
 
-#main(draft=False)
-# arc_radius = point_distance(bracket_configuration.frame_click_sphere_point,
-#                     bracket_configuration.frame_clip_point)
-# x_distance = bracket_configuration.frame_clip_point.x + \
-#     abs(bracket_configuration.frame_click_sphere_point.x)
-# top_angle = 180-x_point_to_angle(radius=arc_radius, x_position=x_distance)
-# bottom_angle = 180-y_point_to_angle(radius=arc_radius,
-#     y_position=abs(bracket_configuration.frame_clip_point.y))
-# with BuildPart() as slide_cut:
-#     with BuildLine() as sweep_path:
-#         ln=CenterArc(center=(bracket_configuration.frame_clip_point.x,
-#                      bracket_configuration.frame_clip_point.y),
-#                      radius=arc_radius, start_angle=bottom_angle,
-#                      arc_size=-bottom_angle+top_angle)
-#     with BuildSketch(Plane(origin=ln @ 0, z_dir=ln % 0)) as sweep_sketch:
-#         Circle(bracket_configuration.clip_length/3 + \
-#                        bracket_configuration.top_frame_bracket_tolerance)
-#     sweep()
-#show(slide_cut, sweep_path)
-#show(bottom_frame(),slide_cut, sweep_path)
-show(bottom_frame())
+main(draft=False)
