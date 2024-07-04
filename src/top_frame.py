@@ -11,6 +11,7 @@ from curvebar import curvebar
 from shapely.geometry import Point
 from geometry_utils import find_related_point_by_distance
 from filament_bracket import bottom_frame, spoke_assembly, wheel_guide
+from walls import front_wall
 
 frame_configuration = BankConfig()
 
@@ -18,12 +19,13 @@ def support_bar(tolerance = 0) -> Part:
     """
     creates the bar to support the clip that holds the bracket in place
     """
-    center = find_related_point_by_distance(Point(0,0), frame_configuration.clip_length - tolerance, -135)
+    adjusted_radius = frame_configuration.clip_length - tolerance
+    center = find_related_point_by_distance(Point(0,0), adjusted_radius, -135)
     with BuildPart() as support:
         with BuildSketch():
             with BuildLine():
                 arc=CenterArc((center.x,center.y),
-                                radius=frame_configuration.clip_length - tolerance,
+                                radius=adjusted_radius,
                                 start_angle=45, arc_size=90)
                 Line(arc @ 1, (center.x,center.y))
                 Line(arc @ 0, (center.x,center.y))
@@ -34,29 +36,39 @@ def support_bar(tolerance = 0) -> Part:
     part.label = "support"
     return part
 
-def frame_side(thickness=frame_configuration.wall_thickness) -> Part:
+def frame_side(thickness=frame_configuration.wall_thickness, extend=0) -> Part:
     """
     builds a side of the frame
+    arguments:
+    thickness: determines the depth of the wall
+    extend: extends each side of the frame side out by this additional ammount
     """
     with BuildPart() as side:
         with BuildPart() as cb:
             add(curvebar(frame_configuration.spoke_length/2,
                 frame_configuration.spoke_bar_height,
                 thickness,
-                frame_configuration.spoke_climb, frame_configuration.spoke_angle).rotate(Axis.X, 90).move(Location((0,thickness/2,0))))
-        add(angle_bar(thickness).move(Location((-frame_configuration.minimum_structural_thickness,0,0))))
+                frame_configuration.spoke_climb, 
+                frame_configuration.spoke_angle).rotate(Axis.X, 90) \
+                    .move(Location((0,thickness/2,0))))
+        add(angle_bar(thickness).move(Location(
+            (-frame_configuration.minimum_structural_thickness+extend,0,0))))
         extrude(cb.faces().sort_by(Axis.X)[-1], until=Until.NEXT)
-        extrude(cb.faces().sort_by(Axis.X)[0], amount=frame_configuration.spoke_length/4)
+        extrude(cb.faces().sort_by(Axis.X)[0], amount=frame_configuration.spoke_length/4+extend)
         bar_height = frame_configuration.spoke_climb/2 -\
             frame_configuration.spoke_bar_height/2
         base_width = frame_configuration.fillet_radius+frame_configuration.minimum_thickness + \
                 frame_configuration.wheel_support_height+frame_configuration.connector_radius - \
-                frame_configuration.tube_outer_radius +  bar_height/2 + frame_configuration.wall_thickness
+                frame_configuration.tube_outer_radius +  \
+                bar_height/2 + frame_configuration.wall_thickness
         with BuildPart(Location((-frame_configuration.spoke_length/2+base_width*1.25,
-                                 0,bar_height))):
+                                 0,bar_height))) as bottom_curve:
             add(curvebar(base_width*2.5,bar_height,
                 thickness,
-                climb=bar_height).mirror(Plane.YZ).rotate(Axis.X, 90).move(Location((0,thickness/2,0))))
+                climb=bar_height).mirror(Plane.YZ).rotate(Axis.X, 90) \
+                        .move(Location((0,thickness/2,0))))
+            if extend > 0:
+                extrude(bottom_curve.faces().sort_by(Axis.X)[0], amount=extend)
 
     part = side
     part.label = "Frame Side"
@@ -71,13 +83,13 @@ def angle_bar(depth: float) -> Part:
         with BuildSketch(Location((right_bottom_intersection.x + \
                     frame_configuration.top_frame_bracket_tolerance,0,
                     right_bottom_intersection.y), (0,0,0))) as base:
-            Rectangle(frame_configuration.minimum_structural_thickness,
+            Rectangle(frame_configuration.minimum_structural_thickness*2,
                     depth,
                     align=(Align.MIN, Align.CENTER))
         with BuildSketch(Location((right_top_intersection.x +\
                     frame_configuration.top_frame_bracket_tolerance,0,
                     right_top_intersection.y), (0,0,0))):
-            Rectangle(frame_configuration.minimum_structural_thickness,
+            Rectangle(frame_configuration.minimum_structural_thickness*2,
                     depth,
                     align=(Align.MIN, Align.CENTER))
         loft()
@@ -101,6 +113,17 @@ def demo() -> Part:
     with BuildPart() as test:
         add(frame_side())
     return test.part
+
+def straight_wall_groove() -> Part:
+    with BuildPart() as groove:
+        Box(frame_configuration.wall_thickness+frame_configuration.top_frame_bracket_tolerance,
+            frame_configuration.top_frame_interior_width+frame_configuration.wall_thickness*4+frame_configuration.top_frame_bracket_tolerance,
+            frame_configuration.frame_tongue_depth/2+frame_configuration.top_frame_bracket_tolerance,
+            align=(Align.CENTER, Align.CENTER, Align.MIN))
+        extrude(groove.faces().sort_by(Axis.Z)[-1], amount=frame_configuration.frame_tongue_depth/2, taper=44)
+    part = groove.part
+    part.label = "groove"
+    return part
 
 def frame() -> Part:
     with BuildPart() as top_frame:
@@ -137,22 +160,30 @@ def frame() -> Part:
                     right_top_intersection.y), (90,0,0))):
             add(support_bar(tolerance=frame_configuration.top_frame_bracket_tolerance))
         
-        with GridLocations(0,frame_configuration.bracket_depth + \
-                    frame_configuration.wall_thickness + \
-                    frame_configuration.top_frame_bracket_tolerance*2,
+        with GridLocations(0,frame_configuration.frame_bracket_spacing,
                     1,frame_configuration.filament_count+1):
             add(frame_side())
+
+        with BuildPart(Location((right_bottom_intersection.x + frame_configuration.minimum_structural_thickness + frame_configuration.minimum_thickness,
+                                 0,right_bottom_intersection.y)),mode=Mode.SUBTRACT):
+            add(straight_wall_groove())
+        with BuildPart(Location((-frame_configuration.bracket_width/2 - \
+                        frame_configuration.top_frame_bracket_tolerance - \
+                            frame_configuration.minimum_structural_thickness + frame_configuration.frame_back_foot_length +
+                            frame_configuration.wall_thickness/2 + frame_configuration.top_frame_bracket_tolerance/2,
+                                 0,0)),mode=Mode.SUBTRACT):
+            add(straight_wall_groove())
 
         with BuildPart(Location((frame_configuration.frame_click_sphere_point.x,
                     frame_configuration.bracket_depth/2+frame_configuration.top_frame_bracket_tolerance,
                     frame_configuration.frame_click_sphere_point.y)), mode=Mode.ADD):
-            with GridLocations(0,frame_configuration.bracket_depth+frame_configuration.wall_thickness+frame_configuration.top_frame_bracket_tolerance*2, 1, frame_configuration.filament_count):
-                Sphere(radius=frame_configuration.clip_length/4)
+            with GridLocations(0,frame_configuration.frame_bracket_spacing, 1, frame_configuration.filament_count):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius*.75)
         with BuildPart(Location((frame_configuration.frame_click_sphere_point.x,
                     -frame_configuration.bracket_depth/2-frame_configuration.top_frame_bracket_tolerance,
                     frame_configuration.frame_click_sphere_point.y)), mode=Mode.ADD):
-            with GridLocations(0,frame_configuration.bracket_depth+frame_configuration.wall_thickness+frame_configuration.top_frame_bracket_tolerance*2, 1, frame_configuration.filament_count):
-                Sphere(radius=frame_configuration.clip_length/4)
+            with GridLocations(0,frame_configuration.frame_bracket_spacing, 1, frame_configuration.filament_count):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius*.75)
     part = top_frame.part
     return part
 
@@ -173,7 +204,9 @@ def bracket() -> Part:
     return part
 
 #frame()
-show(frame(), bracket())
-#show(frame())
+wall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(Location((-frame_configuration.bracket_width/2 - \
+                        frame_configuration.top_frame_bracket_tolerance - \
+                            frame_configuration.minimum_structural_thickness + frame_configuration.frame_back_foot_length + frame_configuration.top_frame_bracket_tolerance/2,0,-frame_configuration.sidewall_section_length/2)))
+show(frame(), bracket(), wall)
 
 export_stl(frame(), '../stl/top_frame.stl')

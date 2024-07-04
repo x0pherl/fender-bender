@@ -40,7 +40,10 @@ class BankConfig:
 
     filament_count = 3
 
+    sidewall_section_length = 100
+
     wall_thickness = 2
+    frame_tongue_depth = 4
     top_frame_bracket_tolerance = 0.2
 
     @property
@@ -71,6 +74,13 @@ class BankConfig:
         return Point(barpoint.x, barpoint.y)
         #return Point(right_top_intersection.x, right_top_intersection.y)
     
+    @property
+    def frame_bracket_spacing(self) -> Point:
+        """
+        returns the distance between the sidewalls of the frame
+        """
+        return self.bracket_depth + self.wall_thickness + self.top_frame_bracket_tolerance * 2
+
     @property
     def sweep_cut_break_channel_locations(self) -> Locations:
         """
@@ -141,9 +151,10 @@ class BankConfig:
 
     @property
     def frame_back_foot_length(self) -> float:
-        return self.fillet_radius+self.minimum_thickness + \
-            self.wheel_support_height+self.connector_radius - \
-            self.tube_outer_radius+self.minimum_structural_thickness
+        # return self.fillet_radius+self.minimum_thickness + \
+        #     self.wheel_support_height+self.connector_radius - \
+        #     self.tube_outer_radius+self.minimum_structural_thickness
+        return self.bracket_width/2-self.wheel_radius-self.wheel_support_height*1.5-self.wheel_radial_tolerance
     
     @property
     def frame_click_sphere_radius(self) -> Point:
@@ -162,7 +173,7 @@ class BankConfig:
             self.top_frame_bracket_tolerance*2) * \
             self.filament_count) - \
             self.wall_thickness
-
+    
     @property
     def top_frame_exterior_width(self) -> float:
         """
@@ -218,6 +229,18 @@ class BankConfig:
             return y_line.intersection(right_foundation_boundary)
         raise ValueError("unable to calculate the rightmost point at this distance")
     
+    @property 
+    def sidewall_width(self) -> float:
+        """
+        returns the appropriate width for the sidewalls
+        """
+        right_bottom_intersection = self.find_point_along_right(
+            -self.spoke_height/2)
+        return self.bracket_width/2 + \
+                right_bottom_intersection.x - \
+                self.wall_thickness *2
+    
+    #todo -- spoke_length is a confusing name for this
     @property
     def spoke_length(self) -> float:
         return self.bracket_width + \
@@ -324,6 +347,7 @@ class BankConfig:
         """
         returns the width of the bracket
         """
+        #todo 5 feels like a magic value here
         return self.wheel_diameter+self.wheel_support_height*5+self.fillet_radius*2
 
     @property
