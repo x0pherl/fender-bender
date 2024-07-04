@@ -8,10 +8,9 @@ from build123d import (BuildPart, BuildSketch, Part, CenterArc,
                 Vector, chamfer)
 from ocp_vscode import show
 from bank_config import BankConfig
-from curvebar import curvebar
+from curvebar import frame_side
 from shapely.geometry import Point
 from geometry_utils import find_related_point_by_distance
-from top_frame import frame_side
 
 bracket_config = BankConfig()
 
