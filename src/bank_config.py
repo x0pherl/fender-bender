@@ -47,6 +47,13 @@ class BankConfig:
     top_frame_bracket_tolerance = 0.2
 
     @property
+    def front_wall_length(self) -> float:
+        """
+        the calculated length for the front wall
+        """
+        return self.sidewall_section_length - self.spoke_height/2 + self.frame_tongue_depth
+    
+    @property
     def frame_bracket_distance(self) -> tuple:
         """
         this is the distance to the bottom outmost corner of the exit bracket
@@ -179,7 +186,8 @@ class BankConfig:
         """
         the overall interior width of the top frame
         """
-        return self.top_frame_interior_width + (self.minimum_structural_thickness*2)
+        return self.top_frame_interior_width + \
+            (( self.minimum_structural_thickness + self.wall_thickness) *2)
 
     @property
     def exit_tube_entry_point(self) -> Point:

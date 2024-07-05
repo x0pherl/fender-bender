@@ -11,7 +11,7 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
 from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from bank_config import BankConfig
-from top_frame import frame_side
+from curvebar import frame_side
 from bank_config import BankConfig
 
 bracket_config = BankConfig()

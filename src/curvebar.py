@@ -3,7 +3,8 @@ utility for creating a bar with a zig-zag shape
 """
 from build123d import (BuildPart, BuildSketch, BuildLine, Polyline,
                        make_face, fillet, extrude, Axis, add, Location,
-                       Until, Plane, Part, Rectangle, Align, Box, loft)
+                       Until, Plane, Part, Rectangle, Align, Box, loft,
+                       Mode, chamfer, Sketch)
 from geometry_utils import find_angle_intersection
 from bank_config import BankConfig
 
@@ -39,41 +40,62 @@ def curvebar(length, bar_width, depth, climb, angle=45):
     curve.label = "curvebar"
     return curve
 
-def frame_side(thickness=frame_configuration.wall_thickness, extend=0) -> Part:
+def side_line(bottom_adjust=0) -> Sketch:
+    """
+    
+    """
+    right_bottom_intersection = frame_configuration.find_point_along_right(
+            -frame_configuration.spoke_height/2)
+    right_top_intersection = frame_configuration.find_point_along_right(
+                    -frame_configuration.spoke_height/2 + frame_configuration.spoke_bar_height)
+    with BuildSketch() as sketch:
+        x_distance = find_angle_intersection(frame_configuration.spoke_climb/2, frame_configuration.spoke_angle)
+        angled_bar_width = find_angle_intersection(frame_configuration.spoke_bar_height/2, frame_configuration.spoke_angle)/2
+        with BuildLine() as ln:
+            Polyline(
+                #todo figure out magic numbers like 3 and 8
+                (right_top_intersection.x+frame_configuration.minimum_structural_thickness,right_top_intersection.y),
+                (right_bottom_intersection.x+frame_configuration.minimum_structural_thickness,right_bottom_intersection.y+bottom_adjust),
+                (x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2,-frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
+                (-x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2,frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
+                (-x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2-8,frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
+                (-frame_configuration.spoke_length/2+frame_configuration.spoke_bar_height,bottom_adjust-frame_configuration.frame_tongue_depth),
+                (-frame_configuration.spoke_length/2,bottom_adjust-frame_configuration.frame_tongue_depth),
+                (-frame_configuration.spoke_length/2,frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
+                (-x_distance-angled_bar_width+frame_configuration.spoke_bar_height/2,frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
+                (x_distance-angled_bar_width+frame_configuration.spoke_bar_height/2, -frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
+                (right_top_intersection.x+frame_configuration.minimum_structural_thickness,right_top_intersection.y)
+            )
+        make_face()
+        fillet(sketch.vertices().filter_by_position(axis=Axis.X,
+                minimum=-frame_configuration.spoke_length/4,
+                maximum=frame_configuration.spoke_length/4,
+                inclusive=(False, False)), frame_configuration.spoke_bar_height/2)
+
+        fillet(sketch.vertices().filter_by_position(axis=Axis.X,
+                minimum=-frame_configuration.spoke_length/2+1,
+                maximum=-frame_configuration.spoke_length/4,
+                inclusive=(False, False)), frame_configuration.spoke_bar_height/4)
+    return sketch.sketch
+
+def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> Part:
     """
     builds a side of the frame
     arguments:
     thickness: determines the depth of the wall
-    extend: extends each side of the frame side out by this additional ammount
+    channel: (boolean) -- determines whether to cut a channel in the bottom part of the frame
     """
+    mid_adjustor = thickness/2 if channel else -0
     with BuildPart() as side:
         with BuildPart() as cb:
-            add(curvebar(frame_configuration.spoke_length/2,
-                frame_configuration.spoke_bar_height,
-                thickness,
-                frame_configuration.spoke_climb, 
-                frame_configuration.spoke_angle).rotate(Axis.X, 90) \
-                    .move(Location((0,thickness/2,0))))
-        add(angle_bar(thickness).move(Location(
-            (-frame_configuration.minimum_structural_thickness+extend,0,0))))
-        extrude(cb.faces().sort_by(Axis.X)[-1], until=Until.NEXT)
-        extrude(cb.faces().sort_by(Axis.X)[0], amount=frame_configuration.spoke_length/4+extend)
-        bar_height = frame_configuration.spoke_climb/2 -\
-            frame_configuration.spoke_bar_height/2
-        base_width = frame_configuration.fillet_radius+frame_configuration.minimum_thickness + \
-                frame_configuration.wheel_support_height+frame_configuration.connector_radius - \
-                frame_configuration.tube_outer_radius +  \
-                bar_height/2 + frame_configuration.wall_thickness
-        with BuildPart(Location((-frame_configuration.spoke_length/2+base_width*1.25,
-                                 0,bar_height))) as bottom_curve:
-            add(curvebar(base_width*2.5,bar_height,
-                thickness,
-                climb=bar_height).mirror(Plane.YZ).rotate(Axis.X, 90) \
-                        .move(Location((0,thickness/2,0))))
-            if extend > 0:
-                extrude(bottom_curve.faces().sort_by(Axis.X)[0], amount=extend)
-
-    part = side
+            with BuildSketch(Plane.XY.offset(-thickness/2)):
+                add(side_line(bottom_adjust=0))
+            with BuildSketch():
+                add(side_line(bottom_adjust=mid_adjustor))
+            with BuildSketch(Plane.XY.offset(thickness/2)):
+                add(side_line(bottom_adjust=0))
+            loft(ruled=True)
+    part = side.part.rotate(Axis.X, 90)
     part.label = "Frame Side"
     return part
 
@@ -111,3 +133,44 @@ def back_bar(depth: float) -> Part:
     part = bar.part
     part.label = "back bar"
     return part
+
+def top_cut_sidewall(length:float) -> Part:
+    """
+    Defines the shape of the sidewall with the correct shape for the
+    sides
+    """
+    sidewall_length = length + frame_configuration.frame_tongue_depth
+    with BuildPart() as wall:
+        Box(frame_configuration.sidewall_width, sidewall_length, frame_configuration.wall_thickness)
+        with BuildPart(Location((0,
+                            sidewall_length/2 - frame_configuration.spoke_bar_height/2,
+                            0)), mode=Mode.SUBTRACT) as cut:
+            add(frame_side(thickness=frame_configuration.wall_thickness).rotate(
+                            Axis.X, -90))
+            # add(frame_side(thickness=frame_configuration.wall_thickness, 
+            #                 extend=frame_configuration.sidewall_width).part.rotate(
+            #                 Axis.X, -90))
+            with BuildSketch(Location((0,
+                            sidewall_length/2 - frame_configuration.spoke_bar_height/2,
+                            0))) as sketch:
+                with BuildLine():
+                    Polyline(
+                            (-frame_configuration.spoke_climb/2, frame_configuration.spoke_climb/2),
+                            (frame_configuration.spoke_climb/2, -frame_configuration.spoke_climb/2),
+                            (frame_configuration.sidewall_width, -frame_configuration.spoke_climb/2),
+                            (frame_configuration.sidewall_width, frame_configuration.spoke_climb/2),
+                            (-frame_configuration.spoke_climb/2, frame_configuration.spoke_climb/2)                
+                        )
+                make_face()
+
+            extrude(amount=frame_configuration.wall_thickness/2, both=True)
+        chamfer(wall.faces().filter_by(Axis.Z).edges(),
+                length=frame_configuration.wall_thickness/2-frame_configuration.top_frame_bracket_tolerance)
+
+    part = wall.part
+    part.label = "sidewall"
+    return part
+
+from ocp_vscode import show
+show(top_cut_sidewall(length=frame_configuration.sidewall_section_length))
+# show(side_line())
