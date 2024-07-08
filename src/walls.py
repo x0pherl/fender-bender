@@ -40,6 +40,14 @@ def straight_wall_tongue() -> Part:
     part.label = "tongue"
     return part
 
+def click_sides(scale = 1) -> Part:
+    with BuildPart(Plane.XY.offset(bracket_config.wall_thickness*2)) as click_points:
+        with GridLocations(bracket_config.wall_thickness+bracket_config.top_frame_bracket_tolerance*2,0,2,1):
+            Sphere(bracket_config.frame_click_sphere_radius*scale)
+    part = click_points.part
+    part.label = "click points"
+    return part
+
 def guide_wall(length:float) -> Part:
     """
     builds a wall with guides for each sidewall
@@ -61,7 +69,13 @@ def guide_wall(length:float) -> Part:
             Box(bracket_config.wall_thickness,
                 length - ((bracket_config.frame_tongue_depth + bracket_config.top_frame_bracket_tolerance)*2),
                 bracket_config.wall_thickness*3, align=(Align.CENTER, Align.CENTER, Align.MIN))
-        fillet(wall.faces().sort_by(Axis.X)[0].edges().filter_by(Axis.Y) + wall.faces().sort_by(Axis.X)[-1].edges().filter_by(Axis.Y), bracket_config.wall_thickness/4)
+        fillet(wall.faces().sort_by(Axis.X)[0].edges().filter_by(GeomType.LINE).filter_by(Axis.Y) + wall.faces().sort_by(Axis.X)[-1].edges().filter_by(GeomType.LINE).filter_by(Axis.Y), bracket_config.wall_thickness/4)
+        with GridLocations(bracket_config.frame_bracket_spacing, length/2, bracket_config.filament_count+1, 2):
+            add(click_sides(.75))
+        with BuildPart(Location((0,0,bracket_config.wall_thickness)), mode=Mode.ADD):
+            with GridLocations(bracket_config.top_frame_interior_width/1.5,length-bracket_config.frame_tongue_depth-bracket_config.wall_thickness,2,2):
+                Sphere(radius=bracket_config.frame_click_sphere_radius*.75)
+
     part = wall.part
     return part
 
@@ -84,11 +98,14 @@ def back_wall() -> Part:
 
 #show(straight_wall_tongue())
 fwall=front_wall()
-show(fwall)
 export_stl(fwall, '../stl/front_wall.stl')
 bwall=back_wall()
 export_stl(bwall, '../stl/back_wall.stl')
 
 side_wall = top_cut_sidewall(length=bracket_config.sidewall_section_length)
-#show(side_wall)
 export_stl(side_wall, '../stl/side_wall.stl')
+
+show(fwall.move(Location((bracket_config.top_frame_exterior_width/2+bracket_config.sidewall_width/2,-bracket_config.spoke_climb/2,0))), 
+     bwall.move(Location((-bracket_config.top_frame_exterior_width/2-bracket_config.sidewall_width/2,-bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2,0))),
+     side_wall
+     )

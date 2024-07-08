@@ -4,7 +4,7 @@ utility for creating a bar with a zig-zag shape
 from build123d import (BuildPart, BuildSketch, BuildLine, Polyline,
                        make_face, fillet, extrude, Axis, add, Location,
                        Until, Plane, Part, Rectangle, Align, Box, loft,
-                       Mode, chamfer, Sketch)
+                       Mode, chamfer, Sketch, GridLocations, Sphere)
 from geometry_utils import find_angle_intersection
 from bank_config import BankConfig
 
@@ -85,7 +85,7 @@ def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> P
     thickness: determines the depth of the wall
     channel: (boolean) -- determines whether to cut a channel in the bottom part of the frame
     """
-    mid_adjustor = thickness/2 if channel else -0
+    mid_adjustor = thickness/2 if channel else 0
     with BuildPart() as side:
         with BuildPart() as cb:
             with BuildSketch(Plane.XY.offset(-thickness/2)):
@@ -166,7 +166,18 @@ def top_cut_sidewall(length:float) -> Part:
             extrude(amount=frame_configuration.wall_thickness/2, both=True)
         chamfer(wall.faces().filter_by(Axis.Z).edges(),
                 length=frame_configuration.wall_thickness/2-frame_configuration.top_frame_bracket_tolerance)
-
+        with BuildPart(Location((frame_configuration.sidewall_width/2-frame_configuration.wall_thickness,-frame_configuration.spoke_climb/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,frame_configuration.front_wall_length/2,1,2):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius)
+        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,frame_configuration.sidewall_section_length/2,1,2):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius).mirror(Plane.XY)
+        with BuildPart(Location((frame_configuration.sidewall_width/2-frame_configuration.wall_thickness,-frame_configuration.spoke_climb/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,frame_configuration.front_wall_length/2,1,2):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius)
+        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,frame_configuration.sidewall_section_length/2,1,2):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius).mirror(Plane.XY)
     part = wall.part
     part.label = "sidewall"
     return part

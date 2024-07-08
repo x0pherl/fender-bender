@@ -36,13 +36,18 @@ def support_bar(tolerance = 0) -> Part:
     part.label = "support"
     return part
 
-def straight_wall_groove() -> Part:
+def straight_wall_groove(front:bool=True) -> Part:
+    side_adjustment = -1 if front else 1
+
     with BuildPart() as groove:
         Box(frame_configuration.wall_thickness+frame_configuration.top_frame_bracket_tolerance,
             frame_configuration.top_frame_interior_width+frame_configuration.wall_thickness*4+frame_configuration.top_frame_bracket_tolerance,
             frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2+frame_configuration.top_frame_bracket_tolerance,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
         extrude(groove.faces().sort_by(Axis.Z)[-1], amount=frame_configuration.wall_thickness/2, taper=44)
+        with BuildPart(Location((side_adjustment*((frame_configuration.wall_thickness+frame_configuration.top_frame_bracket_tolerance)/2),0,frame_configuration.frame_tongue_depth/2)), mode=Mode.ADD):
+            with GridLocations(0,frame_configuration.top_frame_interior_width/1.5,1,2):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius)
     part = groove.part
     part.label = "groove"
     return part
@@ -105,7 +110,7 @@ def frame() -> Part:
                         frame_configuration.wall_thickness/2 + \
                         frame_configuration.top_frame_bracket_tolerance/2,
                         0,-frame_configuration.frame_tongue_depth)),mode=Mode.SUBTRACT):
-            add(straight_wall_groove())
+            add(straight_wall_groove(front=False))
 
         with BuildPart(Location((frame_configuration.frame_click_sphere_point.x,
                     frame_configuration.bracket_depth/2+frame_configuration.top_frame_bracket_tolerance,
@@ -143,12 +148,12 @@ right_bottom_intersection = frame_configuration.find_point_along_right(
 bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(Location((-frame_configuration.bracket_width/2 - \
                         frame_configuration.top_frame_bracket_tolerance - \
                             frame_configuration.minimum_structural_thickness + frame_configuration.frame_back_foot_length + frame_configuration.top_frame_bracket_tolerance/2,0,-frame_configuration.sidewall_section_length/2 - frame_configuration.top_frame_bracket_tolerance)))
-print("back wall z", -frame_configuration.top_frame_bracket_tolerance)
 fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
     right_bottom_intersection.x + frame_configuration.minimum_structural_thickness + frame_configuration.minimum_thickness + frame_configuration.wall_thickness/2,
         0,
         -frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2 - frame_configuration.front_wall_length/2 + frame_configuration.frame_tongue_depth)))
 swall = top_cut_sidewall(length=frame_configuration.sidewall_section_length).rotate(Axis.X, 90).move(Location((0,-frame_configuration.top_frame_exterior_width/2,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth*1.5)))
-show(frame(), bracket(), bwall, fwall, swall)
+#show(frame(), bracket(), bwall, fwall, swall)
+show(frame())
 #show(swall)
 export_stl(frame(), '../stl/top_frame.stl')
