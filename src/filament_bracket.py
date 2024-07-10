@@ -9,7 +9,6 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 export_stl, offset, Polyline, Rectangle, Sphere, sweep,
                 GridLocations)
 from bd_warehouse.thread import TrapezoidalThread
-from ocp_vscode import show
 from bank_config import BankConfig
 from geometry_utils import (find_related_point_by_distance, x_point_to_angle, point_distance, y_point_to_angle)
 from curvebar import curvebar
@@ -285,7 +284,7 @@ def support_cut() -> Part:
     return part
 
 
-def bottom_frame() -> Part:
+def bottom_bracket_frame() -> Part:
     """
     returns the outer frame for the bottom bracket
     """
@@ -368,7 +367,7 @@ def top_frame(tolerance:float=0) -> Part:
     with BuildPart() as frame:
         add(top_cut_template(tolerance))
         with BuildPart(mode=Mode.INTERSECT):
-            add(bottom_frame().mirror(Plane.YZ))
+            add(bottom_bracket_frame().mirror(Plane.YZ))
     part = frame.part
     part.label = "frame"
     return part
@@ -378,7 +377,7 @@ def bottom_bracket(draft:bool = False) -> Part:
     returns a complete bottom bracket
     """
     child_list = [spoke_assembly(),
-                          bottom_frame(),
+                          bottom_bracket_frame(),
                           wheel_guide(),
                           ]
     if not draft:
@@ -401,6 +400,7 @@ def main(draft:bool = False):
     """
     shows and saves the parts
     """
+    from ocp_vscode import show
     bottom = bottom_bracket(draft=draft)
     top = top_bracket()
     show(bottom.move(Location((bracket_configuration.bracket_width/2+5,0,0))),
@@ -408,5 +408,4 @@ def main(draft:bool = False):
     export_stl(bottom, '../stl/bottom_bracket.stl')
     export_stl(top, '../stl/top_bracket.stl')
 
-
-main(draft=False)
+#main(draft=False)

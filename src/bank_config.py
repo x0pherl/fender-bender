@@ -41,17 +41,22 @@ class BankConfig:
     filament_count = 3
 
     sidewall_section_length = 100
+    solid_walls = False
 
     wall_thickness = 2
     frame_tongue_depth = 4
     top_frame_bracket_tolerance = 0.2
 
     @property
+    def wall_window_apothem(self) -> float:
+        return self.bracket_depth/4
+    
+    @property
     def front_wall_length(self) -> float:
         """
         the calculated length for the front wall
         """
-        return self.sidewall_section_length - self.spoke_height/2 + self.frame_tongue_depth
+        return self.sidewall_section_length - self.spoke_height/2 + self.frame_tongue_depth + self.top_frame_bracket_tolerance
     
     @property
     def frame_bracket_distance(self) -> tuple:
@@ -157,6 +162,26 @@ class BankConfig:
                         self.spoke_bar_height/2)
 
     @property
+    def frame_back_distance(self) -> float:
+        """the distance from the center point to the back of the frame"""
+        return -self.bracket_width/2 - \
+                        self.top_frame_bracket_tolerance - \
+                            self.minimum_structural_thickness
+    
+    @property
+    def frame_back_wall_center_distance(self) -> float:
+        """the distance from the center of the frame to the center of the back wall"""
+        return self.frame_back_distance + \
+                    self.frame_back_foot_length + (self.wall_thickness+self.top_frame_bracket_tolerance)/2
+
+    @property
+    def frame_front_wall_center_distance(self) -> float:
+        """the distance from the center of the frame to the center of the front wall"""
+        right_bottom_intersection = self.find_point_along_right(
+                        -self.spoke_height/2)
+        return right_bottom_intersection.x + self.minimum_structural_thickness + self.wall_thickness/2
+
+    @property
     def frame_back_foot_length(self) -> float:
         # return self.fillet_radius+self.minimum_thickness + \
         #     self.wheel_support_height+self.connector_radius - \
@@ -245,9 +270,10 @@ class BankConfig:
         right_bottom_intersection = self.find_point_along_right(
             -self.spoke_height/2)
         return self.bracket_width/2 + \
-                right_bottom_intersection.x - \
-                self.wall_thickness *2
+                right_bottom_intersection.x - self.wall_thickness/2 - self.top_frame_bracket_tolerance
     
+    
+
     #todo -- spoke_length is a confusing name for this
     @property
     def spoke_length(self) -> float:

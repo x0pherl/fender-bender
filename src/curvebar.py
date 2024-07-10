@@ -1,12 +1,13 @@
 """
 utility for creating a bar with a zig-zag shape
 """
-from build123d import (BuildPart, BuildSketch, BuildLine, Polyline,
+from build123d import (BuildPart, BuildSketch, BuildLine, Polyline, offset,
                        make_face, fillet, extrude, Axis, add, Location,
                        Until, Plane, Part, Rectangle, Align, Box, loft,
-                       Mode, chamfer, Sketch, GridLocations, Sphere)
+                       Mode, chamfer, Sketch, GridLocations, Sphere, Cylinder)
 from geometry_utils import find_angle_intersection
 from bank_config import BankConfig
+from hexwall import HexWall
 
 frame_configuration = BankConfig()
 
@@ -40,10 +41,11 @@ def curvebar(length, bar_width, depth, climb, angle=45):
     curve.label = "curvebar"
     return curve
 
-def side_line(bottom_adjust=0) -> Sketch:
+def side_line(bottom_adjust=0,right_adjust=0) -> Sketch:
     """
     
     """
+    
     right_bottom_intersection = frame_configuration.find_point_along_right(
             -frame_configuration.spoke_height/2)
     right_top_intersection = frame_configuration.find_point_along_right(
@@ -54,8 +56,8 @@ def side_line(bottom_adjust=0) -> Sketch:
         with BuildLine() as ln:
             Polyline(
                 #todo figure out magic numbers like 3 and 8
-                (right_top_intersection.x+frame_configuration.minimum_structural_thickness,right_top_intersection.y),
-                (right_bottom_intersection.x+frame_configuration.minimum_structural_thickness,right_bottom_intersection.y+bottom_adjust),
+                (right_top_intersection.x+frame_configuration.minimum_structural_thickness+right_adjust,right_top_intersection.y),
+                (right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+right_adjust+bottom_adjust,right_bottom_intersection.y+bottom_adjust),
                 (x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2,-frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
                 (-x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2,frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
                 (-x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2-8,frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
@@ -64,7 +66,7 @@ def side_line(bottom_adjust=0) -> Sketch:
                 (-frame_configuration.spoke_length/2,frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
                 (-x_distance-angled_bar_width+frame_configuration.spoke_bar_height/2,frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
                 (x_distance-angled_bar_width+frame_configuration.spoke_bar_height/2, -frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
-                (right_top_intersection.x+frame_configuration.minimum_structural_thickness,right_top_intersection.y)
+                (right_top_intersection.x+frame_configuration.minimum_structural_thickness+right_adjust,right_top_intersection.y)
             )
         make_face()
         fillet(sketch.vertices().filter_by_position(axis=Axis.X,
@@ -86,6 +88,7 @@ def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> P
     channel: (boolean) -- determines whether to cut a channel in the bottom part of the frame
     """
     mid_adjustor = thickness/2 if channel else 0
+    print(mid_adjustor)
     with BuildPart() as side:
         with BuildPart() as cb:
             with BuildSketch(Plane.XY.offset(-thickness/2)):
@@ -118,6 +121,11 @@ def angle_bar(depth: float) -> Part:
                     depth,
                     align=(Align.MIN, Align.CENTER))
         loft()
+        with BuildPart(Location((right_bottom_intersection.x,0,right_bottom_intersection.y)), mode=Mode.SUBTRACT):
+            with GridLocations(0,frame_configuration.frame_bracket_spacing,
+                    1,frame_configuration.filament_count+1):
+                Cylinder(radius=frame_configuration.wall_thickness/2, height=frame_configuration.minimum_structural_thickness*2, rotation=(90,90,0))
+
     part = foot_bar.part
     part.label = "angle bar"
     return part
@@ -134,54 +142,57 @@ def back_bar(depth: float) -> Part:
     part.label = "back bar"
     return part
 
-def top_cut_sidewall(length:float) -> Part:
+def top_cut_sidewall_base(length:float, inset: float=0) -> Part:
     """
     Defines the shape of the sidewall with the correct shape for the
     sides
     """
     sidewall_length = length + frame_configuration.frame_tongue_depth
     with BuildPart() as wall:
-        Box(frame_configuration.sidewall_width, sidewall_length, frame_configuration.wall_thickness)
-        with BuildPart(Location((0,
-                            sidewall_length/2 - frame_configuration.spoke_bar_height/2,
-                            0)), mode=Mode.SUBTRACT) as cut:
-            add(frame_side(thickness=frame_configuration.wall_thickness).rotate(
-                            Axis.X, -90))
-            # add(frame_side(thickness=frame_configuration.wall_thickness, 
-            #                 extend=frame_configuration.sidewall_width).part.rotate(
-            #                 Axis.X, -90))
-            with BuildSketch(Location((0,
-                            sidewall_length/2 - frame_configuration.spoke_bar_height/2,
-                            0))) as sketch:
-                with BuildLine():
-                    Polyline(
-                            (-frame_configuration.spoke_climb/2, frame_configuration.spoke_climb/2),
-                            (frame_configuration.spoke_climb/2, -frame_configuration.spoke_climb/2),
-                            (frame_configuration.sidewall_width, -frame_configuration.spoke_climb/2),
-                            (frame_configuration.sidewall_width, frame_configuration.spoke_climb/2),
-                            (-frame_configuration.spoke_climb/2, frame_configuration.spoke_climb/2)                
-                        )
-                make_face()
+        with BuildSketch() as sk:
+            Rectangle(frame_configuration.sidewall_width, sidewall_length)
+            with BuildSketch(mode=Mode.SUBTRACT):
+                add(side_line(bottom_adjust=0,right_adjust=frame_configuration.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 - frame_configuration.spoke_bar_height/2))))
+                add(side_line(bottom_adjust=0,right_adjust=frame_configuration.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 + frame_configuration.spoke_bar_height/2))))
+            offset(amount = -inset)
+        extrude(amount=frame_configuration.wall_thickness/2, both=True)
+        
+    part = wall.part
+    part.label = "top cut sidewall base"
+    return part
 
-            extrude(amount=frame_configuration.wall_thickness/2, both=True)
+def top_cut_sidewall(length:float) -> Part:
+    """
+    Defines the shape of the sidewall with the correct shape for the
+    sides
+    """
+    with BuildPart() as wall:
+        add(top_cut_sidewall_base(length))
         chamfer(wall.faces().filter_by(Axis.Z).edges(),
-                length=frame_configuration.wall_thickness/2-frame_configuration.top_frame_bracket_tolerance)
+               length=frame_configuration.wall_thickness/2-frame_configuration.top_frame_bracket_tolerance)
+        if not frame_configuration.solid_walls:
+            with BuildPart(mode=Mode.SUBTRACT):
+                add(top_cut_sidewall_base(length, inset=frame_configuration.minimum_structural_thickness))
+                with BuildPart(mode=Mode.INTERSECT):
+                    add(HexWall(width=length, length=frame_configuration.sidewall_width,
+                            height=frame_configuration.wall_thickness, apothem=frame_configuration.wall_window_apothem, wall_thickness=frame_configuration.wall_thickness/2, inverse=True))
         with BuildPart(Location((frame_configuration.sidewall_width/2-frame_configuration.wall_thickness,-frame_configuration.spoke_climb/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
             with GridLocations(0,frame_configuration.front_wall_length/2,1,2):
                 Sphere(radius=frame_configuration.frame_click_sphere_radius)
-        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
-            with GridLocations(0,frame_configuration.sidewall_section_length/2,1,2):
-                Sphere(radius=frame_configuration.frame_click_sphere_radius).mirror(Plane.XY)
         with BuildPart(Location((frame_configuration.sidewall_width/2-frame_configuration.wall_thickness,-frame_configuration.spoke_climb/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
             with GridLocations(0,frame_configuration.front_wall_length/2,1,2):
                 Sphere(radius=frame_configuration.frame_click_sphere_radius)
-        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
             with GridLocations(0,frame_configuration.sidewall_section_length/2,1,2):
-                Sphere(radius=frame_configuration.frame_click_sphere_radius).mirror(Plane.XY)
+                Sphere(radius=frame_configuration.frame_click_sphere_radius)
+        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,frame_configuration.sidewall_section_length/2,1,2):
+                Sphere(radius=frame_configuration.frame_click_sphere_radius)
     part = wall.part
     part.label = "sidewall"
     return part
 
-from ocp_vscode import show
-show(top_cut_sidewall(length=frame_configuration.sidewall_section_length))
+#from ocp_vscode import show
+#show(top_cut_sidewall(length=frame_configuration.sidewall_section_length))
+# show(angle_bar(depth=frame_configuration.top_frame_exterior_width))
 # show(side_line())
