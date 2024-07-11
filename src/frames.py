@@ -92,15 +92,17 @@ def frame() -> Part:
     
         with GridLocations(0,frame_configuration.top_frame_interior_width+frame_configuration.minimum_structural_thickness+frame_configuration.wall_thickness*2, 1, 2):
            add(frame_side(frame_configuration.minimum_structural_thickness))
-        
+
         fillet_edges = \
                 top_frame.edges().filter_by_position(Axis.Y, minimum=frame_configuration.frame_exterior_width/2-.01, maximum=frame_configuration.frame_exterior_width/2+.02, inclusive=(True,True)) + \
                 top_frame.edges().filter_by_position(Axis.Y, minimum=-frame_configuration.frame_exterior_width/2-.01, maximum=-frame_configuration.frame_exterior_width/2+.02, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.X, minimum=-frame_configuration.spoke_length/2-frame_configuration.minimum_structural_thickness-.01, maximum=-frame_configuration.spoke_length/2+.01, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.X, minimum=right_top_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance-.01, maximum=right_top_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance+.01, inclusive=(True,True)) + \
+                top_frame.edges().filter_by_position(Axis.X, minimum=frame_configuration.frame_back_distance-.01, maximum=frame_configuration.frame_back_distance+.01, inclusive=(True,True)) + \
+                top_frame.edges().filter_by_position(Axis.Z, minimum=right_bottom_intersection.y-.01, maximum=right_bottom_intersection.y+.01).filter_by_position(Axis.X, minimum=frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length-.01, maximum=frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length+.01, inclusive=(True,True)) + \
+                top_frame.edges().filter_by_position(Axis.X, minimum=right_top_intersection.x+frame_configuration.minimum_structural_thickness*2+frame_configuration.frame_bracket_tolerance-.01, maximum=right_top_intersection.x+frame_configuration.minimum_structural_thickness*2+frame_configuration.frame_bracket_tolerance+.01, inclusive=(True,True)) + \
                 top_frame.edges().filter_by_position(Axis.X, minimum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance-.01, maximum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance+.01, inclusive=(True,True))
 
         fillet(fillet_edges, frame_configuration.minimum_structural_thickness/frame_configuration.fillet_ratio)
+        
         with BuildPart(mode=Mode.ADD):
             with GridLocations(0,frame_configuration.frame_bracket_spacing,
                         1,frame_configuration.filament_count+1):
@@ -168,45 +170,6 @@ def channel_box(length, width, height: float, double:bool = False):
                 add(diamond_cylinder(width/2,length).rotate(Axis.Y, 90))
     return part.part
 
-# def bottom_frame() -> Part:
-#     with BuildPart() as bframe:
-#         Box(frame_configuration.bottom_frame_exterior_length,
-#             frame_configuration.frame_exterior_width,
-#             frame_configuration.bottom_frame_height,
-#             align=(Align.CENTER, Align.CENTER, Align.MIN))
-#         fillet(bframe.edges(), frame_configuration.minimum_structural_thickness/frame_configuration.fillet_ratio)
-#         with BuildPart(Location((-frame_configuration.wall_offset,0,0)), mode=Mode.SUBTRACT):
-#             with BuildSketch(Location((-frame_configuration.wall_offset,0,0))):
-#                 Rectangle(frame_configuration.bottom_frame_interior_length+frame_configuration.minimum_thickness*2,
-#                 frame_configuration.frame_exterior_width - frame_configuration.minimum_structural_thickness*2)
-#             with BuildSketch(Location((-frame_configuration.wall_offset,0,frame_configuration.bottom_frame_height))):
-#                 Rectangle(frame_configuration.bottom_frame_interior_length,
-#                 frame_configuration.frame_exterior_width - frame_configuration.minimum_structural_thickness*2)
-#             loft()
-#         with BuildPart(Location((-frame_configuration.wall_offset,0,0)), mode=Mode.SUBTRACT):
-#             with GridLocations(0,frame_configuration.frame_bracket_spacing,
-#                 1,frame_configuration.filament_count+1):
-#                 Box(frame_configuration.bottom_frame_interior_length+frame_configuration.minimum_structural_thickness,
-#                     frame_configuration.wall_thickness,
-#                     frame_configuration.bottom_frame_height,
-#                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-#         with BuildPart(Location((-frame_configuration.wall_offset,0,0)), mode=Mode.ADD):
-#             with GridLocations(0,frame_configuration.frame_bracket_spacing,
-#                 1,frame_configuration.filament_count+1):
-#                 add(bottom_channel_box(frame_configuration.bottom_frame_interior_length+frame_configuration.minimum_structural_thickness,
-#                     frame_configuration.wall_thickness,
-#                     frame_configuration.bottom_frame_height))
-
-#         with BuildPart(Location((frame_configuration.frame_front_wall_center_distance,
-#                                  0,0)),mode=Mode.SUBTRACT):
-#             add(straight_wall_groove().mirror(Plane.YZ))
-
-#         with BuildPart(Location((frame_configuration.frame_back_wall_center_distance,
-#                         0,0)),mode=Mode.SUBTRACT):
-#             add(straight_wall_groove())
-#     part = bframe.part.mirror(Plane.XY).move(Location((0,0,frame_configuration.bottom_frame_height)))
-#     part.label = "bottom frame"
-#     return part
 def flat_wall_grooves() -> Part:
     with BuildPart() as grooves:
         with BuildPart(Location((frame_configuration.frame_front_wall_center_distance,
@@ -276,24 +239,18 @@ def connector_frame(bottom:bool = False) -> Part:
 def bottom_frame() -> Part:
     return connector_frame(bottom=True)
 
-right_bottom_intersection = frame_configuration.find_point_along_right(
-                        -frame_configuration.spoke_height/2)
-
-bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(Location((-frame_configuration.bracket_width/2 - \
-                        frame_configuration.frame_bracket_tolerance - \
-                            frame_configuration.minimum_structural_thickness + frame_configuration.frame_back_foot_length + frame_configuration.frame_bracket_tolerance/2,0,-frame_configuration.sidewall_section_length/2 - frame_configuration.frame_bracket_tolerance)))
-fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
-    right_bottom_intersection.x + frame_configuration.minimum_structural_thickness + frame_configuration.minimum_thickness + frame_configuration.wall_thickness/2,
-        0,
-        -frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2 - frame_configuration.front_wall_length/2 + frame_configuration.frame_tongue_depth)))
-swall = top_cut_sidewall(length=frame_configuration.sidewall_section_length).rotate(Axis.X, 90).move(Location((-frame_configuration.wall_thickness/2,-frame_configuration.frame_exterior_width/2-frame_configuration.wall_thickness,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth*1.5)))
 topframe = frame()
-bframe = bottom_frame()
-cframe = connector_frame()
 
-show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))
-#show(frame())
-#show(swall)
-export_stl(topframe, '../stl/top_frame.stl')
-export_stl(bframe, '../stl/bottom_frame.stl')
-export_stl(cframe, '../stl/connector_frame.stl')
+right_bottom_intersection = frame_configuration.find_point_along_right(
+                -frame_configuration.spoke_height/2)
+right_top_intersection = frame_configuration.find_point_along_right(
+                -frame_configuration.spoke_height/2 + frame_configuration.spoke_bar_height)
+
+# bframe = bottom_frame()
+# cframe = connector_frame()
+
+show(topframe)
+# show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))
+# export_stl(topframe, '../stl/top_frame.stl')
+# export_stl(bframe, '../stl/bottom_frame.stl')
+# export_stl(cframe, '../stl/connector_frame.stl')

@@ -130,65 +130,14 @@ def angle_bar(depth: float) -> Part:
     return part
 
 def back_bar(depth: float) -> Part:
-    with BuildPart(Location((-frame_configuration.bracket_width/2 - \
-                        frame_configuration.frame_bracket_tolerance,0,
+    with BuildPart(Location((frame_configuration.frame_back_distance,0,
                         -frame_configuration.wall_thickness))) as bar:
-        Box(frame_configuration.minimum_structural_thickness,
+        Box(frame_configuration.minimum_structural_thickness*2,
             depth,
             frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2+frame_configuration.wall_thickness,
-            align=(Align.MAX, Align.CENTER, Align.MIN))
+            align=(Align.MIN, Align.CENTER, Align.MIN))
     part = bar.part
     part.label = "back bar"
-    return part
-
-def top_cut_sidewall_base(length:float, inset: float=0) -> Part:
-    """
-    Defines the shape of the sidewall with the correct shape for the
-    sides
-    """
-    sidewall_length = length + frame_configuration.frame_tongue_depth
-    with BuildPart() as wall:
-        with BuildSketch() as sk:
-            Rectangle(frame_configuration.sidewall_width, sidewall_length)
-            with BuildSketch(mode=Mode.SUBTRACT):
-                add(side_line(bottom_adjust=0,right_adjust=frame_configuration.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 - frame_configuration.spoke_bar_height/2))))
-                add(side_line(bottom_adjust=0,right_adjust=frame_configuration.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 + frame_configuration.spoke_bar_height/2))))
-            offset(amount = -inset)
-        extrude(amount=frame_configuration.wall_thickness/2, both=True)
-        
-    part = wall.part
-    part.label = "top cut sidewall base"
-    return part
-
-def top_cut_sidewall(length:float) -> Part:
-    """
-    Defines the shape of the sidewall with the correct shape for the
-    sides
-    """
-    with BuildPart() as wall:
-        add(top_cut_sidewall_base(length))
-        chamfer(wall.faces().filter_by(Axis.Z).edges(),
-               length=frame_configuration.wall_thickness/2-frame_configuration.frame_bracket_tolerance)
-        if not frame_configuration.solid_walls:
-            with BuildPart(mode=Mode.SUBTRACT):
-                add(top_cut_sidewall_base(length, inset=frame_configuration.minimum_structural_thickness))
-                with BuildPart(mode=Mode.INTERSECT):
-                    add(HexWall(width=length, length=frame_configuration.sidewall_width,
-                            height=frame_configuration.wall_thickness, apothem=frame_configuration.wall_window_apothem, wall_thickness=frame_configuration.wall_thickness/2, inverse=True))
-        with BuildPart(Location((frame_configuration.sidewall_width/2-frame_configuration.wall_thickness,-frame_configuration.spoke_climb/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
-            with GridLocations(0,frame_configuration.front_wall_length/2,1,2):
-                Sphere(radius=frame_configuration.frame_click_sphere_radius)
-        with BuildPart(Location((frame_configuration.sidewall_width/2-frame_configuration.wall_thickness,-frame_configuration.spoke_climb/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
-            with GridLocations(0,frame_configuration.front_wall_length/2,1,2):
-                Sphere(radius=frame_configuration.frame_click_sphere_radius)
-        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
-            with GridLocations(0,frame_configuration.sidewall_section_length/2,1,2):
-                Sphere(radius=frame_configuration.frame_click_sphere_radius)
-        with BuildPart(Location((-frame_configuration.sidewall_width/2+frame_configuration.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
-            with GridLocations(0,frame_configuration.sidewall_section_length/2,1,2):
-                Sphere(radius=frame_configuration.frame_click_sphere_radius)
-    part = wall.part
-    part.label = "sidewall"
     return part
 
 #from ocp_vscode import show

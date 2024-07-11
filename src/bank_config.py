@@ -191,7 +191,7 @@ class BankConfig:
         """the distance from the center point to the back of the frame"""
         return -self.bracket_width/2 - \
                         self.frame_bracket_tolerance - \
-                            self.minimum_structural_thickness
+                            self.minimum_structural_thickness * 2
     @property
     def frame_front_bottom_distance(self) -> float:
         """the distance from the center point to the front of the frame along the bottom"""
@@ -216,7 +216,8 @@ class BankConfig:
         # return self.fillet_radius+self.minimum_thickness + \
         #     self.wheel_support_height+self.connector_radius - \
         #     self.tube_outer_radius+self.minimum_structural_thickness
-        return self.bracket_width/2-self.wheel_radius-self.wheel_support_height*1.5-self.wheel_radial_tolerance
+        #return self.bracket_width/2-self.wheel_radius-self.wheel_support_height*1.5-self.wheel_radial_tolerance
+        return self.minimum_structural_thickness*2
     
     @property
     def frame_click_sphere_radius(self) -> Point:

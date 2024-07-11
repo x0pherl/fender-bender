@@ -8,7 +8,7 @@ from build123d import (BuildPart, BuildSketch, Part, CenterArc, Cylinder,
                 Vector, chamfer, HexLocations, RegularPolygon)
 from ocp_vscode import show
 from bank_config import BankConfig
-from curvebar import frame_side, top_cut_sidewall
+from curvebar import frame_side, side_line
 from shapely.geometry import Point
 from geometry_utils import find_related_point_by_distance
 from hexwall import HexWall
@@ -48,6 +48,56 @@ def straight_wall_tongue() -> Part:
 
     part = tongue.part
     part.label = "tongue"
+    return part
+
+def top_cut_sidewall_base(length:float, inset: float=0) -> Part:
+    """
+    Defines the shape of the sidewall with the correct shape for the
+    sides
+    """
+    sidewall_length = length + bracket_config.frame_tongue_depth
+    with BuildPart() as wall:
+        with BuildSketch() as sk:
+            Rectangle(bracket_config.sidewall_width, sidewall_length)
+            with BuildSketch(mode=Mode.SUBTRACT):
+                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 - frame_configuration.spoke_bar_height/2))))
+                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 + frame_configuration.spoke_bar_height/2))))
+            offset(amount = -inset)
+        extrude(amount=bracket_config.wall_thickness/2, both=True)
+        
+    part = wall.part
+    part.label = "top cut sidewall base"
+    return part
+
+def top_cut_sidewall(length:float) -> Part:
+    """
+    Defines the shape of the sidewall with the correct shape for the
+    sides
+    """
+    with BuildPart() as wall:
+        add(top_cut_sidewall_base(length))
+        chamfer(wall.faces().filter_by(Axis.Z).edges(),
+               length=bracket_config.wall_thickness/2-bracket_config.frame_bracket_tolerance)
+        if not bracket_config.solid_walls:
+            with BuildPart(mode=Mode.SUBTRACT):
+                add(top_cut_sidewall_base(length, inset=bracket_config.minimum_structural_thickness))
+                with BuildPart(mode=Mode.INTERSECT):
+                    add(HexWall(width=length, length=bracket_config.sidewall_width,
+                            height=bracket_config.wall_thickness, apothem=bracket_config.wall_window_apothem, wall_thickness=frame_configuration.wall_thickness/2, inverse=True))
+        with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,-frame_configuration.spoke_climb/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,bracket_config.front_wall_length/2,1,2):
+                Sphere(radius=bracket_config.frame_click_sphere_radius)
+        with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,-frame_configuration.spoke_climb/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,bracket_config.front_wall_length/2,1,2):
+                Sphere(radius=bracket_config.frame_click_sphere_radius)
+        with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,bracket_config.sidewall_section_length/2,1,2):
+                Sphere(radius=bracket_config.frame_click_sphere_radius)
+        with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+            with GridLocations(0,bracket_config.sidewall_section_length/2,1,2):
+                Sphere(radius=bracket_config.frame_click_sphere_radius)
+    part = wall.part
+    part.label = "sidewall"
     return part
 
 def click_sides(scale = 1) -> Part:
