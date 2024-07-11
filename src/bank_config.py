@@ -45,18 +45,43 @@ class BankConfig:
 
     wall_thickness = 2
     frame_tongue_depth = 4
-    top_frame_bracket_tolerance = 0.2
+    frame_bracket_tolerance = 0.2
+
+
+    @property
+    def bottom_frame_height(self) -> float:
+        return self.frame_tongue_depth + self.minimum_structural_thickness
+
+    @property
+    def bottom_frame_offset(self) -> float:
+        return (abs(self.frame_back_distance) - abs(self.frame_front_bottom_distance)) / 2
+
+    @property
+    def wall_offset(self) -> float:
+        return (abs(self.frame_back_wall_center_distance) - abs(self.frame_front_wall_center_distance)) / 2
+
+    @property
+    def bottom_frame_exterior_length(self) -> float:
+        return abs(self.frame_front_bottom_distance) + \
+            abs(self.frame_back_distance)
+
+    @property
+    def bottom_frame_interior_length(self) -> float:
+        return abs(self.frame_back_wall_center_distance) + \
+            abs(self.frame_front_wall_center_distance) - \
+            self.wall_thickness - self.frame_bracket_tolerance - \
+            self.minimum_thickness * 4
 
     @property
     def wall_window_apothem(self) -> float:
-        return self.bracket_depth/4
+        return self.bracket_depth/3
     
     @property
     def front_wall_length(self) -> float:
         """
         the calculated length for the front wall
         """
-        return self.sidewall_section_length - self.spoke_height/2 + self.frame_tongue_depth + self.top_frame_bracket_tolerance
+        return self.sidewall_section_length - self.spoke_height/2 + self.frame_tongue_depth + self.frame_bracket_tolerance
     
     @property
     def frame_bracket_distance(self) -> tuple:
@@ -82,7 +107,7 @@ class BankConfig:
         #                 right_bottom_bar_distance)
         # right_top_intersection = self.find_point_along_right(
         #                 right_bottom_bar_distance + self.spoke_bar_height)
-        barpoint = find_related_point_by_distance(right_top_intersection, self.clip_length-self.top_frame_bracket_tolerance/2, -135)
+        barpoint = find_related_point_by_distance(right_top_intersection, self.clip_length-self.frame_bracket_tolerance/2, -135)
         return Point(barpoint.x, barpoint.y)
         #return Point(right_top_intersection.x, right_top_intersection.y)
     
@@ -91,7 +116,7 @@ class BankConfig:
         """
         returns the distance between the sidewalls of the frame
         """
-        return self.bracket_depth + self.wall_thickness + self.top_frame_bracket_tolerance * 2
+        return self.bracket_depth + self.wall_thickness + self.frame_bracket_tolerance * 2
 
     @property
     def sweep_cut_break_channel_locations(self) -> Locations:
@@ -110,7 +135,7 @@ class BankConfig:
         the width (diameter) for the sphere and the sweep cut for the click bracket
         """
         return (self.frame_click_sphere_radius + \
-                        self.top_frame_bracket_tolerance) * 2
+                        self.frame_bracket_tolerance) * 2
 
     @property 
     def sweep_cut_arc_radius(self) -> float:
@@ -165,14 +190,19 @@ class BankConfig:
     def frame_back_distance(self) -> float:
         """the distance from the center point to the back of the frame"""
         return -self.bracket_width/2 - \
-                        self.top_frame_bracket_tolerance - \
+                        self.frame_bracket_tolerance - \
                             self.minimum_structural_thickness
-    
+    @property
+    def frame_front_bottom_distance(self) -> float:
+        """the distance from the center point to the front of the frame along the bottom"""
+        right_bottom_intersection = self.find_point_along_right(
+                        -self.spoke_height/2)
+        return right_bottom_intersection.x + self.minimum_structural_thickness*2
     @property
     def frame_back_wall_center_distance(self) -> float:
         """the distance from the center of the frame to the center of the back wall"""
         return self.frame_back_distance + \
-                    self.frame_back_foot_length + (self.wall_thickness+self.top_frame_bracket_tolerance)/2
+                    self.frame_back_foot_length + (self.wall_thickness+self.frame_bracket_tolerance)/2
 
     @property
     def frame_front_wall_center_distance(self) -> float:
@@ -202,12 +232,12 @@ class BankConfig:
         """
         return ((self.bracket_depth + \
             self.wall_thickness + \
-            self.top_frame_bracket_tolerance*2) * \
+            self.frame_bracket_tolerance*2) * \
             self.filament_count) - \
             self.wall_thickness
     
     @property
-    def top_frame_exterior_width(self) -> float:
+    def frame_exterior_width(self) -> float:
         """
         the overall interior width of the top frame
         """
@@ -270,7 +300,7 @@ class BankConfig:
         right_bottom_intersection = self.find_point_along_right(
             -self.spoke_height/2)
         return self.bracket_width/2 + \
-                right_bottom_intersection.x - self.wall_thickness/2 - self.top_frame_bracket_tolerance
+                right_bottom_intersection.x - self.wall_thickness/2 - self.frame_bracket_tolerance
     
     
 
@@ -278,7 +308,7 @@ class BankConfig:
     @property
     def spoke_length(self) -> float:
         return self.bracket_width + \
-                    (self.top_frame_bracket_tolerance + \
+                    (self.frame_bracket_tolerance + \
                     self.wall_thickness)*2
 
     @property

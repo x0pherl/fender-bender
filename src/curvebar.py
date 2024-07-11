@@ -88,7 +88,6 @@ def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> P
     channel: (boolean) -- determines whether to cut a channel in the bottom part of the frame
     """
     mid_adjustor = thickness/2 if channel else 0
-    print(mid_adjustor)
     with BuildPart() as side:
         with BuildPart() as cb:
             with BuildSketch(Plane.XY.offset(-thickness/2)):
@@ -109,13 +108,13 @@ def angle_bar(depth: float) -> Part:
                     -frame_configuration.spoke_height/2 + frame_configuration.spoke_bar_height)
     with BuildPart() as foot_bar:
         with BuildSketch(Location((right_bottom_intersection.x + \
-                    frame_configuration.top_frame_bracket_tolerance,0,
+                    frame_configuration.frame_bracket_tolerance,0,
                     right_bottom_intersection.y), (0,0,0))) as base:
             Rectangle(frame_configuration.minimum_structural_thickness*2,
                     depth,
                     align=(Align.MIN, Align.CENTER))
         with BuildSketch(Location((right_top_intersection.x +\
-                    frame_configuration.top_frame_bracket_tolerance,0,
+                    frame_configuration.frame_bracket_tolerance,0,
                     right_top_intersection.y), (0,0,0))):
             Rectangle(frame_configuration.minimum_structural_thickness*2,
                     depth,
@@ -132,7 +131,7 @@ def angle_bar(depth: float) -> Part:
 
 def back_bar(depth: float) -> Part:
     with BuildPart(Location((-frame_configuration.bracket_width/2 - \
-                        frame_configuration.top_frame_bracket_tolerance,0,
+                        frame_configuration.frame_bracket_tolerance,0,
                         -frame_configuration.wall_thickness))) as bar:
         Box(frame_configuration.minimum_structural_thickness,
             depth,
@@ -169,7 +168,7 @@ def top_cut_sidewall(length:float) -> Part:
     with BuildPart() as wall:
         add(top_cut_sidewall_base(length))
         chamfer(wall.faces().filter_by(Axis.Z).edges(),
-               length=frame_configuration.wall_thickness/2-frame_configuration.top_frame_bracket_tolerance)
+               length=frame_configuration.wall_thickness/2-frame_configuration.frame_bracket_tolerance)
         if not frame_configuration.solid_walls:
             with BuildPart(mode=Mode.SUBTRACT):
                 add(top_cut_sidewall_base(length, inset=frame_configuration.minimum_structural_thickness))
