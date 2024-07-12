@@ -4,7 +4,8 @@ Generates the part for the filament bracket of our filament bank design
 from build123d import (BuildPart, BuildSketch, Part, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 loft, fillet, Axis, Box, Align, GridLocations, Plane,
-                export_stl, Rectangle, Sphere, Polyline, Until, Cylinder)
+                export_stl, Rectangle, Sphere, Polyline, Until, Cylinder,
+                RegularPolygon)
 from ocp_vscode import show
 from bank_config import BankConfig
 from curvebar import curvebar, frame_side, angle_bar, back_bar
@@ -133,22 +134,6 @@ def frame() -> Part:
             with GridLocations(0,frame_configuration.frame_bracket_spacing, 1, frame_configuration.filament_count):
                 Sphere(radius=frame_configuration.frame_click_sphere_radius*.75)
     part = top_frame.part
-    return part
-
-def bracket() -> Part:
-    """
-    returns enough of the filament bracket to help display the frame alignment
-    useful in debugging
-    """
-    with BuildPart() as fil_bracket:
-        add(bottom_bracket_frame().rotate(axis=Axis.X, angle=90).move(Location(
-            (0,frame_configuration.bracket_depth/2, 0))))
-        add(spoke_assembly().rotate(axis=Axis.X, angle=90).move(Location(
-            (0,frame_configuration.bracket_depth/2, 0))))
-        add(wheel_guide().rotate(axis=Axis.X, angle=90).move(Location(
-            (0,frame_configuration.bracket_depth/2, 0))))
-    part = fil_bracket.part
-    part.label = "bracket"
     return part
 
 def diamond_cylinder(radius=1, height=10):

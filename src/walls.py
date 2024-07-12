@@ -5,7 +5,7 @@ from build123d import (BuildPart, BuildSketch, Part, CenterArc, Cylinder,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 loft, fillet, Axis, Box, Align, GridLocations, Plane,
                 export_stl, Rectangle, Sphere, Polyline, Until, GeomType,
-                Vector, chamfer, HexLocations, RegularPolygon)
+                Vector, chamfer, HexLocations, RegularPolygon, offset)
 from ocp_vscode import show
 from bank_config import BankConfig
 from curvebar import frame_side, side_line
@@ -60,8 +60,8 @@ def top_cut_sidewall_base(length:float, inset: float=0) -> Part:
         with BuildSketch() as sk:
             Rectangle(bracket_config.sidewall_width, sidewall_length)
             with BuildSketch(mode=Mode.SUBTRACT):
-                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 - frame_configuration.spoke_bar_height/2))))
-                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((frame_configuration.wall_thickness/2, sidewall_length/2 + frame_configuration.spoke_bar_height/2))))
+                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((bracket_config.wall_thickness/2, sidewall_length/2 - bracket_config.spoke_bar_height/2))))
+                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((bracket_config.wall_thickness/2, sidewall_length/2 + bracket_config.spoke_bar_height/2))))
             offset(amount = -inset)
         extrude(amount=bracket_config.wall_thickness/2, both=True)
         
@@ -83,17 +83,17 @@ def top_cut_sidewall(length:float) -> Part:
                 add(top_cut_sidewall_base(length, inset=bracket_config.minimum_structural_thickness))
                 with BuildPart(mode=Mode.INTERSECT):
                     add(HexWall(width=length, length=bracket_config.sidewall_width,
-                            height=bracket_config.wall_thickness, apothem=bracket_config.wall_window_apothem, wall_thickness=frame_configuration.wall_thickness/2, inverse=True))
-        with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,-frame_configuration.spoke_climb/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+                            height=bracket_config.wall_thickness, apothem=bracket_config.wall_window_apothem, wall_thickness=bracket_config.wall_thickness/2, inverse=True))
+        with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,-bracket_config.spoke_climb/2,bracket_config.wall_thickness/2)), mode=Mode.SUBTRACT):
             with GridLocations(0,bracket_config.front_wall_length/2,1,2):
                 Sphere(radius=bracket_config.frame_click_sphere_radius)
-        with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,-frame_configuration.spoke_climb/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,-bracket_config.spoke_climb/2,-bracket_config.wall_thickness/2)), mode=Mode.SUBTRACT):
             with GridLocations(0,bracket_config.front_wall_length/2,1,2):
                 Sphere(radius=bracket_config.frame_click_sphere_radius)
-        with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,-bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2,bracket_config.wall_thickness/2)), mode=Mode.SUBTRACT):
             with GridLocations(0,bracket_config.sidewall_section_length/2,1,2):
                 Sphere(radius=bracket_config.frame_click_sphere_radius)
-        with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,-frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2,-frame_configuration.wall_thickness/2)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,-bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2,-bracket_config.wall_thickness/2)), mode=Mode.SUBTRACT):
             with GridLocations(0,bracket_config.sidewall_section_length/2,1,2):
                 Sphere(radius=bracket_config.frame_click_sphere_radius)
     part = wall.part

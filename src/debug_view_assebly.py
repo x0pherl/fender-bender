@@ -12,10 +12,28 @@ from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from frames import back_wall, front_wall, top_cut_sidewall, frame, bottom_frame, connector_frame
 from bank_config import BankConfig
+from filament_bracket import bottom_bracket_frame, spoke_assembly, wheel_guide
 from curvebar import frame_side
 from bank_config import BankConfig
 
 frame_configuration = BankConfig()
+
+
+def bracket() -> Part:
+    """
+    returns enough of the filament bracket to help display the frame alignment
+    useful in debugging
+    """
+    with BuildPart() as fil_bracket:
+        add(bottom_bracket_frame().rotate(axis=Axis.X, angle=90).move(Location(
+            (0,frame_configuration.bracket_depth/2, 0))))
+        add(spoke_assembly().rotate(axis=Axis.X, angle=90).move(Location(
+            (0,frame_configuration.bracket_depth/2, 0))))
+        add(wheel_guide().rotate(axis=Axis.X, angle=90).move(Location(
+            (0,frame_configuration.bracket_depth/2, 0))))
+    part = fil_bracket.part
+    part.label = "bracket"
+    return part
 
 right_bottom_intersection = frame_configuration.find_point_along_right(
                         -frame_configuration.spoke_height/2)
