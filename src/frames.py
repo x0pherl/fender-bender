@@ -4,15 +4,13 @@ Generates the part for the filament bracket of our filament bank design
 from build123d import (BuildPart, BuildSketch, Part, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 loft, fillet, Axis, Box, Align, GridLocations, Plane,
-                export_stl, Rectangle, Sphere, Polyline, Until, Cylinder,
-                RegularPolygon)
-from ocp_vscode import show
-from bank_config import BankConfig
-from curvebar import curvebar, frame_side, angle_bar, back_bar
+                export_stl, Rectangle, Sphere, RegularPolygon, Circle,
+                Select)
 from shapely.geometry import Point
+from bank_config import BankConfig
+from curvebar import frame_side, angle_bar, back_bar
 from geometry_utils import find_related_point_by_distance
-from filament_bracket import bottom_bracket_frame, spoke_assembly, wheel_guide
-from walls import front_wall, back_wall, top_cut_sidewall
+from wall_cut_template import wall_cut_template
 
 frame_configuration = BankConfig()
 
@@ -133,6 +131,9 @@ def frame() -> Part:
                     frame_configuration.frame_click_sphere_point.y)), mode=Mode.ADD):
             with GridLocations(0,frame_configuration.frame_bracket_spacing, 1, frame_configuration.filament_count):
                 Sphere(radius=frame_configuration.frame_click_sphere_radius*.75)
+        if frame_configuration.frame_wall_bracket:
+            with BuildPart(Location((frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length/2,0,-frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2)), mode=Mode.SUBTRACT):
+                add(wall_cut_template(frame_configuration.frame_back_foot_length,frame_configuration.frame_exterior_width,frame_configuration.spoke_climb+frame_configuration.spoke_bar_height,bottom=False, post_count=frame_configuration.filament_count))
     part = top_frame.part
     return part
 
@@ -210,13 +211,6 @@ def connector_frame(bottom:bool = False) -> Part:
             add(flat_wall_grooves())
         with BuildPart(top_face, mode=Mode.SUBTRACT):
             add(flat_wall_grooves())
-        # with BuildPart(Location((frame_configuration.frame_front_wall_center_distance,
-        #                          0,0)),mode=Mode.SUBTRACT):
-        #     add(straight_wall_groove().mirror(Plane.YZ))
-
-        # with BuildPart(Location((frame_configuration.frame_back_wall_center_distance,
-        #                 0,0)),mode=Mode.SUBTRACT):
-        #     add(straight_wall_groove())
     part = bframe.part.mirror(Plane.XY).move(Location((0,0,frame_configuration.bottom_frame_height))).rotate(Axis.Z, 180)
     part.label = "bottom frame"
     return part
@@ -224,18 +218,38 @@ def connector_frame(bottom:bool = False) -> Part:
 def bottom_frame() -> Part:
     return connector_frame(bottom=True)
 
-topframe = frame()
+#todo -- there is a bug with even numbers of filaments where the hole isn't at the center -- that needs to be fixed
+def wall_bracket() -> Part:
+    with BuildPart() as bracket:
+        Box(frame_configuration.frame_back_foot_length,frame_configuration.frame_exterior_width,frame_configuration.spoke_climb+frame_configuration.spoke_bar_height, align=(Align.CENTER, Align.CENTER, Align.MIN))
+        fillet(bracket.edges(), frame_configuration.minimum_structural_thickness/frame_configuration.fillet_ratio)
+        with BuildPart(mode=Mode.INTERSECT):
+            add(wall_cut_template(frame_configuration.frame_back_foot_length,frame_configuration.frame_exterior_width,frame_configuration.spoke_climb+frame_configuration.spoke_bar_height,bottom=False, post_count=frame_configuration.filament_count, tolerance=frame_configuration.frame_bracket_tolerance))
+        with BuildPart(Location((frame_configuration.frame_back_foot_length/4+frame_configuration.frame_bracket_tolerance/2,0,(frame_configuration.spoke_climb+frame_configuration.spoke_bar_height)/2),(0,-90,0)), mode=Mode.SUBTRACT):
+            add(screw_head())
+    return bracket.part
 
-right_bottom_intersection = frame_configuration.find_point_along_right(
-                -frame_configuration.spoke_height/2)
-right_top_intersection = frame_configuration.find_point_along_right(
-                -frame_configuration.spoke_height/2 + frame_configuration.spoke_bar_height)
+def screw_head() -> Part:
+    with BuildPart() as head:
+        with BuildSketch():
+            Circle(frame_configuration.wall_bracket_screw_head_radius)
+        with BuildSketch(Plane.XY.offset(.4)):
+            Circle(frame_configuration.wall_bracket_screw_head_radius)
+        with BuildSketch(Plane.XY.offset(.4+frame_configuration.wall_bracket_screw_head_radius-frame_configuration.wall_bracket_screw_radius)):
+            Circle(frame_configuration.wall_bracket_screw_radius)
+        with BuildSketch(Plane.XY.offset(frame_configuration.frame_back_foot_length)):
+            Circle(frame_configuration.wall_bracket_screw_radius)
+        loft(ruled=True)
+    return head.part
+    #wall_bracket_screw_radius = 2.25
+    #wall_bracket_screw_head_radius=4.5
 
-# bframe = bottom_frame()
-# cframe = connector_frame()
 
-show(topframe)
+
+# from ocp_vscode import show
+# show(wall_bracket())
 # show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))
-# export_stl(topframe, '../stl/top_frame.stl')
-# export_stl(bframe, '../stl/bottom_frame.stl')
-# export_stl(cframe, '../stl/connector_frame.stl')
+export_stl(frame(), '../stl/top_frame.stl')
+export_stl(bottom_frame(), '../stl/bottom_frame.stl')
+export_stl(connector_frame(), '../stl/connector_frame.stl')
+export_stl(wall_bracket(), '../stl/wall_bracket.stl')

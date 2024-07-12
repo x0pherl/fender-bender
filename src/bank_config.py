@@ -47,6 +47,9 @@ class BankConfig:
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
 
+    frame_wall_bracket = True
+    wall_bracket_screw_radius = 2.25
+    wall_bracket_screw_head_radius=4.5
 
     @property
     def bottom_frame_height(self) -> float:
