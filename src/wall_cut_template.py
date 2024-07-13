@@ -1,7 +1,7 @@
 from build123d import (BuildPart, BuildSketch, Part,
                 add, Location,
                 loft, Axis, Box, Align, GridLocations, Plane,
-                chamfer, Rectangle)
+                chamfer, Rectangle, Mode)
 
 def wall_slot(width, height, depth) -> Part:
     with BuildPart() as slot:
@@ -28,11 +28,21 @@ def wall_cut_template(length, width,height:float, bottom:bool=True, post_count=2
             chamfer(back_edge.faces().sort_by(Axis.Z)[-1].edges().sort_by(Axis.X)[0], cut_unit)
         with BuildPart(back_edge.faces().sort_by(Axis.X)[-1]):
             with GridLocations(0,width/post_count,1,post_count):
-                add(wall_slot(length, height-cut_unit*2, cut_unit))
+                add(wall_slot(length+effective_tolerance*3, height-cut_unit*2, cut_unit+effective_tolerance))
     return cut.part
+
+with BuildPart() as hanger:
+    Box(9,80,40, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    with BuildPart(mode=Mode.INTERSECT):
+        add(wall_cut_template(9,80,40,bottom=True, post_count=3, tolerance=.2)),
+
+with BuildPart() as hung:
+    Box(9,80,40, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    with BuildPart(mode=Mode.SUBTRACT):
+        add(wall_cut_template(9,80,40,bottom=False, post_count=3,tolerance=.2)),
 
 from ocp_vscode import show
 show(
-wall_cut_template(9,80,40,bottom=True, post_count=3)
-#wall_slot(9,40,2.25)
+hanger.part,
+hung.part.move(Location((0,0,0))),
 )

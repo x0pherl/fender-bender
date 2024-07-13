@@ -224,8 +224,8 @@ def wall_bracket() -> Part:
         Box(frame_configuration.frame_back_foot_length,frame_configuration.frame_exterior_width,frame_configuration.spoke_climb+frame_configuration.spoke_bar_height, align=(Align.CENTER, Align.CENTER, Align.MIN))
         fillet(bracket.edges(), frame_configuration.minimum_structural_thickness/frame_configuration.fillet_ratio)
         with BuildPart(mode=Mode.INTERSECT):
-            add(wall_cut_template(frame_configuration.frame_back_foot_length,frame_configuration.frame_exterior_width,frame_configuration.spoke_climb+frame_configuration.spoke_bar_height,bottom=False, post_count=frame_configuration.filament_count, tolerance=frame_configuration.frame_bracket_tolerance))
-        with BuildPart(Location((frame_configuration.frame_back_foot_length/4+frame_configuration.frame_bracket_tolerance/2,0,(frame_configuration.spoke_climb+frame_configuration.spoke_bar_height)/2),(0,-90,0)), mode=Mode.SUBTRACT):
+            add(wall_cut_template(frame_configuration.frame_back_foot_length,frame_configuration.frame_exterior_width,frame_configuration.spoke_climb+frame_configuration.spoke_bar_height,bottom=True, post_count=frame_configuration.filament_count, tolerance=frame_configuration.frame_bracket_tolerance))
+        with BuildPart(Location((frame_configuration.frame_back_foot_length/4+frame_configuration.frame_bracket_tolerance,0,(frame_configuration.spoke_climb+frame_configuration.spoke_bar_height)/2),(0,-90,0)), mode=Mode.SUBTRACT):
             add(screw_head())
     return bracket.part
 
@@ -244,10 +244,8 @@ def screw_head() -> Part:
     #wall_bracket_screw_radius = 2.25
     #wall_bracket_screw_head_radius=4.5
 
-
-
-# from ocp_vscode import show
-# show(wall_bracket())
+from ocp_vscode import show
+show(wall_bracket())
 # show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))
 export_stl(frame(), '../stl/top_frame.stl')
 export_stl(bottom_frame(), '../stl/bottom_frame.stl')
