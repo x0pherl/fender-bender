@@ -57,11 +57,11 @@ class BankConfig:
 
     @property
     def bottom_frame_offset(self) -> float:
-        return (abs(self.frame_back_distance) - abs(self.frame_front_bottom_distance)) / 2
+        return (self.frame_back_distance + self.frame_front_bottom_distance) / 2
 
     @property
     def wall_offset(self) -> float:
-        return (abs(self.frame_back_wall_center_distance) - abs(self.frame_front_wall_center_distance)) / 2
+        return (self.frame_back_wall_center_distance + self.frame_front_wall_center_distance) / 2
 
     @property
     def bottom_frame_exterior_length(self) -> float:
@@ -212,7 +212,7 @@ class BankConfig:
         """the distance from the center of the frame to the center of the front wall"""
         right_bottom_intersection = self.find_point_along_right(
                         -self.spoke_height/2)
-        return right_bottom_intersection.x + self.minimum_structural_thickness + self.wall_thickness/2
+        return right_bottom_intersection.x + self.minimum_structural_thickness
 
     @property
     def frame_back_foot_length(self) -> float:
@@ -304,7 +304,9 @@ class BankConfig:
         right_bottom_intersection = self.find_point_along_right(
             -self.spoke_height/2)
         return self.bracket_width/2 + \
-                right_bottom_intersection.x - self.wall_thickness/2 - self.frame_bracket_tolerance
+                right_bottom_intersection.x + \
+                self.minimum_structural_thickness - \
+                self.wall_thickness - self.frame_bracket_tolerance * 2
     
     
 

@@ -41,8 +41,9 @@ with BuildPart() as hung:
     with BuildPart(mode=Mode.SUBTRACT):
         add(wall_cut_template(9,80,40,bottom=False, post_count=3,tolerance=.2)),
 
-from ocp_vscode import show
-show(
-hanger.part,
-hung.part.move(Location((0,0,0))),
-)
+if __name__ == '__main__':
+    from ocp_vscode import show
+    show(
+    hanger.part,
+    hung.part.move(Location((0,0,0))),
+    )
