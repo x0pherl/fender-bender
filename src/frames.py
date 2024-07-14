@@ -233,9 +233,9 @@ def screw_head() -> Part:
     with BuildPart() as head:
         with BuildSketch():
             Circle(frame_configuration.wall_bracket_screw_head_radius)
-        with BuildSketch(Plane.XY.offset(.4)):
+        with BuildSketch(Plane.XY.offset(1.4)):
             Circle(frame_configuration.wall_bracket_screw_head_radius)
-        with BuildSketch(Plane.XY.offset(.4+frame_configuration.wall_bracket_screw_head_radius-frame_configuration.wall_bracket_screw_radius)):
+        with BuildSketch(Plane.XY.offset(1.4+frame_configuration.wall_bracket_screw_head_radius-frame_configuration.wall_bracket_screw_radius)):
             Circle(frame_configuration.wall_bracket_screw_radius)
         with BuildSketch(Plane.XY.offset(frame_configuration.frame_back_foot_length)):
             Circle(frame_configuration.wall_bracket_screw_radius)
@@ -245,11 +245,11 @@ def screw_head() -> Part:
     #wall_bracket_screw_head_radius=4.5
 
 if __name__ == '__main__':
-
     export_stl(frame(), '../stl/top_frame.stl')
     export_stl(bottom_frame(), '../stl/bottom_frame.stl')
     export_stl(connector_frame(), '../stl/connector_frame.stl')
     export_stl(wall_bracket(), '../stl/wall_bracket.stl')
+
 # # 
 # from ocp_vscode import show
 # f = frame().move(Location((0,0,frame_configuration.spoke_climb/2))).rotate(Axis.X, -45)
