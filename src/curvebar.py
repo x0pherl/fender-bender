@@ -77,7 +77,7 @@ def side_line(bottom_adjust=0,right_adjust=0) -> Sketch:
         fillet(sketch.vertices().filter_by_position(axis=Axis.X,
                 minimum=-frame_configuration.spoke_length/2+1,
                 maximum=-frame_configuration.spoke_length/4,
-                inclusive=(False, False)), frame_configuration.spoke_bar_height/4)
+                inclusive=(False, False)), frame_configuration.spoke_bar_height/3)
     return sketch.sketch
 
 def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> Part:
