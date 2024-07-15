@@ -150,10 +150,10 @@ def channel_box(length, width, height: float, double:bool = False):
         Box(length, width, height,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
         with BuildPart(mode=Mode.SUBTRACT):
-            add(diamond_cylinder(width/2,length).rotate(Axis.Y, 90))
+            add(diamond_cylinder(width/4,length).rotate(Axis.Y, 90))
         if double:
             with BuildPart(Plane.XY.offset(height), mode=Mode.SUBTRACT):
-                add(diamond_cylinder(width/2,length).rotate(Axis.Y, 90))
+                add(diamond_cylinder(width/4,length).rotate(Axis.Y, 90))
     return part.part
 
 def flat_wall_grooves() -> Part:
@@ -211,7 +211,7 @@ def connector_frame(bottom:bool = False) -> Part:
         if not bottom:
             with BuildPart(top_face, mode=Mode.SUBTRACT):
                 add(flat_wall_grooves())
-    part = bframe.part.move(Location((0,0,frame_configuration.bottom_frame_height)))
+    part = bframe.part.rotate(axis=Axis.X, angle=180).move(Location((0,0,connector_height)))
     part.label = "bottom frame"
     return part
 
