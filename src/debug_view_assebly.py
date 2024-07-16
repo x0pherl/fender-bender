@@ -36,8 +36,8 @@ def bracket() -> Part:
     part.label = "bracket"
     return part
 
-right_bottom_intersection = frame_configuration.find_point_along_right(
-                        -frame_configuration.spoke_height/2)
+# right_bottom_intersection = frame_configuration.find_point_along_right(
+#                         -frame_configuration.spoke_height/2)
 
 # bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(Location((-frame_configuration.bracket_width/2 - \
 #                         frame_configuration.frame_bracket_tolerance - \
@@ -54,15 +54,6 @@ right_bottom_intersection = frame_configuration.find_point_along_right(
 # cframe = connector_frame()
 
 # show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))
-
-
-
-
-
-
-
-
-
 
 
 with BuildPart() as combo:
