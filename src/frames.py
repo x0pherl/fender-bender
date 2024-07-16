@@ -47,13 +47,18 @@ def straight_wall_groove() -> Part:
                 Box(frame_configuration.wall_thickness+frame_configuration.frame_bracket_tolerance, frame_configuration.wall_thickness+frame_configuration.frame_bracket_tolerance,
                     (frame_configuration.frame_tongue_depth)/2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-
         with BuildPart(groove.faces().sort_by(Axis.X)[-1], mode=Mode.ADD):
             with GridLocations(0,frame_configuration.top_frame_interior_width/1.5,1,2):
                 Sphere(radius=frame_configuration.frame_click_sphere_radius)
         with BuildPart(groove.faces().sort_by(Axis.X)[0], mode=Mode.SUBTRACT):
             with GridLocations(0,frame_configuration.top_frame_interior_width/1.5,1,2):
                 Sphere(radius=frame_configuration.frame_click_sphere_radius*.75)
+        with BuildPart(mode=Mode.SUBTRACT) as guide_rail:
+            Box(frame_configuration.wall_thickness+frame_configuration.frame_bracket_tolerance, frame_configuration.wall_thickness-frame_configuration.frame_bracket_tolerance,
+                    frame_configuration.frame_tongue_depth+frame_configuration.frame_bracket_tolerance,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+            fillet(guide_rail.faces().sort_by(Axis.Z)[0].edges().filter_by(Axis.X), radius=frame_configuration.wall_thickness/4)
+
     part = groove.part
     part.label = "groove"
     return part
@@ -250,11 +255,11 @@ def screw_head() -> Part:
     #wall_bracket_screw_radius = 2.25
     #wall_bracket_screw_head_radius=4.5
 
-if __name__ == '__main__':
-    export_stl(frame(), '../stl/top_frame.stl')
-    export_stl(bottom_frame(), '../stl/bottom_frame.stl')
-    export_stl(connector_frame(), '../stl/connector_frame.stl')
-    export_stl(wall_bracket(), '../stl/wall_bracket.stl')
+# if __name__ == '__main__':
+#     export_stl(frame(), '../stl/top_frame.stl')
+#     export_stl(bottom_frame(), '../stl/bottom_frame.stl')
+#     export_stl(connector_frame(), '../stl/connector_frame.stl')
+#     export_stl(wall_bracket(), '../stl/wall_bracket.stl')
 
 # # 
 # from ocp_vscode import show

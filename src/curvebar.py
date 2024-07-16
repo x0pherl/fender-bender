@@ -87,13 +87,17 @@ def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> P
     thickness: determines the depth of the wall
     channel: (boolean) -- determines whether to cut a channel in the bottom part of the frame
     """
-    mid_adjustor = thickness/2 if channel else 0
+    mid_adjustor = thickness/4 if channel else 0
     with BuildPart() as side:
         with BuildPart() as cb:
             with BuildSketch(Plane.XY.offset(-thickness/2)):
                 add(side_line(bottom_adjust=0))
+            with BuildSketch(Plane.XY.offset(-thickness/4)):
+                add(side_line(bottom_adjust=0))
             with BuildSketch():
                 add(side_line(bottom_adjust=mid_adjustor))
+            with BuildSketch(Plane.XY.offset(thickness/4)):
+                add(side_line(bottom_adjust=0))
             with BuildSketch(Plane.XY.offset(thickness/2)):
                 add(side_line(bottom_adjust=0))
             loft(ruled=True)

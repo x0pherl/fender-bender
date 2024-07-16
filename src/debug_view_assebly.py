@@ -7,7 +7,7 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location, Locations,
                 Plane, loft, fillet, Axis, Box, Align, Cylinder, Sphere,
                 export_stl, offset, Polyline, Rectangle, Vector, sweep, GeomType,
-                Until, Sketch,chamfer,RegularPolygon)
+                Until, Sketch,chamfer,RegularPolygon,PolarLocations,Solid)
 from bd_warehouse.thread import TrapezoidalThread
 from ocp_vscode import show
 from frames import frame, bottom_frame, connector_frame, straight_wall_groove
@@ -36,8 +36,8 @@ def bracket() -> Part:
     part.label = "bracket"
     return part
 
-# right_bottom_intersection = frame_configuration.find_point_along_right(
-#                         -frame_configuration.spoke_height/2)
+right_bottom_intersection = frame_configuration.find_point_along_right(
+                        -frame_configuration.spoke_height/2)
 
 # bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(Location((-frame_configuration.bracket_width/2 - \
 #                         frame_configuration.frame_bracket_tolerance - \
@@ -55,4 +55,25 @@ def bracket() -> Part:
 
 # show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))
 
-show(straight_wall_tongue(), straight_wall_groove().move(Location((4,0,0))))
+
+
+
+
+
+
+
+
+
+
+with BuildPart() as combo:
+    with BuildPart(Location((0,-50,0))) as block1:
+        Box(100,50,20)
+        with BuildPart(mode=Mode.INTERSECT):
+            add(front_wall())
+    with BuildPart(Location((0,-50,0))) as block2:
+        Box(100,30,20)
+        with BuildPart(mode=Mode.INTERSECT):
+            add(bottom_frame().rotate(Axis.Z, -90).move(Location((0,-110,0))))
+
+show(block1,block2)
+export_stl(combo.part, '../stl/test.stl')
