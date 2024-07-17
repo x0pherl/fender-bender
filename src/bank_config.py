@@ -40,7 +40,7 @@ class BankConfig:
 
     filament_count = 3
 
-    sidewall_section_length = 100
+    sidewall_section_length = 250
     solid_walls = False
 
     wall_thickness = 2

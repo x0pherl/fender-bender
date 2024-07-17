@@ -220,29 +220,28 @@ def back_wall() -> Part:
 if __name__ == '__main__':
     from build123d import export_stl
     from ocp_vscode import show
-    show(wall_channel(10))
-    # fwall=front_wall()
-    # export_stl(fwall, '../stl/front_wall.stl')
+    fwall=front_wall()
+    export_stl(fwall, '../stl/front_wall.stl')
 
-    # bwall=back_wall()
-    # export_stl(bwall, '../stl/back_wall.stl')
+    bwall=back_wall()
+    export_stl(bwall, '../stl/back_wall.stl')
 
-    # side_wall = top_cut_sidewall(length=bracket_config.sidewall_section_length)
-    # export_stl(side_wall, '../stl/side_wall.stl')
+    side_wall = top_cut_sidewall(length=bracket_config.sidewall_section_length)
+    export_stl(side_wall, '../stl/side_wall.stl')
 
-    # left_side_wall = top_cut_sidewall(length=bracket_config.sidewall_section_length,reinforce=True)
-    # export_stl(left_side_wall, '../stl/left_reinforced_wall.stl')
+    left_side_wall = top_cut_sidewall(length=bracket_config.sidewall_section_length,reinforce=True)
+    export_stl(left_side_wall, '../stl/left_reinforced_wall.stl')
 
-    # right_side_wall = left_side_wall.mirror(Plane.XY).rotate(Axis.Y, 180)
-    # export_stl(right_side_wall, '../stl/right_reinforced_wall.stl')
+    right_side_wall = left_side_wall.mirror(Plane.XY).rotate(Axis.Y, 180)
+    export_stl(right_side_wall, '../stl/right_reinforced_wall.stl')
 
-    # show(fwall.move(Location((bracket_config.frame_exterior_width/2+bracket_config.sidewall_width/2+5,
-    #                         -bracket_config.spoke_climb/2,0))), 
-    #     bwall.move(Location((-bracket_config.frame_exterior_width/2-bracket_config.sidewall_width/2-5,
-    #                         -bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2,0))),
-    #     side_wall,
-    #     left_side_wall.move(Location((bracket_config.sidewall_width/2+1,
-    #                         bracket_config.spoke_climb/2+bracket_config.sidewall_section_length,0))),
-    #     right_side_wall.move(Location((-bracket_config.sidewall_width/2-1,
-    #                         bracket_config.spoke_climb/2+bracket_config.sidewall_section_length,0)))
-    #     )
+    show(fwall.move(Location((bracket_config.frame_exterior_width/2+bracket_config.sidewall_width/2+5,
+                            -bracket_config.spoke_climb/2,0))), 
+        bwall.move(Location((-bracket_config.frame_exterior_width/2-bracket_config.sidewall_width/2-5,
+                            -bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2,0))),
+        side_wall,
+        left_side_wall.move(Location((bracket_config.sidewall_width/2+1,
+                            bracket_config.spoke_climb/2+bracket_config.sidewall_section_length,0))),
+        right_side_wall.move(Location((-bracket_config.sidewall_width/2-1,
+                            bracket_config.spoke_climb/2+bracket_config.sidewall_section_length,0)))
+        )

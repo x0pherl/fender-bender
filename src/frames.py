@@ -1,7 +1,7 @@
 """
 Generates the part for the filament bracket of our filament bank design
 """
-from build123d import (BuildPart, BuildSketch, Part, CenterArc,
+from build123d import (BuildPart, BuildSketch, Part, CenterArc, Cylinder,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 loft, fillet, Axis, Box, Align, GridLocations, Plane,
                 Rectangle, Sphere, RegularPolygon, Circle)
@@ -305,6 +305,6 @@ if __name__ == '__main__':
     export_stl(connector_frame(), '../stl/connector_frame.stl')
     export_stl(wall_bracket(), '../stl/wall_bracket.stl')
     show(topframe,
-        bottomframe.move(Location((0,0,
+        bottomframe.rotate(axis=Axis.X,angle=90).move(Location((0,0,
             -frame_configuration.spoke_climb-frame_configuration.minimum_structural_thickness*2)))
         )
