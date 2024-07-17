@@ -4,11 +4,10 @@ Generates the part for the filament bracket of our filament bank design
 from build123d import (BuildPart, BuildSketch, Part, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 loft, fillet, Axis, Box, Align, GridLocations, Plane,
-                export_stl, Rectangle, Sphere, RegularPolygon, Circle,
-                Select, Cylinder)
+                Rectangle, Sphere, RegularPolygon, Circle)
 from shapely.geometry import Point
 from bank_config import BankConfig
-from curvebar import frame_side, angle_bar, back_bar
+from curvebar import frame_side
 from geometry_utils import find_related_point_by_distance
 from wall_cut_template import wall_cut_template
 
@@ -48,7 +47,7 @@ def straight_wall_groove() -> Part:
         with BuildPart(groove.faces().sort_by(Axis.X)[0], mode=Mode.SUBTRACT):
             with GridLocations(0,frame_configuration.top_frame_interior_width/1.5,1,2):
                 Sphere(radius=frame_configuration.frame_click_sphere_radius*.75)
-        with BuildPart(mode=Mode.SUBTRACT) as guide_rail:
+        with BuildPart(mode=Mode.SUBTRACT):
             Box(frame_configuration.wall_thickness+frame_configuration.frame_bracket_tolerance, frame_configuration.wall_thickness/2,
                     frame_configuration.frame_tongue_depth+frame_configuration.frame_bracket_tolerance,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
@@ -96,7 +95,7 @@ def frame() -> Part:
             add(backfloor())
     
         with GridLocations(0,frame_configuration.top_frame_interior_width+frame_configuration.minimum_structural_thickness+frame_configuration.wall_thickness*2, 1, 2):
-           add(frame_side(frame_configuration.minimum_structural_thickness))
+            add(frame_side(frame_configuration.minimum_structural_thickness))
 
         fillet_edges = \
                 top_frame.edges().filter_by_position(Axis.Y, minimum=frame_configuration.frame_exterior_width/2-.01, maximum=frame_configuration.frame_exterior_width/2+.02, inclusive=(True,True)) + \
@@ -250,26 +249,62 @@ def screw_head() -> Part:
     #wall_bracket_screw_radius = 2.25
     #wall_bracket_screw_head_radius=4.5
 
+
+def angle_bar(depth: float) -> Part:
+    """
+    properly positioned front bar for the frame
+    """
+    right_bottom_intersection = frame_configuration.find_point_along_right(
+            -frame_configuration.spoke_height/2)
+    right_top_intersection = frame_configuration.find_point_along_right(
+                    -frame_configuration.spoke_height/2 + frame_configuration.spoke_bar_height)
+    with BuildPart() as foot_bar:
+        with BuildSketch(Location((right_bottom_intersection.x + \
+                    frame_configuration.frame_bracket_tolerance,0,
+                    right_bottom_intersection.y), (0,0,0))) as base:
+            Rectangle(frame_configuration.minimum_structural_thickness*2,
+                    depth,
+                    align=(Align.MIN, Align.CENTER))
+        with BuildSketch(Location((right_top_intersection.x +\
+                    frame_configuration.frame_bracket_tolerance,0,
+                    right_top_intersection.y), (0,0,0))):
+            Rectangle(frame_configuration.minimum_structural_thickness*2,
+                    depth,
+                    align=(Align.MIN, Align.CENTER))
+        loft()
+        with BuildPart(Location((right_bottom_intersection.x,0,right_bottom_intersection.y)), mode=Mode.SUBTRACT):
+            with GridLocations(0,frame_configuration.frame_bracket_spacing,
+                    1,frame_configuration.filament_count+1):
+                Cylinder(radius=frame_configuration.wall_thickness/2, height=frame_configuration.minimum_structural_thickness*2, rotation=(90,90,0))
+
+    part = foot_bar.part
+    part.label = "angle bar"
+    return part
+
+def back_bar(depth: float) -> Part:
+    """
+    properly positioned back bar for the frame
+    """
+    with BuildPart(Location((frame_configuration.frame_back_distance,0,
+                        -frame_configuration.wall_thickness))) as bar:
+        Box(frame_configuration.minimum_structural_thickness*2,
+            depth,
+            frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2+frame_configuration.wall_thickness,
+            align=(Align.MIN, Align.CENTER, Align.MIN))
+    part = bar.part
+    part.label = "back bar"
+    return part
+
 if __name__ == '__main__':
+    from build123d import export_stl
+    from ocp_vscode import show
     topframe = frame()
     bottomframe = bottom_frame()
     export_stl(topframe, '../stl/top_frame.stl')
     export_stl(bottomframe, '../stl/bottom_frame.stl')
     export_stl(connector_frame(), '../stl/connector_frame.stl')
     export_stl(wall_bracket(), '../stl/wall_bracket.stl')
-    from ocp_vscode import show
     show(topframe,
         bottomframe.move(Location((0,0,
             -frame_configuration.spoke_climb-frame_configuration.minimum_structural_thickness*2)))
         )
-
-# # 
-# f = frame().move(Location((0,0,frame_configuration.spoke_climb/2))).rotate(Axis.X, -45)
-# f.color=Color("red")
-# bframe = connector_frame(bottom=True)
-# # with BuildPart(Location((frame_configuration.bottom_frame_offset,0,0))) as bxframe:
-# #     Box(frame_configuration.bottom_frame_exterior_length,
-# #         frame_configuration.frame_exterior_width*2,
-# #         10,
-# #         align=(Align.CENTER, Align.CENTER, Align.MIN))
-# show(f,bframe)

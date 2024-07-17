@@ -6,11 +6,10 @@ from shapely import Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Locations, Plane, loft, fillet, Axis, Box, Align, Cylinder,
-                export_stl, offset, Polyline, Rectangle, Sphere, sweep,
-                GridLocations)
+                offset, Polyline, Rectangle, Sphere, sweep)
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
-from geometry_utils import (find_related_point_by_distance, x_point_to_angle, point_distance, y_point_to_angle)
+from geometry_utils import (find_related_point_by_distance, x_point_to_angle)
 from curvebar import curvebar
 
 bracket_configuration = BankConfig()
@@ -397,10 +396,8 @@ def top_bracket() -> Part:
                           spoke_assembly().mirror(Plane.XZ)])
 
 if __name__ == '__main__':
-    """
-    shows and saves the parts
-    """
     from ocp_vscode import show
+    from build123d import export_stl
     bottom = bottom_bracket(draft=False)
     top = top_bracket()
     show(bottom.move(Location((bracket_configuration.bracket_width/2+5,0,0))),

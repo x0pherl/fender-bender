@@ -2,8 +2,8 @@
 module for all of the configuration required to build a filament bank
 """
 from dataclasses import dataclass
-from build123d import CenterArc, Location, Locations
 from math import sqrt
+from build123d import CenterArc, Location, Locations
 from shapely.geometry import Point, LineString
 from geometry_utils import (distance_to_circle_edge, find_related_point_by_distance,
             point_distance, x_point_to_angle, y_point_to_angle)
@@ -53,6 +53,9 @@ class BankConfig:
 
     @property
     def bottom_frame_height(self) -> float:
+        """
+        the appropriate height for the bottom frame
+        """
         return self.frame_tongue_depth + self.minimum_structural_thickness
 
     @property
@@ -339,7 +342,8 @@ class BankConfig:
         returns the length of the clip that will hold in the bracket
         """
         #return (self.connector_radius-self.tube_outer_radius+self.minimum_thickness)
-        return (self.bracket_depth/2-self.tube_outer_radius-min(self.wheel_radial_tolerance, self.wheel_lateral_tolerance))
+        return (self.bracket_depth/2-self.tube_outer_radius - \
+                min(self.wheel_radial_tolerance, self.wheel_lateral_tolerance))
 
     @property
     def bearing_shelf_radius(self) -> float:
@@ -450,3 +454,4 @@ class BankConfig:
         returns the appropriate height for the bearing shelf
         """
         return (self.bracket_depth - self.bearing_depth - self.wheel_lateral_tolerance)/2
+    
