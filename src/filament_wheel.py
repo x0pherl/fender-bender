@@ -55,7 +55,8 @@ with BuildPart() as filament_wheel:
     add(diamond_torus(wheel_configuration.wheel_radius, wheel_configuration.bearing_depth/2).
         move(Location((0,0,wheel_configuration.bearing_depth/2))), mode=Mode.SUBTRACT)
 
-part = filament_wheel.part
-part.label = "filament wheel"
-show(part)
-export_stl(part, '../stl/filament_wheel.stl')
+if __name__ == '__main__':
+    part = filament_wheel.part
+    part.label = "filament wheel"
+    show(part)
+    export_stl(part, '../stl/filament_wheel.stl')

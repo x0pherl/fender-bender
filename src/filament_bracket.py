@@ -396,16 +396,14 @@ def top_bracket() -> Part:
                           top_frame(tolerance=0.1),
                           spoke_assembly().mirror(Plane.XZ)])
 
-def main(draft:bool = False):
+if __name__ == '__main__':
     """
     shows and saves the parts
     """
     from ocp_vscode import show
-    bottom = bottom_bracket(draft=draft)
+    bottom = bottom_bracket(draft=False)
     top = top_bracket()
     show(bottom.move(Location((bracket_configuration.bracket_width/2+5,0,0))),
          top.move(Location((-bracket_configuration.bracket_width/2+5,0,0))))
     export_stl(bottom, '../stl/bottom_bracket.stl')
     export_stl(top, '../stl/top_bracket.stl')
-
-#main(draft=False)

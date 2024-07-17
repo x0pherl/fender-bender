@@ -36,35 +36,21 @@ def bracket() -> Part:
     part.label = "bracket"
     return part
 
-# right_bottom_intersection = frame_configuration.find_point_along_right(
-#                         -frame_configuration.spoke_height/2)
+right_bottom_intersection = frame_configuration.find_point_along_right(
+                        -frame_configuration.spoke_height/2)
 
-# bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(Location((-frame_configuration.bracket_width/2 - \
-#                         frame_configuration.frame_bracket_tolerance - \
-#                             frame_configuration.minimum_structural_thickness + frame_configuration.frame_back_foot_length + frame_configuration.frame_bracket_tolerance/2,0,-frame_configuration.sidewall_section_length/2 - frame_configuration.frame_bracket_tolerance)))
-# fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
-#     right_bottom_intersection.x + frame_configuration.minimum_structural_thickness + frame_configuration.minimum_thickness + frame_configuration.wall_thickness/2,
-#         0,
-#         -frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2 - frame_configuration.front_wall_length/2 + frame_configuration.frame_tongue_depth)))
-# swall = top_cut_sidewall(length=frame_configuration.sidewall_section_length).rotate(Axis.X, 90).move(Location((-frame_configuration.wall_thickness/2,-frame_configuration.frame_exterior_width/2-frame_configuration.wall_thickness,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth*1.5)))
+bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(Location((-frame_configuration.bracket_width/2 - \
+                        frame_configuration.frame_bracket_tolerance - \
+                            frame_configuration.minimum_structural_thickness + frame_configuration.frame_back_foot_length + frame_configuration.frame_bracket_tolerance/2,0,-frame_configuration.sidewall_section_length/2 - frame_configuration.frame_bracket_tolerance)))
+fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
+    right_bottom_intersection.x + frame_configuration.minimum_structural_thickness + frame_configuration.minimum_thickness + frame_configuration.wall_thickness/2,
+        0,
+        -frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2 - frame_configuration.front_wall_length/2 + frame_configuration.frame_tongue_depth)))
+swall = top_cut_sidewall(length=frame_configuration.sidewall_section_length).rotate(Axis.X, 90).move(Location((-frame_configuration.wall_thickness/2,-frame_configuration.frame_exterior_width/2-frame_configuration.wall_thickness,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth*1.5)))
 
-# topframe = frame()
-# show(topframe)
-# bframe = bottom_frame()
-# cframe = connector_frame()
+topframe = frame()
+show(topframe)
+bframe = bottom_frame()
+cframe = connector_frame()
 
-# show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))
-
-
-with BuildPart() as combo:
-    with BuildPart(Location((0,-50,0))) as block1:
-        Box(100,50,20)
-        with BuildPart(mode=Mode.INTERSECT):
-            add(front_wall())
-    with BuildPart(Location((0,-50,0))) as block2:
-        Box(100,30,20)
-        with BuildPart(mode=Mode.INTERSECT):
-            add(bottom_frame().rotate(Axis.Z, -90).move(Location((0,-110,0))))
-
-show(block1,block2)
-export_stl(combo.part, '../stl/test.stl')
+show(topframe, bracket(), bwall, fwall, swall, cframe.move(Location((-frame_configuration.bottom_frame_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height))), bframe.move(Location((-frame_configuration.wall_offset/2,0,-frame_configuration.spoke_bar_height-frame_configuration.front_wall_length-frame_configuration.bottom_frame_height-100))))

@@ -72,8 +72,8 @@ def top_cut_sidewall_base(length:float, depth:float=bracket_config.wall_thicknes
         with BuildSketch() as sk:
             Rectangle(bracket_config.sidewall_width, sidewall_length)
             with BuildSketch(mode=Mode.SUBTRACT):
-                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((bracket_config.wall_thickness/2, sidewall_length/2 - bracket_config.spoke_bar_height/2))))
-                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((bracket_config.wall_thickness/2, sidewall_length/2 + bracket_config.spoke_bar_height/2))))
+                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((bracket_config.wall_thickness*1.5, sidewall_length/2 - bracket_config.spoke_bar_height/2))))
+                add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width).move(Location((bracket_config.wall_thickness*1.5, sidewall_length/2 + bracket_config.spoke_bar_height/2))))
             offset(amount = -inset)
         extrude(amount=depth/2, both=True)
         
@@ -122,7 +122,6 @@ def top_cut_sidewall(length:float, reinforce=False) -> Part:
     part = wall.part
     part.label = "sidewall"
     return part
-
 
 def click_sides(scale = 1) -> Part:
     with BuildPart(Plane.XY.offset(bracket_config.wall_thickness*2)) as click_points:
