@@ -12,7 +12,8 @@ desc:
 from typing import Union
 from math import sqrt
 from build123d import (Box, BuildPart, BuildSketch, HexLocations, RegularPolygon,
-                       Align, extrude, Mode, Part, Axis)
+                       Align, extrude, Mode, Part, Axis, section, add, Plane,
+                       offset, Location)
 
 def HexWall(length,width,height,apothem,wall_thickness: float, align:Union[Align, tuple[Align, Align, Align]]=(Align.CENTER, Align.CENTER, Align.CENTER), inverse=False) -> Part:
     """

@@ -14,7 +14,7 @@ class BankConfig:
     """
     A dataclass for configuration values for our filament bank
     """
-    bearing_diameter: float = 12
+    bearing_diameter: float = 12.1
     bearing_inner_diameter = 6.1
     bearing_shelf_diameter = 8.5
     bearing_depth: float = 4
@@ -38,9 +38,13 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    filament_count = 3
+    # filament_count = 3
+    filament_count = 2
 
-    sidewall_section_length = 250
+    # sidewall_section_length = 240
+    # extension_section_length = 100
+    sidewall_section_length = 50
+    extension_section_length = 20
     solid_walls = False
 
     wall_thickness = 2
