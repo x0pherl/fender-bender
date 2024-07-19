@@ -219,7 +219,7 @@ class BankConfig:
         """the distance from the center of the frame to the center of the front wall"""
         right_bottom_intersection = self.find_point_along_right(
                         -self.spoke_height/2)
-        return right_bottom_intersection.x + self.minimum_structural_thickness
+        return right_bottom_intersection.x + self.minimum_structural_thickness + self.wall_thickness/2 + self.frame_bracket_tolerance
 
     @property
     def frame_back_foot_length(self) -> float:
@@ -313,7 +313,7 @@ class BankConfig:
         return self.bracket_width/2 + \
                 right_bottom_intersection.x + \
                 self.minimum_structural_thickness - \
-                self.wall_thickness - self.frame_bracket_tolerance * 2
+                self.wall_thickness
     
     
 

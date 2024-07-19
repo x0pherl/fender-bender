@@ -46,7 +46,7 @@ fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
         frame_configuration.frame_front_wall_center_distance + frame_configuration.wall_thickness/2,
         0,
         -frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2 - frame_configuration.front_wall_length/2 + frame_configuration.frame_tongue_depth/2 - frame_configuration.frame_bracket_tolerance)))
-swall = top_cut_sidewall(length=frame_configuration.sidewall_section_length).rotate(Axis.X, 90).move(Location((-frame_configuration.wall_thickness*1.5,0,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth*1.5)))
+swall = top_cut_sidewall(length=frame_configuration.sidewall_section_length).rotate(Axis.X, 90).move(Location((-frame_configuration.wall_thickness-frame_configuration.frame_bracket_tolerance*2,-frame_configuration.top_frame_interior_width/2,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth-frame_configuration.frame_bracket_tolerance)))
 
 topframe = frame()
 #show(topframe)
@@ -61,8 +61,10 @@ cframe = connector_frame().move(
                     frame_configuration.front_wall_length - \
                     frame_configuration.bottom_frame_height*2))),
 
-show(topframe, bracket(), bwall, fwall, swall, cframe)
-show(topframe, bracket(), bwall, fwall, swall)
+bkt = bracket()
+
+#show(topframe, bkt, bwall, fwall, swall, cframe)
+show(topframe, bkt, bwall, fwall, swall)
 
 # show(topframe,
 #         bframe.rotate(axis=Axis.X,angle=-90).move(Location((0,0,
