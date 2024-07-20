@@ -89,10 +89,10 @@ def sidewall_base(length:float, depth:float=bracket_config.wall_thickness,
             if top_cut:
                 with BuildSketch(mode=Mode.SUBTRACT):
                     add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width) \
-                        .move(Location((bracket_config.wall_thickness*1.5, sidewall_length/2 - \
+                        .move(Location((bracket_config.wall_thickness, sidewall_length/2 - \
                                         bracket_config.spoke_bar_height/2+bracket_config.frame_bracket_tolerance*2))))
                     add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width) \
-                        .move(Location((bracket_config.wall_thickness*1.5, sidewall_length/2 + \
+                        .move(Location((bracket_config.wall_thickness, sidewall_length/2 + \
                                         bracket_config.spoke_bar_height/2+bracket_config.frame_bracket_tolerance*2))))
             offset(amount = -inset)
         extrude(amount=depth/2, both=True)
@@ -162,11 +162,13 @@ def sidewall(length:float, top_cut=True, reinforce=False) -> Part:
                             wall_thickness=bracket_config.wall_thickness/2, inverse=True))
         left_length = bracket_config.back_wall_length-bracket_config.frame_tongue_depth*2+bracket_config.frame_bracket_tolerance*2 if top_cut else length
         right_length = bracket_config.front_wall_length-bracket_config.frame_tongue_depth*2+bracket_config.frame_bracket_tolerance*2 if top_cut else length
+        right_offset = -bracket_config.spoke_climb/2 if top_cut else 0
+        left_offset =-bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2-bracket_config.frame_bracket_tolerance*2 if top_cut else 0
         with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,
-                                -bracket_config.spoke_climb/2,0)), mode=Mode.ADD):
+                                right_offset,0)), mode=Mode.SUBTRACT):
             add(sidewall_divots(right_length))
         with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,
-                                -bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2-bracket_config.frame_bracket_tolerance*2,0)), mode=Mode.SUBTRACT):
+                                left_offset,0)), mode=Mode.SUBTRACT):
             add(sidewall_divots(left_length))
     part = wall.part
     part.label = "sidewall"
@@ -262,10 +264,10 @@ if __name__ == '__main__':
     export_stl(right_side_wall, '../stl/right_reinforced_wall.stl')
 
     show(fwall.move(Location((bracket_config.frame_exterior_width/2 + \
-                            bracket_config.sidewall_width/2-1,
+                            bracket_config.sidewall_width/2+1,
                             -bracket_config.spoke_climb/2,0))),
         bwall.move(Location((-bracket_config.frame_exterior_width/2 - \
-                            bracket_config.sidewall_width/2+1,
+                            bracket_config.sidewall_width/2-1,
                             -bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2,0))),
         side_wall,
         left_side_wall.move(Location((bracket_config.sidewall_width/2+1,
