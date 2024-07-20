@@ -145,7 +145,7 @@ def top_frame() -> Part:
         if frame_configuration.frame_wall_bracket:
             with BuildPart(Location((frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length/2,0,-frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2)), mode=Mode.SUBTRACT):
                 add(wall_cut_template(frame_configuration.frame_back_foot_length,frame_configuration.frame_exterior_width,frame_configuration.spoke_climb+frame_configuration.spoke_bar_height,bottom=False, post_count=frame_configuration.filament_count))
-    part = top_frame.part
+    part = tframe.part
     return part
 
 def diamond_cylinder(radius=1, height=10):
