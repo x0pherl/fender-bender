@@ -47,7 +47,8 @@ def straight_wall_tongue() -> Part:
     """
     with BuildPart() as tongue:
         Box(bracket_config.wall_thickness,
-            bracket_config.top_frame_interior_width+bracket_config.wall_thickness*3.75,
+            bracket_config.top_frame_interior_width+bracket_config.wall_thickness*(bracket_config.filament_count+1)-bracket_config.frame_bracket_tolerance,
+
             bracket_config.frame_tongue_depth - bracket_config.wall_thickness/2,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
         extrude(tongue.faces().sort_by(Axis.Z)[-1],

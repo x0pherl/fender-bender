@@ -1,5 +1,6 @@
 """
-Generates the part for the filament bracket of our filament bank design
+Generates the part for the frames connecting the walls and holding the
+filament bracket in place
 """
 from build123d import (BuildPart, BuildSketch, Part, CenterArc, Cylinder,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
@@ -74,7 +75,8 @@ def backfloor() -> Part:
     part = floor.part
     return part
 
-def frame() -> Part:
+def top_frame() -> Part:
+
     with BuildPart() as top_frame:
 
         right_bottom_intersection = frame_configuration.find_point_along_right(
@@ -298,7 +300,7 @@ def back_bar(depth: float) -> Part:
 if __name__ == '__main__':
     from build123d import export_stl
     from ocp_vscode import show
-    topframe = frame()
+    topframe = top_frame()
     bottomframe = bottom_frame()
     export_stl(topframe, '../stl/top_frame.stl')
     export_stl(bottomframe, '../stl/bottom_frame.stl')
