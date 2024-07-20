@@ -47,7 +47,7 @@ def straight_wall_tongue() -> Part:
     """
     with BuildPart() as tongue:
         Box(bracket_config.wall_thickness,
-            bracket_config.top_frame_interior_width+bracket_config.wall_thickness*(bracket_config.filament_count+1)-bracket_config.frame_bracket_tolerance,
+            bracket_config.top_frame_interior_width-bracket_config.frame_bracket_tolerance,
 
             bracket_config.frame_tongue_depth - bracket_config.wall_thickness/2,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
@@ -191,7 +191,8 @@ def guide_wall(length:float) -> Part:
     builds a wall with guides for each sidewall
     """
     base_length = length-bracket_config.frame_tongue_depth*2 - \
-            bracket_config.wall_thickness/2-bracket_config.frame_bracket_tolerance*3
+                    bracket_config.wall_thickness/2 - \
+                    bracket_config.frame_bracket_tolerance*2
     with BuildPart() as wall:
         with BuildPart():
             Box(bracket_config.frame_exterior_width,
@@ -247,10 +248,10 @@ if __name__ == '__main__':
         export_stl(extension_side, '../stl/extension_side_wall.stl')
         reinforced_extension_side = sidewall(bracket_config.extension_section_length, False, True)
         export_stl(reinforced_extension_side, '../stl/reinforced_extension_side_wall.stl')
-        show(extension_guide.move(Location((
-            -bracket_config.sidewall_width/2-bracket_config.frame_exterior_width/2 -1,0,0))),
-            extension_side,
-            reinforced_extension_side.move(Location((bracket_config.sidewall_width+1,0,0))))
+        show(extension_side.move(Location((
+            -bracket_config.sidewall_width/2-bracket_config.frame_exterior_width/2-1,0,0))),
+            extension_guide,
+            reinforced_extension_side.move(Location((bracket_config.sidewall_width/2+bracket_config.frame_exterior_width/2+1,0,0))))
     fwall=front_wall()
     export_stl(fwall, '../stl/front_wall.stl')
     bwall=back_wall()

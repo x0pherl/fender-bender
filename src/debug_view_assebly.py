@@ -43,7 +43,7 @@ swall = sidewall(length=frame_configuration.sidewall_section_length) \
     .rotate(Axis.X, 90).move(Location((-frame_configuration.wall_thickness-frame_configuration.frame_bracket_tolerance*2,-frame_configuration.top_frame_interior_width/2,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth-frame_configuration.frame_bracket_tolerance)))
 
 topframe = top_frame()
-#show(topframe)
+
 bframe = bottom_frame().move(
             Location((-frame_configuration.wall_offset/2,0,
                     -frame_configuration.spoke_bar_height - \
@@ -59,11 +59,5 @@ cframe = connector_frame().move(
 
 bkt = bracket()
 
-#show(topframe, bkt, bwall, fwall, swall, cframe)
+# #show(topframe, bkt, bwall, fwall, swall, cframe)
 show(topframe, bkt, bwall, fwall, swall, bframe)
-
-# show(topframe,
-#         bframe.rotate(axis=Axis.X,angle=-90).move(Location((0,0,
-#             -frame_configuration.spoke_climb-frame_configuration.minimum_structural_thickness*2))),
-#         swall
-# )

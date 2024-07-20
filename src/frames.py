@@ -36,9 +36,12 @@ def support_bar(tolerance = 0) -> Part:
     return part
 
 def straight_wall_groove() -> Part:
+    """
+    builds the socket for the side walls to fit into
+    """
     with BuildPart() as groove:
         Box(frame_configuration.wall_thickness+frame_configuration.frame_bracket_tolerance,
-            frame_configuration.top_frame_interior_width+frame_configuration.wall_thickness*(frame_configuration.filament_count+1)+frame_configuration.frame_bracket_tolerance,
+            frame_configuration.top_frame_interior_width+frame_configuration.frame_bracket_tolerance,
             frame_configuration.frame_tongue_depth-frame_configuration.wall_thickness/2+frame_configuration.frame_bracket_tolerance,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
         extrude(groove.faces().sort_by(Axis.Z)[-1], amount=frame_configuration.wall_thickness/2, taper=44)
