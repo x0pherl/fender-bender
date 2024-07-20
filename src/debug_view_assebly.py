@@ -1,7 +1,7 @@
 from build123d import (BuildPart, Part, add, Location, Axis)
 from ocp_vscode import show
-from frames import frame, bottom_frame, connector_frame
-from walls import back_wall, front_wall, top_cut_sidewall
+from frames import top_frame, bottom_frame, connector_frame
+from walls import back_wall, front_wall, sidewall
 from bank_config import BankConfig
 from filament_bracket import bottom_bracket_frame, spoke_assembly, wheel_guide
 
@@ -39,10 +39,10 @@ fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
         frame_configuration.front_wall_length/2 + \
         frame_configuration.frame_tongue_depth/2 - \
         frame_configuration.frame_bracket_tolerance)))
-swall = top_cut_sidewall(length=frame_configuration.sidewall_section_length) \
+swall = sidewall(length=frame_configuration.sidewall_section_length) \
     .rotate(Axis.X, 90).move(Location((-frame_configuration.wall_thickness-frame_configuration.frame_bracket_tolerance*2,-frame_configuration.top_frame_interior_width/2,-frame_configuration.sidewall_section_length/2+frame_configuration.frame_tongue_depth-frame_configuration.frame_bracket_tolerance)))
 
-topframe = frame()
+topframe = top_frame()
 #show(topframe)
 bframe = bottom_frame().move(
             Location((-frame_configuration.wall_offset/2,0,

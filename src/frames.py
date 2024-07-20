@@ -77,7 +77,7 @@ def backfloor() -> Part:
 
 def top_frame() -> Part:
 
-    with BuildPart() as top_frame:
+    with BuildPart() as tframe:
 
         right_bottom_intersection = frame_configuration.find_point_along_right(
                         -frame_configuration.spoke_height/2)
@@ -100,12 +100,16 @@ def top_frame() -> Part:
             add(frame_side(frame_configuration.minimum_structural_thickness))
 
         fillet_edges = \
-                top_frame.edges().filter_by_position(Axis.Y, minimum=frame_configuration.frame_exterior_width/2-.01, maximum=frame_configuration.frame_exterior_width/2+.02, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.Y, minimum=-frame_configuration.frame_exterior_width/2-.01, maximum=-frame_configuration.frame_exterior_width/2+.02, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.X, minimum=frame_configuration.frame_back_distance-.01, maximum=frame_configuration.frame_back_distance+.01, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.Z, minimum=right_bottom_intersection.y-.01, maximum=right_bottom_intersection.y+.01).filter_by_position(Axis.X, minimum=frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length-.01, maximum=frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length+.01, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.X, minimum=right_top_intersection.x+frame_configuration.minimum_structural_thickness*2+frame_configuration.frame_bracket_tolerance-.01, maximum=right_top_intersection.x+frame_configuration.minimum_structural_thickness*2+frame_configuration.frame_bracket_tolerance+.01, inclusive=(True,True)) + \
-                top_frame.edges().filter_by_position(Axis.X, minimum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance-.01, maximum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance+.01, inclusive=(True,True))
+                tframe.edges().filter_by_position(Axis.Y, minimum=frame_configuration.frame_exterior_width/2-.01,
+                        maximum=frame_configuration.frame_exterior_width/2+.02, inclusive=(True,True)) + \
+                tframe.edges().filter_by_position(Axis.Y, minimum=-frame_configuration.frame_exterior_width/2-.01,
+                        maximum=-frame_configuration.frame_exterior_width/2+.02, inclusive=(True,True)) + \
+                tframe.edges().filter_by_position(Axis.X, minimum=frame_configuration.frame_back_distance-.01,
+                        maximum=frame_configuration.frame_back_distance+.01, inclusive=(True,True)) + \
+                tframe.edges().filter_by_position(Axis.Z, minimum=right_bottom_intersection.y-.01,
+                        maximum=right_bottom_intersection.y+.01).filter_by_position(Axis.X, minimum=frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length-.01, maximum=frame_configuration.frame_back_distance+frame_configuration.frame_back_foot_length+.01, inclusive=(True,True)) + \
+                tframe.edges().filter_by_position(Axis.X, minimum=right_top_intersection.x+frame_configuration.minimum_structural_thickness*2+frame_configuration.frame_bracket_tolerance-.01, maximum=right_top_intersection.x+frame_configuration.minimum_structural_thickness*2+frame_configuration.frame_bracket_tolerance+.01, inclusive=(True,True)) + \
+                tframe.edges().filter_by_position(Axis.X, minimum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance-.01, maximum=right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+frame_configuration.frame_bracket_tolerance+.01, inclusive=(True,True))
 
         fillet(fillet_edges, frame_configuration.minimum_structural_thickness/frame_configuration.fillet_ratio)
 
