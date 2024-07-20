@@ -64,7 +64,7 @@ def backfloor() -> Part:
             frame_configuration.frame_tongue_depth,
             align=(Align.MIN, Align.CENTER, Align.MAX))
         with BuildPart(mode=Mode.SUBTRACT):
-            with GridLocations(0,frame_confiation.frame_bracket_spacing,
+            with GridLocations(0,frame_configuration.frame_bracket_spacing,
                 1,frame_configuration.filament_count+1):
                 Box(frame_configuration.frame_tongue_depth+frame_configuration.minimum_structural_thickness,
                     frame_configuration.wall_thickness,
