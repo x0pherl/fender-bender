@@ -91,8 +91,7 @@ class BankConfig:
         """
         the calculated length for the front wall
         """
-        return self.sidewall_section_length - self.spoke_climb + \
-                    self.frame_tongue_depth*2-self.frame_bracket_tolerance*2
+        return self.sidewall_section_length - self.spoke_climb
 
     @property
     def back_wall_length(self) -> float:
@@ -100,7 +99,7 @@ class BankConfig:
         the calculated length for the front wall
         """
         return self.sidewall_section_length - self.spoke_bar_height + \
-                    self.frame_tongue_depth*3 - self.frame_bracket_tolerance*4
+                    self.frame_tongue_depth - self.frame_bracket_tolerance
 
 
     @property

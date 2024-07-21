@@ -33,13 +33,24 @@ def wall_channel(length:float) -> Part:
         with BuildPart(Plane.XY.offset(bracket_config.wall_thickness*2)):
             with GridLocations(bracket_config.wall_thickness + \
                            bracket_config.frame_bracket_tolerance*2,
-                           length/2 + \
-                            bracket_config.wall_thickness/2,2,2):
+                           (length+bracket_config.wall_thickness/2)/2,2,2):
                 Sphere(bracket_config.frame_click_sphere_radius*.75)
 
     part = channel.part
     part.label = "wall channel guide"
     return part
+
+def guide_side(length:float) -> Part:
+    """
+    defines the outer sides of the sidewall with appropriate structural
+    reinforcements
+    """
+    with BuildPart() as side:
+        Box(bracket_config.minimum_structural_thickness - bracket_config.frame_bracket_tolerance,
+                length, bracket_config.wall_thickness*3,
+                align=(Align.CENTER, Align.CENTER, Align.MIN))
+        fillet(side.edges().filter_by(Axis.Y), bracket_config.wall_thickness/4)
+    return side.part
 
 def straight_wall_tongue() -> Part:
     """
@@ -82,17 +93,16 @@ def sidewall_base(length:float, depth:float=bracket_config.wall_thickness,
     Defines the shape of the sidewall with the correct shape for the
     sides
     """
-    sidewall_length = length
     with BuildPart() as wall:
         with BuildSketch():
-            Rectangle(bracket_config.sidewall_width, sidewall_length)
+            Rectangle(bracket_config.sidewall_width, length)
             if top_cut:
                 with BuildSketch(mode=Mode.SUBTRACT):
                     add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width) \
-                        .move(Location((bracket_config.wall_thickness, sidewall_length/2 - \
+                        .move(Location((bracket_config.wall_thickness, length/2 - \
                                         bracket_config.spoke_bar_height/2+bracket_config.frame_bracket_tolerance*2))))
                     add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width) \
-                        .move(Location((bracket_config.wall_thickness, sidewall_length/2 + \
+                        .move(Location((bracket_config.wall_thickness, length/2 + \
                                         bracket_config.spoke_bar_height/2+bracket_config.frame_bracket_tolerance*2))))
             offset(amount = -inset)
         extrude(amount=depth/2, both=True)
@@ -174,25 +184,11 @@ def sidewall(length:float, top_cut=True, reinforce=False) -> Part:
     part.label = "sidewall"
     return part
 
-def guide_side(length:float) -> Part:
-    """
-    defines the outer sides of the sidewall with appropriate structural
-    reinforcements
-    """
-    with BuildPart() as side:
-        Box(bracket_config.minimum_structural_thickness - bracket_config.frame_bracket_tolerance,
-                length, bracket_config.wall_thickness*3,
-                align=(Align.CENTER, Align.CENTER, Align.MIN))
-        fillet(side.edges().filter_by(Axis.Y), bracket_config.wall_thickness/4)
-    return side.part
-
 def guide_wall(length:float) -> Part:
     """
     builds a wall with guides for each sidewall
     """
-    base_length = length-bracket_config.frame_tongue_depth*2 - \
-                    bracket_config.wall_thickness/2 - \
-                    bracket_config.frame_bracket_tolerance*2
+    base_length = length - bracket_config.wall_thickness/2
     with BuildPart() as wall:
         with BuildPart():
             Box(bracket_config.frame_exterior_width,
@@ -240,9 +236,7 @@ if __name__ == '__main__':
     from ocp_vscode import show
 
     if bracket_config.extension_section_length != 0:
-        extension_guide = guide_wall(bracket_config.extension_section_length + \
-                                     bracket_config.frame_tongue_depth*2-
-                                     bracket_config.frame_bracket_tolerance*2)
+        extension_guide = guide_wall(bracket_config.extension_section_length)
         export_stl(extension_guide, '../stl/extension_frontback.stl')
         extension_side = sidewall(bracket_config.extension_section_length, top_cut=False)
         export_stl(extension_side, '../stl/extension_side_wall.stl')
@@ -251,7 +245,8 @@ if __name__ == '__main__':
         show(extension_side.move(Location((
             -bracket_config.sidewall_width/2-bracket_config.frame_exterior_width/2-1,0,0))),
             extension_guide,
-            reinforced_extension_side.move(Location((bracket_config.sidewall_width/2+bracket_config.frame_exterior_width/2+1,0,0))))
+            reinforced_extension_side.move(
+                Location((bracket_config.sidewall_width/2+bracket_config.frame_exterior_width/2+1,0,0))))
     fwall=front_wall()
     export_stl(fwall, '../stl/front_wall.stl')
     bwall=back_wall()
