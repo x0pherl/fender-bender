@@ -87,14 +87,14 @@ class BankConfig:
         return self.bracket_depth/3
 
     @property
-    def front_wall_length(self) -> float:
+    def front_wall_depth(self) -> float:
         """
         the calculated length for the front wall
         """
-        return self.sidewall_section_depth - self.spoke_climb
+        return self.sidewall_section_depth - self.spoke_depth
 
     @property
-    def back_wall_length(self) -> float:
+    def back_wall_depth(self) -> float:
         """
         the calculated length for the front wall
         """
@@ -341,7 +341,10 @@ class BankConfig:
         return self.bracket_height/3
 
     @property
-    def spoke_climb(self) ->    float:
+    def spoke_depth(self) -> float:
+        """
+        this is the overall distance of the angled bar of the top frame
+        """
         return self.wheel_radius*.8
 
     @property
@@ -350,7 +353,7 @@ class BankConfig:
 
     @property
     def spoke_height(self) -> float:
-        return self.spoke_climb + self.spoke_bar_height
+        return self.spoke_depth + self.spoke_bar_height
 
     @property
     def clip_length(self) -> float:

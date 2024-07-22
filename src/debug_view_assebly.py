@@ -40,8 +40,8 @@ bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(
 fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
         config.frame_front_wall_center_distance + \
         config.wall_thickness/2, 0,
-        -config.spoke_climb/2-config.spoke_bar_height/2 - \
-        config.front_wall_length/2 + \
+        -config.spoke_depth/2-config.spoke_bar_height/2 - \
+        config.front_wall_depth/2 + \
         config.frame_tongue_depth/2 - \
         config.frame_bracket_tolerance)))
 swall = sidewall(length=config.sidewall_section_depth) \
@@ -52,14 +52,14 @@ topframe = top_frame()
 bframe = bottom_frame().move(
             Location((-config.sidewall_center_x/2,0,
                     -config.spoke_bar_height - \
-                    config.front_wall_length - \
+                    config.front_wall_depth - \
                     config.bottom_frame_depth - \
                     config.extension_section_depth)))
 
 cframe = connector_frame().move(
             Location((-config.buffer_frame_center_x/2,0,
-                    -config.spoke_climb/2 - config.spoke_bar_height/2 - \
-                    config.front_wall_length - \
+                    -config.spoke_depth/2 - config.spoke_bar_height/2 - \
+                    config.front_wall_depth - \
                     config.bottom_frame_depth*2))),
 
 bkt = bracket()

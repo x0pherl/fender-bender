@@ -47,7 +47,7 @@ def cut_spokes() -> Part:
         add(curvebar(config.spoke_length,
               config.spoke_bar_height,
               config.wheel_support_height,
-              config.spoke_climb, config.spoke_angle))
+              config.spoke_depth, config.spoke_angle))
         fillet(spokes.edges(), config.wheel_support_height/4)
         with BuildPart(mode=Mode.INTERSECT):
             add(wheel_guide_cut())

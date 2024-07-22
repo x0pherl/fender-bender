@@ -10,35 +10,70 @@ from bank_config import BankConfig
 from curvebar import side_line
 from hexwall import HexWall
 
-bracket_config = BankConfig()
+config = BankConfig()
 
 def wall_channel(length:float) -> Part:
     """
-    creates a channel with tapered sides for locking in side walls
+    creates a channel with tapered sides and snap click points for locking in side walls
     """
     with BuildPart() as channel:
         with BuildPart():
-            Box(bracket_config.wall_thickness*3, length, bracket_config.wall_thickness,
+            Box(config.wall_thickness*3, length, config.wall_thickness,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
-        with BuildSketch(Plane.XY.offset(bracket_config.wall_thickness)):
-            Rectangle(bracket_config.wall_thickness*3, length)
-        with BuildSketch(Plane.XY.offset(bracket_config.wall_thickness*3)):
-            Rectangle(bracket_config.wall_thickness+bracket_config.frame_bracket_tolerance*2,
+        with BuildSketch(Plane.XY.offset(config.wall_thickness)):
+            Rectangle(config.wall_thickness*3, length)
+        with BuildSketch(Plane.XY.offset(config.wall_thickness*3)):
+            Rectangle(config.wall_thickness+config.frame_bracket_tolerance*2,
                       length)
         loft()
-        with BuildPart(Plane.XY.offset(bracket_config.wall_thickness), mode=Mode.SUBTRACT):
-            Box(bracket_config.wall_thickness+bracket_config.frame_bracket_tolerance*2,
+        with BuildPart(Plane.XY.offset(config.wall_thickness), mode=Mode.SUBTRACT):
+            Box(config.wall_thickness+config.frame_bracket_tolerance*2,
                 length,
-                bracket_config.wall_thickness*2,
+                config.wall_thickness*2,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
-        with BuildPart(Plane.XY.offset(bracket_config.wall_thickness*2)):
-            with GridLocations(bracket_config.wall_thickness + \
-                           bracket_config.frame_bracket_tolerance*2,
-                           (length+bracket_config.wall_thickness/2)/2,2,2):
-                Sphere(bracket_config.frame_click_sphere_radius*.75)
-
+        with BuildPart(Plane.XY.offset(config.wall_thickness*2)):
+            with GridLocations(config.wall_thickness + \
+                           config.frame_bracket_tolerance*2,
+                           (length+config.wall_thickness/2)/2,2,2):
+                Sphere(config.frame_click_sphere_radius*.75)
     part = channel.part
     part.label = "wall channel guide"
+    return part
+
+def straight_wall_tongue() -> Part:
+    """
+    creates a tongue for locking in wall parts, companion to straight_wall_groove
+    """
+    with BuildPart() as tongue:
+        Box(config.wall_thickness,
+            config.top_frame_interior_width-config.frame_bracket_tolerance*2,
+            config.frame_tongue_depth - config.wall_thickness/2,
+            align=(Align.CENTER, Align.CENTER, Align.MIN))
+        extrude(tongue.faces().sort_by(Axis.Z)[-1],
+                amount=config.wall_thickness/2, taper=44)
+        with BuildPart(tongue.faces().sort_by(Axis.X)[-1], mode=Mode.ADD):
+            with GridLocations(0,config.top_frame_interior_width/1.5,1,2):
+                Sphere(radius=config.frame_click_sphere_radius*.75)
+        with BuildPart(tongue.faces().sort_by(Axis.X)[0], mode=Mode.SUBTRACT):
+            with GridLocations(0,config.top_frame_interior_width/1.5,1,2):
+                Sphere(radius=config.frame_click_sphere_radius)
+
+        #this center cut guides the alignment when assembling,
+        #and provides additional stability to the hold
+        with BuildPart(mode=Mode.SUBTRACT):
+            Box(config.wall_thickness,
+                    config.wall_thickness/2+config.frame_bracket_tolerance,
+                    config.frame_tongue_depth,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+            with BuildPart(Location((0,0,config.wall_thickness))):
+                Sphere(radius=config.wall_thickness*.75)
+                Cylinder(radius=config.wall_thickness*.5,
+                    height=config.wall_thickness,
+                    rotation=(0,0,0),
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+
+    part = tongue.part
+    part.label = "tongue"
     return part
 
 def guide_side(length:float) -> Part:
@@ -47,48 +82,13 @@ def guide_side(length:float) -> Part:
     reinforcements
     """
     with BuildPart() as side:
-        Box(bracket_config.minimum_structural_thickness - bracket_config.frame_bracket_tolerance,
-                length, bracket_config.wall_thickness*3,
+        Box(config.minimum_structural_thickness - config.frame_bracket_tolerance,
+                length, config.wall_thickness*3,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
-        fillet(side.edges().filter_by(Axis.Y), bracket_config.wall_thickness/4)
+        fillet(side.edges().filter_by(Axis.Y), config.wall_thickness/4)
     return side.part
 
-def straight_wall_tongue() -> Part:
-    """
-    creates a tongue for locking in wall parts, companion to straight_wall_groove
-    """
-    with BuildPart() as tongue:
-        Box(bracket_config.wall_thickness,
-            bracket_config.top_frame_interior_width-bracket_config.frame_bracket_tolerance,
-
-            bracket_config.frame_tongue_depth - bracket_config.wall_thickness/2,
-            align=(Align.CENTER, Align.CENTER, Align.MIN))
-        extrude(tongue.faces().sort_by(Axis.Z)[-1],
-                amount=bracket_config.wall_thickness/2, taper=44)
-        with BuildPart(tongue.faces().sort_by(Axis.X)[-1], mode=Mode.ADD):
-            with GridLocations(0,bracket_config.top_frame_interior_width/1.5,1,2):
-                Sphere(radius=bracket_config.frame_click_sphere_radius*.75)
-        with BuildPart(tongue.faces().sort_by(Axis.X)[0], mode=Mode.SUBTRACT):
-            with GridLocations(0,bracket_config.top_frame_interior_width/1.5,1,2):
-                Sphere(radius=bracket_config.frame_click_sphere_radius)
-
-        with BuildPart(mode=Mode.SUBTRACT):
-            Box(bracket_config.wall_thickness,
-                    bracket_config.wall_thickness/2+bracket_config.frame_bracket_tolerance,
-                    bracket_config.frame_tongue_depth,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN))
-            with BuildPart(Location((0,0,bracket_config.wall_thickness))):
-                Sphere(radius=bracket_config.wall_thickness*.75)
-                Cylinder(radius=bracket_config.wall_thickness*.5,
-                    height=bracket_config.wall_thickness,
-                    rotation=(0,0,0),
-                    align=(Align.CENTER, Align.CENTER, Align.MIN))
-
-    part = tongue.part
-    part.label = "tongue"
-    return part
-
-def sidewall_base(length:float, depth:float=bracket_config.wall_thickness,
+def sidewall_base(length:float, depth:float=config.wall_thickness,
                 top_cut=True, inset: float=0) -> Part:
     """
     Defines the shape of the sidewall with the correct shape for the
@@ -96,18 +96,17 @@ def sidewall_base(length:float, depth:float=bracket_config.wall_thickness,
     """
     with BuildPart() as wall:
         with BuildSketch():
-            Rectangle(bracket_config.sidewall_width, length)
+            Rectangle(config.sidewall_width, length)
             if top_cut:
                 with BuildSketch(mode=Mode.SUBTRACT):
-                    add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width) \
-                        .move(Location((bracket_config.wall_thickness, length/2 - \
-                                        bracket_config.spoke_bar_height/2+bracket_config.frame_bracket_tolerance*2))))
-                    add(side_line(bottom_adjust=0,right_adjust=bracket_config.sidewall_width) \
-                        .move(Location((bracket_config.wall_thickness, length/2 + \
-                                        bracket_config.spoke_bar_height/2+bracket_config.frame_bracket_tolerance*2))))
+                    add(side_line(bottom_adjust=0,right_adjust=config.sidewall_width) \
+                        .move(Location((config.wall_thickness, length/2 - \
+                                        config.spoke_bar_height/2+config.frame_bracket_tolerance*2))))
+                    add(side_line(bottom_adjust=0,right_adjust=config.sidewall_width) \
+                        .move(Location((config.wall_thickness, length/2 + \
+                                        config.spoke_bar_height/2+config.frame_bracket_tolerance*2))))
             offset(amount = -inset)
         extrude(amount=depth/2, both=True)
-
     part = wall.part
     part.label = "top cut sidewall base"
     return part
@@ -120,12 +119,12 @@ def sidewall_divots(length:float):
     length: the length of the sidewall
     """
     with BuildPart() as divots:
-        with BuildPart(Location((0,0,bracket_config.wall_thickness/2))):
+        with BuildPart(Location((0,0,config.wall_thickness/2))):
             with GridLocations(0,length/2,1,2):
-                Sphere(radius=bracket_config.frame_click_sphere_radius)
-        with BuildPart(Location((0,0,-bracket_config.wall_thickness/2))):
+                Sphere(radius=config.frame_click_sphere_radius)
+        with BuildPart(Location((0,0,-config.wall_thickness/2))):
             with GridLocations(0,length/2,1,2):
-                Sphere(radius=bracket_config.frame_click_sphere_radius)
+                Sphere(radius=config.frame_click_sphere_radius)
     return divots.part
 
 def sidewall(length:float, top_cut=True, reinforce=False) -> Part:
@@ -136,49 +135,49 @@ def sidewall(length:float, top_cut=True, reinforce=False) -> Part:
     with BuildPart() as wall:
         add(sidewall_base(length, top_cut=top_cut))
         chamfer(wall.faces().filter_by(Axis.Z).edges(),
-               length=bracket_config.wall_thickness/2-bracket_config.frame_bracket_tolerance)
+               length=config.wall_thickness/2-config.frame_bracket_tolerance)
 
         if reinforce:
             with BuildPart():
-                add(sidewall_base(length, depth=bracket_config.minimum_structural_thickness,
+                add(sidewall_base(length, depth=config.minimum_structural_thickness,
                             top_cut=top_cut,
-                            inset=bracket_config.wall_thickness/2 - \
-                            bracket_config.frame_bracket_tolerance).move(
-                            Location((0,0,bracket_config.minimum_structural_thickness/2))))
+                            inset=config.wall_thickness/2 - \
+                            config.frame_bracket_tolerance).move(
+                            Location((0,0,config.minimum_structural_thickness/2))))
                 with BuildPart(mode=Mode.SUBTRACT):
-                    add(sidewall_base(length, depth=bracket_config.minimum_structural_thickness,
+                    add(sidewall_base(length, depth=config.minimum_structural_thickness,
                             top_cut=top_cut,
-                            inset=bracket_config.wall_thickness/2 - \
-                            bracket_config.frame_bracket_tolerance + \
-                            bracket_config.minimum_structural_thickness*2).move(
-                            Location((0,0,bracket_config.minimum_structural_thickness/2))))
+                            inset=config.wall_thickness/2 - \
+                            config.frame_bracket_tolerance + \
+                            config.minimum_structural_thickness*2).move(
+                            Location((0,0,config.minimum_structural_thickness/2))))
                 with BuildPart(mode=Mode.INTERSECT):
-                    Box(bracket_config.sidewall_width - \
-                        (bracket_config.wall_thickness/2 - \
-                        bracket_config.frame_bracket_tolerance +\
-                        bracket_config.minimum_structural_thickness)*2,
-                        length*2, bracket_config.minimum_structural_thickness*2)
-        if not bracket_config.solid_walls:
-            inset_distance = bracket_config.wall_thickness/2 - \
-                bracket_config.frame_bracket_tolerance + \
-                bracket_config.minimum_structural_thickness
+                    Box(config.sidewall_width - \
+                        (config.wall_thickness/2 - \
+                        config.frame_bracket_tolerance +\
+                        config.minimum_structural_thickness)*2,
+                        length*2, config.minimum_structural_thickness*2)
+        if not config.solid_walls:
+            inset_distance = config.wall_thickness/2 - \
+                config.frame_bracket_tolerance + \
+                config.minimum_structural_thickness
             if reinforce:
-                inset_distance += bracket_config.minimum_structural_thickness
+                inset_distance += config.minimum_structural_thickness
             with BuildPart(mode=Mode.SUBTRACT):
                 add(sidewall_base(length, top_cut=top_cut,inset=inset_distance))
                 with BuildPart(mode=Mode.INTERSECT):
-                    add(HexWall(width=length, length=bracket_config.sidewall_width,
-                            height=bracket_config.wall_thickness,
-                            apothem=bracket_config.wall_window_apothem,
-                            wall_thickness=bracket_config.wall_thickness/2, inverse=True))
-        left_length = bracket_config.back_wall_length-bracket_config.frame_tongue_depth*2+bracket_config.frame_bracket_tolerance*2 if top_cut else length
-        right_length = bracket_config.front_wall_length-bracket_config.frame_tongue_depth*2+bracket_config.frame_bracket_tolerance*2 if top_cut else length
-        right_offset = -bracket_config.spoke_climb/2 if top_cut else 0
-        left_offset =-bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2-bracket_config.frame_bracket_tolerance*2 if top_cut else 0
-        with BuildPart(Location((bracket_config.sidewall_width/2-bracket_config.wall_thickness,
+                    add(HexWall(width=length, length=config.sidewall_width,
+                            height=config.wall_thickness,
+                            apothem=config.wall_window_apothem,
+                            wall_thickness=config.wall_thickness/2, inverse=True))
+        left_length = config.back_wall_depth-config.frame_tongue_depth*2+config.frame_bracket_tolerance*2 if top_cut else length
+        right_length = config.front_wall_depth-config.frame_tongue_depth*2+config.frame_bracket_tolerance*2 if top_cut else length
+        right_offset = -config.spoke_depth/2 if top_cut else 0
+        left_offset =-config.frame_tongue_depth-config.wall_thickness/2-config.frame_bracket_tolerance*2 if top_cut else 0
+        with BuildPart(Location((config.sidewall_width/2-config.wall_thickness,
                                 right_offset,0)), mode=Mode.SUBTRACT):
             add(sidewall_divots(right_length))
-        with BuildPart(Location((-bracket_config.sidewall_width/2+bracket_config.wall_thickness,
+        with BuildPart(Location((-config.sidewall_width/2+config.wall_thickness,
                                 left_offset,0)), mode=Mode.SUBTRACT):
             add(sidewall_divots(left_length))
     part = wall.part
@@ -189,30 +188,30 @@ def guide_wall(length:float) -> Part:
     """
     builds a wall with guides for each sidewall
     """
-    base_length = length - bracket_config.wall_thickness/2
+    base_length = length - config.wall_thickness/2
     with BuildPart() as wall:
         with BuildPart():
-            Box(bracket_config.frame_exterior_width,
+            Box(config.frame_exterior_width,
                 base_length,
-                bracket_config.wall_thickness,
+                config.wall_thickness,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
-        if bracket_config.solid_walls is False:
+        if config.solid_walls is False:
             with BuildPart(mode=Mode.SUBTRACT):
-                add(HexWall(bracket_config.frame_exterior_width - bracket_config.minimum_structural_thickness*2,
-                        base_length - bracket_config.minimum_structural_thickness * 2,
-                        bracket_config.wall_thickness, apothem=bracket_config.wall_window_apothem,
-                        wall_thickness=bracket_config.wall_thickness/2,
+                add(HexWall(config.frame_exterior_width - config.minimum_structural_thickness*2,
+                        base_length - config.minimum_structural_thickness * 2,
+                        config.wall_thickness, apothem=config.wall_window_apothem,
+                        wall_thickness=config.wall_thickness/2,
                         align=(Align.CENTER, Align.CENTER, Align.MIN), inverse=True))
         with BuildPart(wall.faces().sort_by(Axis.Y)[-1]):
             add(straight_wall_tongue())
         with BuildPart(wall.faces().sort_by(Axis.Y)[0]):
             add(straight_wall_tongue())
-        with GridLocations(bracket_config.frame_bracket_spacing,0,
-                            bracket_config.filament_count+1, 1):
+        with GridLocations(config.frame_bracket_spacing,0,
+                            config.filament_count+1, 1):
             add(wall_channel(base_length))
-        with GridLocations(bracket_config.top_frame_interior_width + \
-                            bracket_config.frame_bracket_tolerance + \
-                            bracket_config.minimum_structural_thickness*2,0,2, 1):
+        with GridLocations(config.top_frame_interior_width + \
+                            config.frame_bracket_tolerance + \
+                            config.minimum_structural_thickness*2,0,2, 1):
             add(guide_side(base_length))
     part = wall.part
     return part
@@ -221,7 +220,7 @@ def front_wall() -> Part:
     """
     builds the front wall
     """
-    part = guide_wall(bracket_config.front_wall_length)
+    part = guide_wall(config.front_wall_depth)
     part.label = "front wall"
     return part
 
@@ -229,46 +228,49 @@ def back_wall() -> Part:
     """
     builds the back wall
     """
-    part = guide_wall(bracket_config.back_wall_length)
+    part = guide_wall(config.back_wall_depth)
     part.label = "back wall"
     return part
 
 if __name__ == '__main__':
-    if bracket_config.extension_section_depth != 0:
-        extension_guide = guide_wall(bracket_config.extension_section_depth)
+    extension_parts = ()
+    if config.extension_section_depth != 0:
+        extension_guide = guide_wall(config.extension_section_depth)
         export_stl(extension_guide, '../stl/extension_frontback.stl')
-        extension_side = sidewall(bracket_config.extension_section_depth, top_cut=False)
+        extension_side = sidewall(config.extension_section_depth, top_cut=False)
         export_stl(extension_side, '../stl/extension_side_wall.stl')
-        reinforced_extension_side = sidewall(bracket_config.extension_section_depth, False, True)
+        reinforced_extension_side = sidewall(config.extension_section_depth, False, True)
         export_stl(reinforced_extension_side, '../stl/reinforced_extension_side_wall.stl')
-        show(extension_side.move(Location((
-            -bracket_config.sidewall_width/2-bracket_config.frame_exterior_width/2-1,0,0))),
-            extension_guide,
+        extension_shift = -config.back_wall_depth - config.extension_section_depth - 3
+        extension_parts += (extension_side.move(Location((
+            -config.sidewall_width/2-config.frame_exterior_width/2-1,extension_shift,0))),
+            extension_guide.move(Location((0,extension_shift,0))),
             reinforced_extension_side.move(
-                Location((bracket_config.sidewall_width/2+bracket_config.frame_exterior_width/2+1,0,0))))
+                Location((config.sidewall_width/2+config.frame_exterior_width/2+1,extension_shift,0))))
     fwall=front_wall()
     export_stl(fwall, '../stl/front_wall.stl')
     bwall=back_wall()
     export_stl(bwall, '../stl/back_wall.stl')
-    side_wall = sidewall(length=bracket_config.sidewall_section_depth)
+    side_wall = sidewall(length=config.sidewall_section_depth)
     export_stl(side_wall, '../stl/side_wall.stl')
-    left_side_wall = sidewall(length=bracket_config.sidewall_section_depth,reinforce=True)
+    left_side_wall = sidewall(length=config.sidewall_section_depth,reinforce=True)
     export_stl(left_side_wall, '../stl/left_reinforced_wall.stl')
 
     right_side_wall = left_side_wall.mirror(Plane.XY).rotate(Axis.Y, 180)
     export_stl(right_side_wall, '../stl/right_reinforced_wall.stl')
 
-    show(fwall.move(Location((bracket_config.frame_exterior_width/2 + \
-                            bracket_config.sidewall_width/2+1,
-                            -bracket_config.spoke_climb/2,0))),
-        bwall.move(Location((-bracket_config.frame_exterior_width/2 - \
-                            bracket_config.sidewall_width/2-1,
-                            -bracket_config.frame_tongue_depth-bracket_config.wall_thickness/2,0))),
+    show(fwall.move(Location((config.frame_exterior_width/2 + \
+                            config.sidewall_width/2+1,
+                            -config.spoke_depth/2,0))),
+        bwall.move(Location((-config.frame_exterior_width/2 - \
+                            config.sidewall_width/2-1,
+                            -config.frame_tongue_depth-config.wall_thickness/2,0))),
         side_wall,
-        left_side_wall.move(Location((bracket_config.sidewall_width/2+1,
-                            bracket_config.spoke_climb/2 + \
-                            bracket_config.sidewall_section_depth,0))),
-        right_side_wall.move(Location((-bracket_config.sidewall_width/2-1,
-                            bracket_config.spoke_climb/2 + \
-                            bracket_config.sidewall_section_depth,0)))
+        left_side_wall.move(Location((config.sidewall_width/2+1,
+                            config.spoke_depth/2 + \
+                            config.sidewall_section_depth,0))),
+        right_side_wall.move(Location((-config.sidewall_width/2-1,
+                            config.spoke_depth/2 + \
+                            config.sidewall_section_depth,0))),
+        extension_parts
         )

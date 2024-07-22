@@ -52,7 +52,7 @@ def side_line(bottom_adjust=0,right_adjust=0) -> Sketch:
     right_top_intersection = config.find_point_along_right(
                     -config.spoke_height/2 + config.spoke_bar_height)
     with BuildSketch() as sketch:
-        x_distance = find_angle_intersection(config.spoke_climb/2, config.spoke_angle)
+        x_distance = find_angle_intersection(config.spoke_depth/2, config.spoke_angle)
         angled_bar_width = find_angle_intersection(config.spoke_bar_height/2, config.spoke_angle)/2
         with BuildLine():
             Polyline(
@@ -61,21 +61,21 @@ def side_line(bottom_adjust=0,right_adjust=0) -> Sketch:
                 (right_bottom_intersection.x+config.minimum_structural_thickness+right_adjust+bottom_adjust,
                     right_bottom_intersection.y+bottom_adjust),
                 (x_distance+angled_bar_width-config.spoke_bar_height/2,
-                    -config.spoke_climb/2-config.spoke_bar_height/2+bottom_adjust),
+                    -config.spoke_depth/2-config.spoke_bar_height/2+bottom_adjust),
                 (-x_distance+angled_bar_width-config.spoke_bar_height/2,
-                    config.spoke_climb/2-config.spoke_bar_height/2+bottom_adjust),
+                    config.spoke_depth/2-config.spoke_bar_height/2+bottom_adjust),
                 (-x_distance+angled_bar_width-config.spoke_bar_height/2-config.minimum_structural_thickness*2,
-                    config.spoke_climb/2-config.spoke_bar_height/2+bottom_adjust),
+                    config.spoke_depth/2-config.spoke_bar_height/2+bottom_adjust),
                 (-config.spoke_length/2+config.spoke_bar_height,
                     bottom_adjust-config.frame_tongue_depth),
                 (-config.spoke_length/2,
                     bottom_adjust-config.frame_tongue_depth),
                 (-config.spoke_length/2,
-                    config.spoke_climb/2+config.spoke_bar_height/2),
+                    config.spoke_depth/2+config.spoke_bar_height/2),
                 (-x_distance-angled_bar_width+config.spoke_bar_height/2,
-                    config.spoke_climb/2+config.spoke_bar_height/2),
+                    config.spoke_depth/2+config.spoke_bar_height/2),
                 (x_distance-angled_bar_width+config.spoke_bar_height/2,
-                    -config.spoke_climb/2+config.spoke_bar_height/2),
+                    -config.spoke_depth/2+config.spoke_bar_height/2),
                 (right_top_intersection.x+config.minimum_structural_thickness+right_adjust,
                     right_top_intersection.y)
             )

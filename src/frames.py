@@ -94,7 +94,7 @@ def top_frame() -> Part:
             Box(config.frame_back_foot_length,
                 config.frame_exterior_width,
                 #todo this frame_bracket_tolerance*2 nonsense really bothers me track it down
-                config.spoke_climb-config.spoke_bar_height/2+config.frame_bracket_tolerance*2,
+                config.spoke_depth-config.spoke_bar_height/2+config.frame_bracket_tolerance*2,
                 align=(Align.MIN, Align.CENTER, Align.MAX))
 
         with BuildPart(Location((config.frame_back_distance+config.frame_back_foot_length,0,0))) as back_drop:
@@ -147,8 +147,8 @@ def top_frame() -> Part:
             with GridLocations(0,config.frame_bracket_spacing, 1, config.filament_count):
                 Sphere(radius=config.frame_click_sphere_radius*.75)
         if config.frame_wall_bracket:
-            with BuildPart(Location((config.frame_back_distance+config.frame_back_foot_length/2,0,-config.spoke_climb/2-config.spoke_bar_height/2)), mode=Mode.SUBTRACT):
-                add(wall_cut_template(config.frame_back_foot_length,config.frame_exterior_width,config.spoke_climb+config.spoke_bar_height,bottom=False, post_count=config.filament_count))
+            with BuildPart(Location((config.frame_back_distance+config.frame_back_foot_length/2,0,-config.spoke_depth/2-config.spoke_bar_height/2)), mode=Mode.SUBTRACT):
+                add(wall_cut_template(config.frame_back_foot_length,config.frame_exterior_width,config.spoke_depth+config.spoke_bar_height,bottom=False, post_count=config.filament_count))
     part = tframe.part
     return part
 
@@ -236,11 +236,11 @@ def bottom_frame() -> Part:
 #todo -- there is a bug with even numbers of filaments where the hole isn't at the center -- that needs to be fixed
 def wall_bracket() -> Part:
     with BuildPart() as bracket:
-        Box(config.frame_back_foot_length,config.frame_exterior_width,config.spoke_climb+config.spoke_bar_height, align=(Align.CENTER, Align.CENTER, Align.MIN))
+        Box(config.frame_back_foot_length,config.frame_exterior_width,config.spoke_depth+config.spoke_bar_height, align=(Align.CENTER, Align.CENTER, Align.MIN))
         fillet(bracket.edges(), config.minimum_structural_thickness/config.fillet_ratio)
         with BuildPart(mode=Mode.INTERSECT):
-            add(wall_cut_template(config.frame_back_foot_length,config.frame_exterior_width,config.spoke_climb+config.spoke_bar_height,bottom=True, post_count=config.filament_count, tolerance=config.frame_bracket_tolerance))
-        with BuildPart(Location((config.frame_back_foot_length/4+config.frame_bracket_tolerance,0,(config.spoke_climb+config.spoke_bar_height)/2),(0,-90,0)), mode=Mode.SUBTRACT):
+            add(wall_cut_template(config.frame_back_foot_length,config.frame_exterior_width,config.spoke_depth+config.spoke_bar_height,bottom=True, post_count=config.filament_count, tolerance=config.frame_bracket_tolerance))
+        with BuildPart(Location((config.frame_back_foot_length/4+config.frame_bracket_tolerance,0,(config.spoke_depth+config.spoke_bar_height)/2),(0,-90,0)), mode=Mode.SUBTRACT):
             add(screw_head())
     return bracket.part
 
@@ -299,7 +299,7 @@ def back_bar(depth: float) -> Part:
                         -config.wall_thickness))) as bar:
         Box(config.minimum_structural_thickness*2,
             depth,
-            config.spoke_climb/2+config.spoke_bar_height/2+config.wall_thickness,
+            config.spoke_depth/2+config.spoke_bar_height/2+config.wall_thickness,
             align=(Align.MIN, Align.CENTER, Align.MIN))
     part = bar.part
     part.label = "back bar"
@@ -314,5 +314,5 @@ if __name__ == '__main__':
     export_stl(wall_bracket(), '../stl/wall_bracket.stl')
     show(topframe,
         bottomframe.rotate(axis=Axis.X,angle=90).move(Location((0,0,
-            -config.spoke_climb-config.minimum_structural_thickness*2)))
+            -config.spoke_depth-config.minimum_structural_thickness*2)))
         )
