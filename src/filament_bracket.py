@@ -272,11 +272,11 @@ def support_cut() -> Part:
     with BuildPart()as clip_cut:
         with BuildSketch():
             with BuildLine():
-                arc=CenterArc((float(config.frame_clip_point.x), float(config.frame_clip_point.y)),
+                arc=CenterArc((float(config.bracket_clip_point.x), float(config.bracket_clip_point.y)),
                                 radius=config.clip_length,
                                 start_angle=45, arc_size=90)
-                Line(arc @ 1, (float(config.frame_clip_point.x), float(config.frame_clip_point.y)))
-                Line(arc @ 0, (float(config.frame_clip_point.x), float(config.frame_clip_point.y)))
+                Line(arc @ 1, (float(config.bracket_clip_point.x), float(config.bracket_clip_point.y)))
+                Line(arc @ 0, (float(config.bracket_clip_point.x), float(config.bracket_clip_point.y)))
             make_face()
         extrude(amount=config.bracket_depth)
     part =clip_cut

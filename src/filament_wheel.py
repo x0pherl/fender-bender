@@ -1,14 +1,16 @@
 """
 Generates the part for the filament wheel of our filament bank design
 """
-from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
+from build123d import (BuildPart, BuildSketch, Part, Sketch, Circle, CenterArc,
                 extrude, Mode, JernArc, BuildLine, Line, make_face, add,
                 PolarLocations, RegularPolygon, sweep, Location,
                 export_stl)
 from ocp_vscode import show
 from bank_config import BankConfig
 
-def spoke(config: BankConfig) -> Part:
+config = BankConfig()
+
+def spoke() -> Sketch:
     """
     returns the spoke Sketch for the filament wheel
     """
@@ -26,7 +28,7 @@ def spoke(config: BankConfig) -> Part:
             Line(l1 @ 0, l2 @ 0)
             Line(l1 @ 1, l2 @ 1)
         make_face()
-    return sketch
+    return sketch.sketch
 
 def diamond_torus(major_radius:float, minor_radius:float) -> Part:
     """
@@ -40,23 +42,24 @@ def diamond_torus(major_radius:float, minor_radius:float) -> Part:
         sweep()
     return torus.part
 
-wheel_configuration = BankConfig()
-with BuildPart() as filament_wheel:
-    with BuildSketch():
-        Circle(radius=wheel_configuration.wheel_radius)
-        Circle(radius=wheel_configuration.wheel_radius-wheel_configuration.rim_thickness,
-               mode=Mode.SUBTRACT)
-    with BuildSketch():
-        Circle(radius=wheel_configuration.bearing_radius+wheel_configuration.rim_thickness)
-        Circle(radius=wheel_configuration.bearing_radius, mode=Mode.SUBTRACT)
-    with PolarLocations(0, wheel_configuration.spoke_count):
-        add(spoke(wheel_configuration))
-    extrude(amount=wheel_configuration.bearing_depth)
-    add(diamond_torus(wheel_configuration.wheel_radius, wheel_configuration.bearing_depth/2).
-        move(Location((0,0,wheel_configuration.bearing_depth/2))), mode=Mode.SUBTRACT)
+def filament_wheel() -> Part:
+    with BuildPart() as wheel:
+        with BuildSketch():
+            Circle(radius=config.wheel_radius)
+            Circle(radius=config.wheel_radius-config.rim_thickness,
+                mode=Mode.SUBTRACT)
+        with BuildSketch():
+            Circle(radius=config.bearing_radius+config.rim_thickness)
+            Circle(radius=config.bearing_radius, mode=Mode.SUBTRACT)
+        with PolarLocations(0, config.wheel_spoke_count):
+            add(spoke())
+        extrude(amount=config.bearing_depth)
+        add(diamond_torus(config.wheel_radius, config.bearing_depth/2).
+            move(Location((0,0,config.bearing_depth/2))), mode=Mode.SUBTRACT)
+    return wheel.part
 
 if __name__ == '__main__':
-    part = filament_wheel.part
+    part = filament_wheel()
     part.label = "filament wheel"
     show(part)
     export_stl(part, '../stl/filament_wheel.stl')

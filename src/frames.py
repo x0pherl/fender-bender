@@ -173,18 +173,18 @@ def channel_box(length, width, height: float, double:bool = False):
 
 def flat_wall_grooves() -> Part:
     with BuildPart() as grooves:
-        with BuildPart(Location((config.frame_front_wall_center_distance-config.bottom_frame_offset,
+        with BuildPart(Location((config.frame_front_wall_center_distance-config.buffer_frame_center_x,
                                  0,0),(180,0,0))):
             add(straight_wall_groove().mirror(Plane.YZ))
 
-        with BuildPart(Location((config.frame_back_wall_center_distance-config.bottom_frame_offset,
+        with BuildPart(Location((config.frame_back_wall_center_distance-config.buffer_frame_center_x,
                         0,0),(180,0,0))):
             add(straight_wall_groove())
     return grooves.part
 
 def connector_frame(bottom:bool = False) -> Part:
-    connector_height = config.bottom_frame_height if bottom else config.bottom_frame_height*2
-    with BuildPart(Location((config.bottom_frame_offset,0,0))) as bframe:
+    connector_height = config.bottom_frame_depth if bottom else config.bottom_frame_depth*2
+    with BuildPart(Location((config.buffer_frame_center_x,0,0))) as bframe:
         Box(config.bottom_frame_exterior_length,
             config.frame_exterior_width,
             connector_height,
@@ -193,29 +193,29 @@ def connector_frame(bottom:bool = False) -> Part:
         top_face = bframe.faces().sort_by(Axis.Z)[-1]
         fillet(bframe.edges(), config.minimum_structural_thickness/config.fillet_ratio)
         with BuildPart(mode=Mode.SUBTRACT):
-            with BuildSketch(Location((config.wall_offset,0,0))):
+            with BuildSketch(Location((config.sidewall_center_x,0,0))):
                 Rectangle(config.bottom_frame_interior_length+config.minimum_thickness*2,
                 config.frame_exterior_width - config.minimum_structural_thickness*2)
             if bottom:
-                with BuildSketch(Location((config.wall_offset,0,connector_height))):
+                with BuildSketch(Location((config.sidewall_center_x,0,connector_height))):
                     Rectangle(config.bottom_frame_interior_length,
                     config.frame_exterior_width - config.minimum_structural_thickness*2)
             else:
-                with BuildSketch(Location((config.wall_offset,0,connector_height/2))):
+                with BuildSketch(Location((config.sidewall_center_x,0,connector_height/2))):
                     Rectangle(config.bottom_frame_interior_length,
                     config.frame_exterior_width - config.minimum_structural_thickness*2)
-                with BuildSketch(Location((config.wall_offset,0,connector_height))):
+                with BuildSketch(Location((config.sidewall_center_x,0,connector_height))):
                     Rectangle(config.bottom_frame_interior_length+config.minimum_thickness*2,
                     config.frame_exterior_width - config.minimum_structural_thickness*2)
             loft()
-        with BuildPart(Location((config.wall_offset,0,0)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((config.sidewall_center_x,0,0)), mode=Mode.SUBTRACT):
             with GridLocations(0,config.frame_bracket_spacing,
                 1,config.filament_count+1):
                 Box(config.bottom_frame_interior_length+config.minimum_structural_thickness,
                     config.wall_thickness,
                     connector_height,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-        with BuildPart(Location((config.wall_offset,0,0)), mode=Mode.ADD):
+        with BuildPart(Location((config.sidewall_center_x,0,0)), mode=Mode.ADD):
             with GridLocations(0,config.frame_bracket_spacing,
                 1,config.filament_count+1):
                 add(channel_box(config.bottom_frame_interior_length+config.minimum_structural_thickness,

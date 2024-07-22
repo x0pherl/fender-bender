@@ -234,12 +234,12 @@ def back_wall() -> Part:
     return part
 
 if __name__ == '__main__':
-    if bracket_config.extension_section_length != 0:
-        extension_guide = guide_wall(bracket_config.extension_section_length)
+    if bracket_config.extension_section_depth != 0:
+        extension_guide = guide_wall(bracket_config.extension_section_depth)
         export_stl(extension_guide, '../stl/extension_frontback.stl')
-        extension_side = sidewall(bracket_config.extension_section_length, top_cut=False)
+        extension_side = sidewall(bracket_config.extension_section_depth, top_cut=False)
         export_stl(extension_side, '../stl/extension_side_wall.stl')
-        reinforced_extension_side = sidewall(bracket_config.extension_section_length, False, True)
+        reinforced_extension_side = sidewall(bracket_config.extension_section_depth, False, True)
         export_stl(reinforced_extension_side, '../stl/reinforced_extension_side_wall.stl')
         show(extension_side.move(Location((
             -bracket_config.sidewall_width/2-bracket_config.frame_exterior_width/2-1,0,0))),
@@ -250,9 +250,9 @@ if __name__ == '__main__':
     export_stl(fwall, '../stl/front_wall.stl')
     bwall=back_wall()
     export_stl(bwall, '../stl/back_wall.stl')
-    side_wall = sidewall(length=bracket_config.sidewall_section_length)
+    side_wall = sidewall(length=bracket_config.sidewall_section_depth)
     export_stl(side_wall, '../stl/side_wall.stl')
-    left_side_wall = sidewall(length=bracket_config.sidewall_section_length,reinforce=True)
+    left_side_wall = sidewall(length=bracket_config.sidewall_section_depth,reinforce=True)
     export_stl(left_side_wall, '../stl/left_reinforced_wall.stl')
 
     right_side_wall = left_side_wall.mirror(Plane.XY).rotate(Axis.Y, 180)
@@ -267,8 +267,8 @@ if __name__ == '__main__':
         side_wall,
         left_side_wall.move(Location((bracket_config.sidewall_width/2+1,
                             bracket_config.spoke_climb/2 + \
-                            bracket_config.sidewall_section_length,0))),
+                            bracket_config.sidewall_section_depth,0))),
         right_side_wall.move(Location((-bracket_config.sidewall_width/2-1,
                             bracket_config.spoke_climb/2 + \
-                            bracket_config.sidewall_section_length,0)))
+                            bracket_config.sidewall_section_depth,0)))
         )

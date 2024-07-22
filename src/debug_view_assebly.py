@@ -35,7 +35,7 @@ right_bottom_intersection = config.find_point_along_right(
 bwall = back_wall().rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(
                 Location((config.frame_back_wall_center_distance - \
                         config.wall_thickness/2,0,
-                        -config.sidewall_section_length/2 - \
+                        -config.sidewall_section_depth/2 - \
                         config.frame_bracket_tolerance)))
 fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
         config.frame_front_wall_center_distance + \
@@ -44,23 +44,23 @@ fwall = front_wall().rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
         config.front_wall_length/2 + \
         config.frame_tongue_depth/2 - \
         config.frame_bracket_tolerance)))
-swall = sidewall(length=config.sidewall_section_length) \
-    .rotate(Axis.X, 90).move(Location((-config.wall_thickness-config.frame_bracket_tolerance*2,-config.top_frame_interior_width/2,-config.sidewall_section_length/2+config.frame_tongue_depth-config.frame_bracket_tolerance)))
+swall = sidewall(length=config.sidewall_section_depth) \
+    .rotate(Axis.X, 90).move(Location((-config.wall_thickness-config.frame_bracket_tolerance*2,-config.top_frame_interior_width/2,-config.sidewall_section_depth/2+config.frame_tongue_depth-config.frame_bracket_tolerance)))
 
 topframe = top_frame()
 
 bframe = bottom_frame().move(
-            Location((-config.wall_offset/2,0,
+            Location((-config.sidewall_center_x/2,0,
                     -config.spoke_bar_height - \
                     config.front_wall_length - \
-                    config.bottom_frame_height - \
-                    config.extension_section_length)))
+                    config.bottom_frame_depth - \
+                    config.extension_section_depth)))
 
 cframe = connector_frame().move(
-            Location((-config.bottom_frame_offset/2,0,
+            Location((-config.buffer_frame_center_x/2,0,
                     -config.spoke_climb/2 - config.spoke_bar_height/2 - \
                     config.front_wall_length - \
-                    config.bottom_frame_height*2))),
+                    config.bottom_frame_depth*2))),
 
 bkt = bracket()
 

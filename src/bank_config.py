@@ -20,7 +20,7 @@ class BankConfig:
     bearing_depth: float = 4
 
     wheel_diameter:float = 70
-    spoke_count: int = 5
+    wheel_spoke_count: int = 5
     wheel_lateral_tolerance: float = 0.6
     wheel_radial_tolerance: float = 0.2
 
@@ -41,10 +41,10 @@ class BankConfig:
     # filament_count = 3
     filament_count = 2
 
-    # sidewall_section_length = 240
-    # extension_section_length = 100
-    sidewall_section_length = 50
-    extension_section_length = 20
+    # sidewall_section_depth = 240
+    # extension_section_depth = 100
+    sidewall_section_depth = 50
+    extension_section_depth = 20
     solid_walls = False
 
     wall_thickness = 2
@@ -56,18 +56,18 @@ class BankConfig:
     wall_bracket_screw_head_radius=4.5
 
     @property
-    def bottom_frame_height(self) -> float:
+    def bottom_frame_depth(self) -> float:
         """
         the appropriate height for the bottom frame
         """
         return self.frame_tongue_depth + self.minimum_structural_thickness
 
     @property
-    def bottom_frame_offset(self) -> float:
+    def buffer_frame_center_x(self) -> float:
         return (self.frame_back_distance + self.frame_front_bottom_distance) / 2
 
     @property
-    def wall_offset(self) -> float:
+    def sidewall_center_x(self) -> float:
         return (self.frame_back_wall_center_distance + self.frame_front_wall_center_distance) / 2
 
     @property
@@ -91,31 +91,29 @@ class BankConfig:
         """
         the calculated length for the front wall
         """
-        return self.sidewall_section_length - self.spoke_climb
+        return self.sidewall_section_depth - self.spoke_climb
 
     @property
     def back_wall_length(self) -> float:
         """
         the calculated length for the front wall
         """
-        return self.sidewall_section_length - self.spoke_bar_height + \
+        return self.sidewall_section_depth - self.spoke_bar_height + \
                     self.frame_tongue_depth - self.frame_bracket_tolerance
 
+    # @property
+    # def frame_bracket_distance(self) -> tuple:
+    #     """
+    #     this is the distance to the bottom outmost corner of the exit bracket
+    #     """
+    #     #todo I don't like this value or name, it's confusing
+    #     return(self.wheel_radius+self.connector_radius+self.minimum_thickness)*sqrt(2)/2
 
     @property
-    def frame_bracket_distance(self) -> tuple:
-        """
-        this is the distance to the bottom outmost corner of the exit bracket
-        """
-        #todo I don't like this value or name, it's confusing
-        return(self.wheel_radius+self.connector_radius+self.minimum_thickness)*sqrt(2)/2
-
-
-
-    @property
-    def frame_clip_point(self) -> Point:
+    def bracket_clip_point(self) -> Point:
         """
         returns the x,y coordinates 1/2-way along the edge of the exit tube
+        which is where the filament buffer has a cut to clip into the top frame
         """
         # right_bottom_bar_distance = -self.spoke_climb/2-self.spoke_bar_height/2
         right_top_intersection = self.find_point_along_right(
@@ -168,14 +166,14 @@ class BankConfig:
         """
 
         return point_distance(self.frame_click_sphere_point,
-                self.frame_clip_point)
+                self.bracket_clip_point)
 
     @property
     def sweep_cut_top_angle(self) -> float:
         """
         the angle from the front clip bar to the rear sphere clip point
         """
-        x_distance = self.frame_clip_point.x + \
+        x_distance = self.bracket_clip_point.x + \
             abs(self.frame_click_sphere_point.x)
         return 180-x_point_to_angle(radius=self.sweep_cut_arc_radius, x_position=x_distance)
 
@@ -186,15 +184,15 @@ class BankConfig:
         """
 
         arc_radius = point_distance(self.frame_click_sphere_point,
-                self.frame_clip_point)
-        x_distance = self.frame_clip_point.x + \
+                self.bracket_clip_point)
+        x_distance = self.bracket_clip_point.x + \
             abs(self.frame_click_sphere_point.x)
         top_angle = 180-x_point_to_angle(radius=arc_radius, x_position=x_distance)
         bottom_angle = 180-y_point_to_angle(radius=arc_radius,
-        y_position=abs(self.frame_clip_point.y))
+        y_position=abs(self.bracket_clip_point.y))
 
-        return CenterArc(center=(self.frame_clip_point.x,
-                        self.frame_clip_point.y),
+        return CenterArc(center=(self.bracket_clip_point.x,
+                        self.bracket_clip_point.y),
                         radius=arc_radius, start_angle=bottom_angle,
                         arc_size=-bottom_angle+top_angle)
 
@@ -206,7 +204,7 @@ class BankConfig:
         return Point(-self.bracket_width/2 + \
                         self.fillet_radius + \
                         self.clip_length,
-                        -self.frame_clip_point.y + \
+                        -self.bracket_clip_point.y + \
                         self.spoke_bar_height/2)
 
     @property
