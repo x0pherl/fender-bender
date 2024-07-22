@@ -2,6 +2,7 @@ from build123d import (BuildPart, BuildSketch, Part,
                 add, Location,
                 loft, Axis, Box, Align, GridLocations, Plane,
                 chamfer, Rectangle, Mode)
+from ocp_vscode import show
 
 def wall_slot(width, height, depth) -> Part:
     with BuildPart() as slot:
@@ -11,8 +12,8 @@ def wall_slot(width, height, depth) -> Part:
             Rectangle(height,width+depth*2)
         loft()
     return slot.part
-        
-    
+
+
 def wall_cut_template(length, width,height:float, bottom:bool=True, post_count=2, tolerance:float=0.2) -> Part:
     """returns a template for splitting a box along the y axis for hanging
     on a wall"""
@@ -42,7 +43,6 @@ with BuildPart() as hung:
         add(wall_cut_template(9,80,40,bottom=False, post_count=3,tolerance=.2)),
 
 if __name__ == '__main__':
-    from ocp_vscode import show
     show(
     hanger.part,
     hung.part.move(Location((0,0,0))),

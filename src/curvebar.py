@@ -2,13 +2,12 @@
 utility for creating a bar with a zig-zag shape
 """
 from build123d import (BuildPart, BuildSketch, BuildLine, Polyline, extrude, make_face,
-                       make_face, fillet, Axis, add,
-                       Plane, Part, loft,
-                       Sketch)
+                       fillet, Axis, add, Plane, Part, loft, Sketch)
+from ocp_vscode import show
 from geometry_utils import find_angle_intersection
 from bank_config import BankConfig
 
-frame_configuration = BankConfig()
+config = BankConfig()
 
 def curvebar(length, bar_width, depth, climb, angle=45):
     """
@@ -48,51 +47,51 @@ def side_line(bottom_adjust=0,right_adjust=0) -> Sketch:
     right_adjust: extends the right angle bar out by this value
     """
 
-    right_bottom_intersection = frame_configuration.find_point_along_right(
-            -frame_configuration.spoke_height/2)
-    right_top_intersection = frame_configuration.find_point_along_right(
-                    -frame_configuration.spoke_height/2 + frame_configuration.spoke_bar_height)
+    right_bottom_intersection = config.find_point_along_right(
+            -config.spoke_height/2)
+    right_top_intersection = config.find_point_along_right(
+                    -config.spoke_height/2 + config.spoke_bar_height)
     with BuildSketch() as sketch:
-        x_distance = find_angle_intersection(frame_configuration.spoke_climb/2, frame_configuration.spoke_angle)
-        angled_bar_width = find_angle_intersection(frame_configuration.spoke_bar_height/2, frame_configuration.spoke_angle)/2
+        x_distance = find_angle_intersection(config.spoke_climb/2, config.spoke_angle)
+        angled_bar_width = find_angle_intersection(config.spoke_bar_height/2, config.spoke_angle)/2
         with BuildLine():
             Polyline(
-                (right_top_intersection.x+frame_configuration.minimum_structural_thickness+right_adjust,
+                (right_top_intersection.x+config.minimum_structural_thickness+right_adjust,
                     right_top_intersection.y),
-                (right_bottom_intersection.x+frame_configuration.minimum_structural_thickness+right_adjust+bottom_adjust,
+                (right_bottom_intersection.x+config.minimum_structural_thickness+right_adjust+bottom_adjust,
                     right_bottom_intersection.y+bottom_adjust),
-                (x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2,
-                    -frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
-                (-x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2,
-                    frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
-                (-x_distance+angled_bar_width-frame_configuration.spoke_bar_height/2-frame_configuration.minimum_structural_thickness*2,
-                    frame_configuration.spoke_climb/2-frame_configuration.spoke_bar_height/2+bottom_adjust),
-                (-frame_configuration.spoke_length/2+frame_configuration.spoke_bar_height,
-                    bottom_adjust-frame_configuration.frame_tongue_depth),
-                (-frame_configuration.spoke_length/2,
-                    bottom_adjust-frame_configuration.frame_tongue_depth),
-                (-frame_configuration.spoke_length/2,
-                    frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
-                (-x_distance-angled_bar_width+frame_configuration.spoke_bar_height/2,
-                    frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
-                (x_distance-angled_bar_width+frame_configuration.spoke_bar_height/2,
-                    -frame_configuration.spoke_climb/2+frame_configuration.spoke_bar_height/2),
-                (right_top_intersection.x+frame_configuration.minimum_structural_thickness+right_adjust,
+                (x_distance+angled_bar_width-config.spoke_bar_height/2,
+                    -config.spoke_climb/2-config.spoke_bar_height/2+bottom_adjust),
+                (-x_distance+angled_bar_width-config.spoke_bar_height/2,
+                    config.spoke_climb/2-config.spoke_bar_height/2+bottom_adjust),
+                (-x_distance+angled_bar_width-config.spoke_bar_height/2-config.minimum_structural_thickness*2,
+                    config.spoke_climb/2-config.spoke_bar_height/2+bottom_adjust),
+                (-config.spoke_length/2+config.spoke_bar_height,
+                    bottom_adjust-config.frame_tongue_depth),
+                (-config.spoke_length/2,
+                    bottom_adjust-config.frame_tongue_depth),
+                (-config.spoke_length/2,
+                    config.spoke_climb/2+config.spoke_bar_height/2),
+                (-x_distance-angled_bar_width+config.spoke_bar_height/2,
+                    config.spoke_climb/2+config.spoke_bar_height/2),
+                (x_distance-angled_bar_width+config.spoke_bar_height/2,
+                    -config.spoke_climb/2+config.spoke_bar_height/2),
+                (right_top_intersection.x+config.minimum_structural_thickness+right_adjust,
                     right_top_intersection.y)
             )
         make_face()
         fillet(sketch.vertices().filter_by_position(axis=Axis.X,
-                minimum=-frame_configuration.spoke_length/4,
-                maximum=frame_configuration.spoke_length/4,
-                inclusive=(False, False)), frame_configuration.spoke_bar_height/2)
+                minimum=-config.spoke_length/4,
+                maximum=config.spoke_length/4,
+                inclusive=(False, False)), config.spoke_bar_height/2)
 
         fillet(sketch.vertices().filter_by_position(axis=Axis.X,
-                minimum=-frame_configuration.spoke_length/2+1,
-                maximum=-frame_configuration.spoke_length/4,
-                inclusive=(False, False)), frame_configuration.spoke_bar_height/3)
+                minimum=-config.spoke_length/2+1,
+                maximum=-config.spoke_length/4,
+                inclusive=(False, False)), config.spoke_bar_height/3)
     return sketch.sketch
 
-def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> Part:
+def frame_side(thickness=config.wall_thickness, channel=False) -> Part:
     """
     builds a side of the frame
     arguments:
@@ -118,6 +117,5 @@ def frame_side(thickness=frame_configuration.wall_thickness, channel=False) -> P
     return part
 
 if __name__ == '__main__':
-    from ocp_vscode import show
     # show(side_line())
-    show(frame_side(thickness=frame_configuration.wall_thickness, channel=True))
+    show(frame_side(thickness=config.wall_thickness, channel=True))

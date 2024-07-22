@@ -5,6 +5,7 @@ from build123d import (BuildPart, BuildSketch, Part, Cylinder,
                 extrude, Mode, add, Location, chamfer, offset,
                 loft, fillet, Axis, Box, Align, GridLocations,
                 Plane, Rectangle, Sphere, export_stl)
+from ocp_vscode import show
 from bank_config import BankConfig
 from curvebar import side_line
 from hexwall import HexWall
@@ -233,8 +234,6 @@ def back_wall() -> Part:
     return part
 
 if __name__ == '__main__':
-    from ocp_vscode import show
-
     if bracket_config.extension_section_length != 0:
         extension_guide = guide_wall(bracket_config.extension_section_length)
         export_stl(extension_guide, '../stl/extension_frontback.stl')
