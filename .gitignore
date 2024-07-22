@@ -3,6 +3,7 @@
 *.step
 stl/*
 step/*
+renders/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
