@@ -14,7 +14,8 @@ from bank_config import BankConfig
 from geometry_utils import (find_related_point_by_distance, x_point_to_angle)
 from curvebar import curvebar
 from filament_channels import (curved_filament_path_solid, curved_filament_path_cut,
-                straight_filament_path_cut, straight_filament_path_solid)
+                straight_filament_path_cut, straight_filament_path_solid,
+                straight_filament_connector_threads,curved_filament_connector_threads)
 
 config = BankConfig()
 
@@ -34,13 +35,13 @@ outer_top_corner = find_related_point_by_distance(outer_bottom_corner,
                                 config.tube_length, 45)
 bracket_width = abs(inner_bottom_corner.y) - abs(inner_top_corner.y)
 
-right_connector_location = Location((config.exit_tube_exit_point.x,
-                                    config.exit_tube_exit_point.y,
-                                    config.bracket_depth/2),
-                                    (90,-45,0))
-left_connector_location = Location((-config.wheel_radius,
-                                    config.bracket_height,
-                                    config.bracket_depth/2), (90,0,0))
+# right_connector_location = Location((config.exit_tube_exit_point.x,
+#                                     config.exit_tube_exit_point.y,
+#                                     config.bracket_depth/2),
+#                                     (90,-45,0))
+# left_connector_location = Location((-config.wheel_radius,
+#                                     config.bracket_height,
+#                                     config.bracket_depth/2), (90,0,0))
 
 def cut_spokes() -> Part:
     """
@@ -129,51 +130,51 @@ def left_connector_threads() -> Part:
     return part
 
 
-def right_connector_threads() -> Part:
-    """
-    returns the threads for the angled connector
-    """
-    with BuildPart(right_connector_location) as right_threads:
-        TrapezoidalThread(
-                diameter=config.connector_radius*2,
-                pitch=config.connector_thread_pitch,
-                length=config.connector_length,
-                thread_angle = config.connector_thread_angle,
-                interference=config.connector_thread_interference,
-                external=False,
-                hand="right",
-                align=(Align.CENTER, Align.CENTER, Align.MIN)
-                )
-    part = right_threads.part
-    part.label = "right threads"
-    return part
+# def right_connector_threads() -> Part:
+#     """
+#     returns the threads for the angled connector
+#     """
+#     with BuildPart(right_connector_location) as right_threads:
+#         TrapezoidalThread(
+#                 diameter=config.connector_radius*2,
+#                 pitch=config.connector_thread_pitch,
+#                 length=config.connector_length,
+#                 thread_angle = config.connector_thread_angle,
+#                 interference=config.connector_thread_interference,
+#                 external=False,
+#                 hand="right",
+#                 align=(Align.CENTER, Align.CENTER, Align.MIN)
+#                 )
+#     part = right_threads.part
+#     part.label = "right threads"
+#     return part
 
-def tube_cut(length):
-    """
-    creates a cutout for a filament tube allowing for the connector, and
-    a tube stop with a funnel entry
-    """
-    with BuildPart() as tube:
-        Cylinder(radius=config.connector_radius,
-                 height=config.connector_length*2,
-                    align=(Align.CENTER, Align.CENTER, Align.CENTER))
-        Cylinder(radius=config.tube_outer_radius,
-                 height=length-config.tube_outer_diameter*3,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+# def tube_cut(length):
+#     """
+#     creates a cutout for a filament tube allowing for the connector, and
+#     a tube stop with a funnel entry
+#     """
+#     with BuildPart() as tube:
+#         Cylinder(radius=config.connector_radius,
+#                  height=config.connector_length*2,
+#                     align=(Align.CENTER, Align.CENTER, Align.CENTER))
+#         Cylinder(radius=config.tube_outer_radius,
+#                  height=length-config.tube_outer_diameter*3,
+#                     align=(Align.CENTER, Align.CENTER, Align.MIN))
 
-        with BuildPart():
-            with BuildSketch(Plane.XY.offset(length-config.tube_outer_diameter*3)):
-                Circle(radius=config.tube_inner_radius)
-            with BuildSketch(Plane.XY.offset(length)):
-                Circle(radius=config.tube_outer_diameter*.75)
-                Rectangle(width=config.tube_outer_diameter*2,
-                          height=config.bearing_depth + \
-                            config.wheel_lateral_tolerance,
-                            mode=Mode.INTERSECT)
-            loft()
-    part = tube.part
-    part.label = "tube cut"
-    return part
+#         with BuildPart():
+#             with BuildSketch(Plane.XY.offset(length-config.tube_outer_diameter*3)):
+#                 Circle(radius=config.tube_inner_radius)
+#             with BuildSketch(Plane.XY.offset(length)):
+#                 Circle(radius=config.tube_outer_diameter*.75)
+#                 Rectangle(width=config.tube_outer_diameter*2,
+#                           height=config.bearing_depth + \
+#                             config.wheel_lateral_tolerance,
+#                             mode=Mode.INTERSECT)
+#             loft()
+#     part = tube.part
+#     part.label = "tube cut"
+#     return part
 
 def sweep_cut() -> Part:
     """
@@ -287,81 +288,81 @@ def support_cut() -> Part:
     return part
 
 
-def old_bottom_bracket_frame() -> Part:
-    """
-    returns the outer frame for the bottom bracket
-    """
-    with BuildPart() as constructed_bracket:
-        with BuildPart() as left_bracket:
-            with BuildSketch() as block:
-                with BuildLine():
-                    Polyline((0,0),
-                            (-config.bracket_width/2, 0),
-                            (-config.bracket_width/2,
-                             config.bracket_height),
-                            (config.bracket_width/2,
-                             config.bracket_height),
-                            (config.bracket_width/2,outer_top_corner.y),
-                            (inner_bottom_corner.x,inner_bottom_corner.y),
-                            (0,0)
-                            )
-                make_face()
-            extrude(block.face(), config.bracket_depth)
-            with BuildPart(right_connector_location, mode=Mode.ADD):
-                Box(config.bracket_depth, config.bracket_depth,
-                    config.tube_length, align=(Align.CENTER, Align.CENTER, Align.MIN))
-        fillet(left_bracket.faces().sort_by(Axis.Y)[-1].edges() + \
-               left_bracket.faces().sort_by(Axis.X, reverse=True)[0:-1].edges(),
-               config.fillet_radius)
-        with BuildPart(left_connector_location) as cut_foundation:
-            Box(config.bracket_depth,
-                config.bracket_depth,
-                config.bracket_depth,
-                align=(Align.CENTER,Align.CENTER, Align.MIN)
-            )
-            fillet(cut_foundation.faces().filter_by(Axis.X).edges().filter_by(Axis.Y),
-                   config.fillet_radius)
-        with BuildPart(right_connector_location) as right_cut_foundation:
-            Box(config.bracket_depth,
-                config.bracket_depth,
-                config.bracket_depth,
-                align=(Align.CENTER,Align.CENTER, Align.MIN)
-            )
-            fillet(right_cut_foundation.faces().sort_by_distance((0,0,
-                        config.bracket_depth/2))[-1].edges() \
-                        .group_by(Axis.X, reverse=True)[-2], config.fillet_radius)
+# def old_bottom_bracket_frame() -> Part:
+#     """
+#     returns the outer frame for the bottom bracket
+#     """
+#     with BuildPart() as constructed_bracket:
+#         with BuildPart() as left_bracket:
+#             with BuildSketch() as block:
+#                 with BuildLine():
+#                     Polyline((0,0),
+#                             (-config.bracket_width/2, 0),
+#                             (-config.bracket_width/2,
+#                              config.bracket_height),
+#                             (config.bracket_width/2,
+#                              config.bracket_height),
+#                             (config.bracket_width/2,outer_top_corner.y),
+#                             (inner_bottom_corner.x,inner_bottom_corner.y),
+#                             (0,0)
+#                             )
+#                 make_face()
+#             extrude(block.face(), config.bracket_depth)
+#             with BuildPart(right_connector_location, mode=Mode.ADD):
+#                 Box(config.bracket_depth, config.bracket_depth,
+#                     config.tube_length, align=(Align.CENTER, Align.CENTER, Align.MIN))
+#         fillet(left_bracket.faces().sort_by(Axis.Y)[-1].edges() + \
+#                left_bracket.faces().sort_by(Axis.X, reverse=True)[0:-1].edges(),
+#                config.fillet_radius)
+#         with BuildPart(left_connector_location) as cut_foundation:
+#             Box(config.bracket_depth,
+#                 config.bracket_depth,
+#                 config.bracket_depth,
+#                 align=(Align.CENTER,Align.CENTER, Align.MIN)
+#             )
+#             fillet(cut_foundation.faces().filter_by(Axis.X).edges().filter_by(Axis.Y),
+#                    config.fillet_radius)
+#         with BuildPart(right_connector_location) as right_cut_foundation:
+#             Box(config.bracket_depth,
+#                 config.bracket_depth,
+#                 config.bracket_depth,
+#                 align=(Align.CENTER,Align.CENTER, Align.MIN)
+#             )
+#             fillet(right_cut_foundation.faces().sort_by_distance((0,0,
+#                         config.bracket_depth/2))[-1].edges() \
+#                         .group_by(Axis.X, reverse=True)[-2], config.fillet_radius)
 
-        with BuildPart(mode=Mode.SUBTRACT):
-            add(support_cut())
-            with Locations(Location((0,0,0)), Location((0,0,config.bracket_depth))):
-                add(sweep_cut())
-        with BuildPart():
-            with config.sweep_cut_break_channel_locations:
-                Cylinder(radius=(config.sweep_cut_width/2)*.9,
-                        height=config.sweep_cut_width*2)
+#         with BuildPart(mode=Mode.SUBTRACT):
+#             add(support_cut())
+#             with Locations(Location((0,0,0)), Location((0,0,config.bracket_depth))):
+#                 add(sweep_cut())
+#         with BuildPart():
+#             with config.sweep_cut_break_channel_locations:
+#                 Cylinder(radius=(config.sweep_cut_width/2)*.9,
+#                         height=config.sweep_cut_width*2)
 
-        with BuildPart(mode=Mode.SUBTRACT):
-            with Locations(Location((config.frame_click_sphere_point.x,
-                        config.frame_click_sphere_point.y,
-                        0)), Location((config.frame_click_sphere_point.x,
-                        config.frame_click_sphere_point.y,
-                        config.bracket_depth))):
-                Sphere(radius=config.sweep_cut_width/2)
+#         with BuildPart(mode=Mode.SUBTRACT):
+#             with Locations(Location((config.frame_click_sphere_point.x,
+#                         config.frame_click_sphere_point.y,
+#                         0)), Location((config.frame_click_sphere_point.x,
+#                         config.frame_click_sphere_point.y,
+#                         config.bracket_depth))):
+#                 Sphere(radius=config.sweep_cut_width/2)
 
-        with BuildPart(right_connector_location, mode=Mode.SUBTRACT):
-            add(tube_cut(config.tube_length))
-        with BuildPart(left_connector_location, mode=Mode.SUBTRACT):
-            add(tube_cut(config.bracket_height))
-        with BuildPart(mode=Mode.SUBTRACT):
-            Cylinder(radius=config.wheel_radius + \
-                     config.wheel_radial_tolerance,
-                     height=config.bracket_depth,
-                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-            add(top_cut_template().mirror().move(
-                Location((0,0,config.bracket_depth))))
-    part = constructed_bracket.part
-    part.label = "bracket"
-    return part
+#         with BuildPart(right_connector_location, mode=Mode.SUBTRACT):
+#             add(tube_cut(config.tube_length))
+#         with BuildPart(left_connector_location, mode=Mode.SUBTRACT):
+#             add(tube_cut(config.bracket_height))
+#         with BuildPart(mode=Mode.SUBTRACT):
+#             Cylinder(radius=config.wheel_radius + \
+#                      config.wheel_radial_tolerance,
+#                      height=config.bracket_depth,
+#                      align=(Align.CENTER, Align.CENTER, Align.MIN))
+#             add(top_cut_template().mirror().move(
+#                 Location((0,0,config.bracket_depth))))
+#     part = constructed_bracket.part
+#     part.label = "bracket"
+#     return part
 
 def bottom_bracket_frame() -> Part:
     """
@@ -418,9 +419,11 @@ def bottom_bracket(draft:bool = False) -> Part:
                           wheel_guide(),
                           ]
     #todo: get threads back
-    # if not draft:
-    #     child_list.extend([right_connector_threads(),
-    #                        left_connector_threads()])
+    if not draft:
+        child_list.extend([
+            straight_filament_connector_threads().move(Location((-config.wheel_radius,0,0))),
+            curved_filament_connector_threads().move(Location((config.wheel_radius,0,0)))
+        ])
 
     return Part(label="bottom bracket",
                 children=child_list)

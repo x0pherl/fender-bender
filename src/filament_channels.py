@@ -115,35 +115,20 @@ def straight_filament_path(draft=True) -> Part:
     part.label = "filament path"
     return part
 
-def old_curved_filament_line() -> Compound:
-    straight_distance = (config.bracket_depth/2)/sqrt(2)
-    egress_point=(config.bracket_width/2-config.wheel_radius+straight_distance,config.bracket_height-straight_distance)
-    connector_egress_point=(egress_point[0]-straight_distance, egress_point[1]-straight_distance)
-    with BuildLine( mode=Mode.PRIVATE) as egress_line:
-        input = Line((0,0),(0,config.bracket_depth))
-        output = Line((connector_egress_point[0],connector_egress_point[1]),(egress_point[0], egress_point[1]))
-        curve = Spline(
-            (0,config.bracket_depth),
-            (connector_egress_point[0],connector_egress_point[1]),
-            tangents=((0, 1), (1, 1)),
-            tangent_scalars=(1, 1),
-        )
-        input.label = "input"
-        input.color = "RED"
-        curve.label = "curve"
-        curve.color= "BLUE"
-        output.label = "output"
-        output.color = "GREEN"
-    lines = Compound(children=(input, curve, output))
-    return lines
-
 def curved_filament_line() -> Compound:
+    """
+    returns a compund with three line segments representing the
+    channel for the ingress funnel, the PTFE tube,
+    and the connector
+    """
     straight_distance = (config.bracket_depth/2)/sqrt(2)
     egress_point=(config.bracket_width/2-config.wheel_radius+straight_distance,config.bracket_height-straight_distance)
     connector_egress_point=(egress_point[0]-straight_distance, egress_point[1]-straight_distance)
+
     with BuildLine( mode=Mode.PRIVATE) as egress_line:
         input = Line((0,0),(0,config.filament_funnel_height))
-        output = Line((connector_egress_point[0],connector_egress_point[1]),(egress_point[0], egress_point[1]))
+        output = Line((connector_egress_point[0],connector_egress_point[1]),
+                      (egress_point[0], egress_point[1]))
         curve = Spline(
             input@1,
             output@0,
@@ -160,6 +145,10 @@ def curved_filament_line() -> Compound:
     return lines
 
 def curved_filament_path_cut() -> Compound:
+    """
+    returns the shape to be cut out of a curved filament path
+    allowing for the PTFE tube and the connector
+    """
     path = curved_filament_line()
     with BuildPart() as inlet:
         with BuildLine() as intake:
@@ -197,6 +186,14 @@ def curved_filament_path_cut() -> Compound:
     return complete
 
 def curved_filament_path_solid(top_exit_fillet=True) -> Part:
+    """"
+    The solid shape for the channel around a curved filament path
+    optionally
+    -------
+    arguments:
+    top_exit_fillet: set to false to render a clean intersection with
+    box immediately to the left of the exit
+    """
     with BuildPart() as solid_path:
         with BuildLine() as curve:
             add(curved_filament_line())
@@ -219,8 +216,14 @@ def curved_filament_path_solid(top_exit_fillet=True) -> Part:
     return part
 
 def curved_filament_connector_threads() -> Part:
+    """
+    places the threads for the curved filament connector
+    """
     path = curved_filament_line()
-    with BuildPart(Location((0,config.bracket_height-config.minimum_thickness/2,config.bracket_depth/2),(90,0,0))) as threads:
+    offset = (config.minimum_thickness/4)/sqrt(2)
+    with BuildPart(Location(((path.children[2]@1).X-offset,
+                             (path.children[2]@1).Y-offset,config.bracket_depth/2),
+                             (90,-45,0))) as threads:
         add(connector_threads())
     part = threads.part
     part.label = "connector threads"
@@ -241,5 +244,5 @@ def curved_filament_path(top_exit_fillet=False,draft=True) -> Part:
     return part
 
 if __name__ == '__main__':
-    show(curved_filament_path(top_exit_fillet=False).move(Location((config.wheel_radius,0,0))),
-         straight_filament_path().move(Location((-config.wheel_radius,0,0))))
+    show(curved_filament_path(top_exit_fillet=False, draft=False).move(Location((config.wheel_radius,0,0))),
+         straight_filament_path(draft=False).move(Location((-config.wheel_radius,0,0))))
