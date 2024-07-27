@@ -290,6 +290,13 @@ class BankConfig:
         """
         return self.bracket_depth/2
 
+    @property
+    def filament_funnel_height(self) -> float:
+        return distance_to_circle_edge(radius=self.wheel_radius + \
+                               self.wheel_radial_tolerance+self.minimum_thickness,
+                               point=(self.wheel_radius-self.tube_outer_radius,0),
+                               angle=90)
+
     def find_point_along_right(self, y_point) -> Point:
         """
         returns the rightmost point of bracket based on a y value

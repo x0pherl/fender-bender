@@ -6,7 +6,7 @@ from shapely.geometry import Point
 
 def find_angle_intersection(known_distance, angle):
     """
-    given an angle and the length along the adjascent axis, 
+    given an angle and the length along the adjascent axis,
     calculates the distance along the opposite axis
     """
     return known_distance * tan(radians(angle))

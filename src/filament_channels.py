@@ -53,12 +53,12 @@ def straight_filament_path_cut():
                           height=config.bearing_depth + \
                             config.wheel_lateral_tolerance,
                             mode=Mode.INTERSECT)
-            with BuildSketch(Plane.XY.offset(config.bracket_depth*1.5)):
+            with BuildSketch(Plane.XY.offset(config.filament_funnel_height)):
                 Circle(radius=config.tube_inner_radius)
             loft()
         with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
             Cylinder(radius=config.tube_outer_radius,
-                height=config.bracket_height-config.bracket_depth*1.5-config.connector_length,
+                height=config.bracket_height-config.filament_funnel_height-config.connector_length,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
         with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
             Cylinder(radius=config.connector_radius,
@@ -92,6 +92,9 @@ def straight_filament_path_solid() -> Part:
     return ingress.part
 
 def straight_filament_connector_threads() -> Part:
+    """
+    the threads for the ingress connector
+    """
     with BuildPart(Location((0,config.bracket_height-config.minimum_thickness/2,config.bracket_depth/2),(90,0,0))) as threads:
         add(connector_threads())
     part = threads.part
@@ -112,7 +115,7 @@ def straight_filament_path(draft=True) -> Part:
     part.label = "filament path"
     return part
 
-def curved_filament_line() -> Compound:
+def old_curved_filament_line() -> Compound:
     straight_distance = (config.bracket_depth/2)/sqrt(2)
     egress_point=(config.bracket_width/2-config.wheel_radius+straight_distance,config.bracket_height-straight_distance)
     connector_egress_point=(egress_point[0]-straight_distance, egress_point[1]-straight_distance)
@@ -122,6 +125,28 @@ def curved_filament_line() -> Compound:
         curve = Spline(
             (0,config.bracket_depth),
             (connector_egress_point[0],connector_egress_point[1]),
+            tangents=((0, 1), (1, 1)),
+            tangent_scalars=(1, 1),
+        )
+        input.label = "input"
+        input.color = "RED"
+        curve.label = "curve"
+        curve.color= "BLUE"
+        output.label = "output"
+        output.color = "GREEN"
+    lines = Compound(children=(input, curve, output))
+    return lines
+
+def curved_filament_line() -> Compound:
+    straight_distance = (config.bracket_depth/2)/sqrt(2)
+    egress_point=(config.bracket_width/2-config.wheel_radius+straight_distance,config.bracket_height-straight_distance)
+    connector_egress_point=(egress_point[0]-straight_distance, egress_point[1]-straight_distance)
+    with BuildLine( mode=Mode.PRIVATE) as egress_line:
+        input = Line((0,0),(0,config.filament_funnel_height))
+        output = Line((connector_egress_point[0],connector_egress_point[1]),(egress_point[0], egress_point[1]))
+        curve = Spline(
+            input@1,
+            output@0,
             tangents=((0, 1), (1, 1)),
             tangent_scalars=(1, 1),
         )

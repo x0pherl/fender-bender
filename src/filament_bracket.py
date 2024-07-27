@@ -6,14 +6,12 @@ from shapely import Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Locations, Plane, loft, fillet, Axis, Box, Align, Cylinder,
-                offset, Polyline, Rectangle, Sphere, SagittaArc,
-                AngularDirection, EllipticalCenterArc, RadiusArc,
+                offset, Polyline, Rectangle, Sphere,
                 sweep, export_stl)
 from ocp_vscode import show
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
-from geometry_utils import (find_related_point_by_distance, x_point_to_angle,
-                            point_distance)
+from geometry_utils import (find_related_point_by_distance, x_point_to_angle)
 from curvebar import curvebar
 from filament_channels import (curved_filament_path_solid, curved_filament_path_cut,
                 straight_filament_path_cut, straight_filament_path_solid)
