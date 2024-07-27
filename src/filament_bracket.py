@@ -6,12 +6,17 @@ from shapely import Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Locations, Plane, loft, fillet, Axis, Box, Align, Cylinder,
-                offset, Polyline, Rectangle, Sphere, sweep, export_stl)
+                offset, Polyline, Rectangle, Sphere, SagittaArc,
+                AngularDirection, EllipticalCenterArc, RadiusArc,
+                sweep, export_stl)
 from ocp_vscode import show
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
-from geometry_utils import (find_related_point_by_distance, x_point_to_angle)
+from geometry_utils import (find_related_point_by_distance, x_point_to_angle,
+                            point_distance)
 from curvebar import curvebar
+from filament_channels import (curved_filament_path_solid, curved_filament_path_cut,
+                straight_filament_path_cut, straight_filament_path_solid)
 
 config = BankConfig()
 
@@ -284,7 +289,7 @@ def support_cut() -> Part:
     return part
 
 
-def bottom_bracket_frame() -> Part:
+def old_bottom_bracket_frame() -> Part:
     """
     returns the outer frame for the bottom bracket
     """
@@ -360,6 +365,40 @@ def bottom_bracket_frame() -> Part:
     part.label = "bracket"
     return part
 
+def bottom_bracket_frame() -> Part:
+    """
+    returns the outer frame for the bottom bracket
+    """
+    with BuildPart() as constructed_bracket:
+        Box(config.bracket_width, config.bracket_height,
+            config.bracket_depth,
+            align=(Align.CENTER, Align.MIN, Align.MIN))
+        # with BuildPart(Location((config.bracket_width/2,config.bracket_height,0))):
+        #     Box(config.bracket_depth,config.bracket_depth,config.bracket_depth,
+        #         align=(Align.MIN, Align.MAX, Align.MIN),rotation=(0,0,-45))
+        fillet(constructed_bracket.edges() - \
+               constructed_bracket.faces().sort_by(Axis.Y)[-1].edges().filter_by(Axis.Z) +
+               constructed_bracket.faces().sort_by(Axis.X)[0].edges(),
+               config.fillet_radius)
+        with BuildPart(Location((config.wheel_radius,0,0))):
+            add(curved_filament_path_solid(top_exit_fillet=False))
+        with BuildPart(Location((config.wheel_radius,0,0)), mode=Mode.SUBTRACT):
+            add(curved_filament_path_cut())
+        with BuildPart(Location((-config.wheel_radius,0,0))):
+            add(straight_filament_path_solid())
+        with BuildPart(Location((-config.wheel_radius,0,0)), mode=Mode.SUBTRACT):
+            add(straight_filament_path_cut())
+        with BuildPart(mode=Mode.SUBTRACT):
+            Cylinder(radius=config.wheel_radius + \
+                     config.wheel_radial_tolerance,
+                     height=config.bracket_depth,
+                     align=(Align.CENTER, Align.CENTER, Align.MIN))
+            add(top_cut_template().mirror().move(
+                Location((0,0,config.bracket_depth))))
+    part = constructed_bracket.part
+    part.label = "bracket"
+    return part
+
 def top_frame(tolerance:float=0) -> Part:
     """
     returns the outer frame for the top bracket
@@ -380,9 +419,10 @@ def bottom_bracket(draft:bool = False) -> Part:
                           bottom_bracket_frame(),
                           wheel_guide(),
                           ]
-    if not draft:
-        child_list.extend([right_connector_threads(),
-                           left_connector_threads()])
+    #todo: get threads back
+    # if not draft:
+    #     child_list.extend([right_connector_threads(),
+    #                        left_connector_threads()])
 
     return Part(label="bottom bracket",
                 children=child_list)
