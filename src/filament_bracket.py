@@ -6,16 +6,18 @@ from shapely import Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Locations, Plane, loft, fillet, Axis, Box, Align, Cylinder,
-                offset, Polyline, Rectangle, Sphere,
+                offset, Polyline, Rectangle, Sphere, Sketch,
                 sweep, export_stl)
-from ocp_vscode import show
+from ocp_vscode import show, Camera
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
-from geometry_utils import (find_related_point_by_distance, x_point_to_angle)
+from geometry_utils import (find_related_point_by_distance, x_point_to_angle,
+                            point_distance)
 from curvebar import curvebar
 from filament_channels import (curved_filament_path_solid, curved_filament_path_cut,
                 straight_filament_path_cut, straight_filament_path_solid,
-                straight_filament_connector_threads,curved_filament_connector_threads)
+                straight_filament_connector_threads,curved_filament_connector_threads,
+                curved_filament_path, straight_filament_path)
 
 config = BankConfig()
 
@@ -198,74 +200,31 @@ def sweep_cut() -> Part:
 
     return cut.part
 
+def top_cut_shape(offset:float=0) -> Sketch:
+    base_outer_radius = config.wheel_radius + \
+                    config.wheel_radial_tolerance + \
+                    config.wheel_support_height + offset
+    with BuildSketch(mode=Mode.PRIVATE) as base_template:
+        Circle(base_outer_radius)
+        Rectangle(base_outer_radius*2,config.bracket_height*2,
+                  align=(Align.CENTER,Align.MAX,Align.MIN))
+        Rectangle(base_outer_radius,config.bracket_height*2,
+                  align=(Align.CENTER,Align.MIN,Align.MIN))
+    return base_template.sketch
+
 def top_cut_template(tolerance:float=0) -> Part:
     """
     returns the shape defining the top cut of the bracket
     (the part that slides into place to hold the filament wheel in place)
     provide a tolerance for the actual part to make it easier to assemble
     """
-    base_outer_radius = config.wheel_radius + \
-                    config.wheel_radial_tolerance + \
-                    config.wheel_support_height
-    base_rectangle_width = config.bracket_width - \
-        (config.fillet_radius + \
-         config.connector_diameter + \
-            config.wheel_support_height*4)*2
-    with BuildPart() as template:
+    with BuildPart() as cut:
         with BuildSketch():
-            with BuildLine():
-                start_angle = x_point_to_angle(base_outer_radius-tolerance,
-                                               base_rectangle_width/2-tolerance)
-                inner_rcurve = CenterArc((0,0), base_outer_radius-tolerance, 0, start_angle)
-                inner_lcurve = CenterArc((0,0), base_outer_radius-tolerance, 180-start_angle,
-                                         start_angle)
-                inner_left_up = Line(inner_rcurve @ 1, (base_rectangle_width/2-tolerance,
-                                                        config.bracket_height))
-                inner_topline = Line(inner_left_up @ 1, (-base_rectangle_width/2+tolerance,
-                                                         config.bracket_height))
-                Line(inner_topline @ 1, inner_lcurve @0)
-                inner_downl = Line(inner_lcurve @1, (-base_outer_radius+tolerance,
-                                                     -config.bracket_height))
-                inner_downr = Line(inner_rcurve @0, (base_outer_radius-tolerance,
-                                                     -config.bracket_height))
-                Line(inner_downl @1, inner_downr @ 1)
-            make_face()
-        with BuildSketch(Plane.XY.offset(config.wheel_support_height)):
-            with BuildLine():
-                start_angle = x_point_to_angle(base_outer_radius + \
-                                    config.wheel_support_height-tolerance,
-                                    base_rectangle_width/2 + \
-                                    config.wheel_support_height - \
-                                    tolerance)
-                outer_rcurve = CenterArc((0,0),
-                                base_outer_radius+config.wheel_support_height - \
-                                tolerance, 0, start_angle)
-                outer_lcurve = CenterArc((0,0),
-                                base_outer_radius+config.wheel_support_height - \
-                                tolerance, 180-start_angle, start_angle)
-                outer_left_up = Line(outer_rcurve @ 1,
-                                    (base_rectangle_width/2-tolerance + \
-                                    config.wheel_support_height,
-                                    config.bracket_height))
-                outer_topline = Line(outer_left_up @ 1,
-                                    (-base_rectangle_width/2-tolerance - \
-                                    config.wheel_support_height,
-                                    config.bracket_height))
-                Line(outer_topline @ 1, outer_lcurve @0)
-                outer_downl = Line(outer_lcurve @1,
-                                   (-base_outer_radius - \
-                                    config.wheel_support_height + \
-                                    tolerance,
-                                    -config.bracket_height))
-                outer_downr = Line(outer_rcurve @0,
-                                    (base_outer_radius + \
-                                    config.wheel_support_height - \
-                                    tolerance,
-                                    -config.bracket_height))
-                Line(outer_downl @1, outer_downr @ 1)
-            make_face()
+            add(top_cut_shape(tolerance))
+        with BuildSketch(Plane.XY.offset(config.wheel_support_height)) as base:
+            add(top_cut_shape(tolerance+config.wheel_support_height))
         loft()
-    return template.part
+    return cut.part
 
 def support_cut() -> Part:
     """
@@ -364,7 +323,7 @@ def support_cut() -> Part:
 #     part.label = "bracket"
 #     return part
 
-def bottom_bracket_frame() -> Part:
+def old_bottom_bracket_frame() -> Part:
     """
     returns the outer frame for the bottom bracket
     """
@@ -392,8 +351,44 @@ def bottom_bracket_frame() -> Part:
                      config.wheel_radial_tolerance,
                      height=config.bracket_depth,
                      align=(Align.CENTER, Align.CENTER, Align.MIN))
-            add(top_cut_template().mirror().move(
-                Location((0,0,config.bracket_depth))))
+        add(top_cut_template().mirror().move(
+            Location((0,0,config.bracket_depth))))
+    part = constructed_bracket.part
+    part.label = "bracket"
+    return part
+
+def bottom_bracket_frame() -> Part:
+    """
+    returns the outer frame for the bottom bracket
+    """
+    bracket_radius = point_distance(Point(0,0), Point(config.wheel_radius-config.bracket_depth/2, config.bracket_height))
+    with BuildPart() as constructed_bracket:
+        with BuildPart():
+            with BuildSketch():
+                with BuildLine():
+                    arc=CenterArc((0,0), bracket_radius, start_angle=0, arc_size=180)
+                    Line(arc@0,arc@1)
+                make_face()
+            extrude(amount=config.bracket_depth)
+        fillet(constructed_bracket.edges(),
+               config.fillet_radius)
+        with BuildPart(mode=Mode.SUBTRACT):
+            with BuildPart(Location((config.wheel_radius,0,0))):
+                add(curved_filament_path_solid(top_exit_fillet=True))
+            with BuildPart(Location((-config.wheel_radius,0,0))):
+                add(straight_filament_path_solid())
+        with BuildPart(Location((config.wheel_radius,0,0)), mode=Mode.ADD):
+            add(curved_filament_path(top_exit_fillet=True))
+        with BuildPart(Location((-config.wheel_radius,0,0)), mode=Mode.ADD):
+            add(straight_filament_path())
+        with BuildPart(mode=Mode.SUBTRACT):
+            add(top_cut_template(-config.frame_bracket_tolerance).mirror().move(
+            Location((0,0,config.bracket_depth))))
+            Cylinder(radius=config.wheel_radius + \
+                     config.wheel_radial_tolerance,
+                     height=config.bracket_depth,
+                     align=(Align.CENTER, Align.CENTER, Align.MIN))
+
     part = constructed_bracket.part
     part.label = "bracket"
     return part
@@ -441,6 +436,7 @@ if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)
     top = top_bracket()
     show(bottom.move(Location((config.bracket_width/2+5,0,0))),
-         top.move(Location((-config.bracket_width/2+5,0,0))))
+         top.move(Location((-config.bracket_width/2+5,0,0))),
+         reset_camera=Camera.CENTER)
     export_stl(bottom, '../stl/bottom_bracket.stl')
     export_stl(top, '../stl/top_bracket.stl')

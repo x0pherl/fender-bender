@@ -7,9 +7,8 @@ from build123d import (BuildPart, BuildSketch, Part, Circle,
                 Mode, BuildLine, Line, add, Location, GeomType,
                 Locations, Plane, loft, fillet, Axis, Box, Align, Cylinder,
                 Rectangle, sweep,chamfer,TangentArc, Spline,
-                Torus, SagittaArc, EllipticalCenterArc, ThreePointArc,
-                Compound, extrude)
-from ocp_vscode import show
+                Torus, CenterArc,Compound, extrude)
+from ocp_vscode import show, Camera
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
 from geometry_utils import (find_related_point_by_distance, find_related_point_by_y)
@@ -122,27 +121,29 @@ def curved_filament_line() -> Compound:
     and the connector
     """
     straight_distance = (config.bracket_depth/2)/sqrt(2)
-    egress_point=(config.bracket_width/2-config.wheel_radius+straight_distance,config.bracket_height-straight_distance)
+    egress_point=(config.bracket_width-config.wheel_radius-straight_distance,config.bracket_height*2-straight_distance)
     connector_egress_point=(egress_point[0]-straight_distance, egress_point[1]-straight_distance)
 
     with BuildLine( mode=Mode.PRIVATE) as egress_line:
-        input = Line((0,0),(0,config.filament_funnel_height))
-        output = Line((connector_egress_point[0],connector_egress_point[1]),
-                      (egress_point[0], egress_point[1]))
-        curve = Spline(
-            input@1,
-            output@0,
-            tangents=((0, 1), (1, 1)),
-            tangent_scalars=(1, 1),
-        )
-        input.label = "input"
-        input.color = "RED"
+        funnel = Line((0,0), (0,config.filament_funnel_height))
+        bridge = Line(funnel@1,(0,config.filament_funnel_height+config.minimum_structural_thickness))
+        curve = CenterArc(center=(config.wheel_radius, (bridge@1).Y),
+                             radius=config.wheel_radius, start_angle=180, arc_size=-45)
+        output = Line(curve@1,((curve@1).X+straight_distance,
+                               (curve@1).Y+straight_distance))
+        bridge.label = "input"
+        bridge.color = "RED"
         curve.label = "curve"
         curve.color= "BLUE"
         output.label = "output"
         output.color = "GREEN"
-    lines = Compound(children=(input, curve, output))
+    lines = Compound(children=(funnel,bridge, curve, output))
     return lines
+
+with BuildSketch() as outline:
+    Rectangle(config.bracket_width, config.bracket_height,
+              align=(Align.CENTER,Align.MIN))
+    Circle(radius=config.wheel_radius+config.minimum_structural_thickness)
 
 def curved_filament_path_cut() -> Compound:
     """
@@ -169,9 +170,15 @@ def curved_filament_path_cut() -> Compound:
         with BuildSketch(Plane(origin=tube_path.line@0,z_dir=tube_path.line%0)):
             Circle(config.tube_outer_radius)
         sweep()
+    with BuildPart() as tube_curve:
+        with BuildLine() as tube_path:
+            add(path.children[2])
+        with BuildSketch(Plane(origin=tube_path.line@0,z_dir=tube_path.line%0)):
+            Circle(config.tube_outer_radius)
+        sweep()
     with BuildPart() as connector:
         with BuildLine() as connector_path:
-            add(path.children[2])
+            add(path.children[3])
         with BuildSketch(Plane(origin=connector_path.line@0,z_dir=connector_path.line%0)):
             Circle(config.connector_radius)
         sweep()
@@ -182,7 +189,7 @@ def curved_filament_path_cut() -> Compound:
             Circle(config.connector_radius)
         loft()
         extrude(connector_chamfer.faces().sort_by(Axis.X)[-1], config.bracket_depth)
-    complete = Compound(label="curved filament path cut", children=(inlet.part,tube.part,connector.part,connector_chamfer.part)).move(Location((0,0,config.bracket_depth/2)))
+    complete = Compound(label="curved filament path cut", children=(inlet.part,tube.part,tube_curve.part,connector.part,connector_chamfer.part)).move(Location((0,0,config.bracket_depth/2)))
     return complete
 
 def curved_filament_path_solid(top_exit_fillet=True) -> Part:
@@ -209,7 +216,7 @@ def curved_filament_path_solid(top_exit_fillet=True) -> Part:
                 Rectangle(config.bracket_depth, config.bracket_depth/2,
                         align=(Align.CENTER, Align.MAX))
             sweep()
-        fillet(solid_path.faces().sort_by(Axis.Y)[0].edges(),
+        fillet(solid_path.faces().sort_by(Axis.Y)[0].edges().filter_by(Axis.X),
                 config.fillet_radius)
     part = solid_path.part.move(Location((0,0,config.bracket_depth/2)))
     part.label = "curved filament path"
@@ -219,10 +226,11 @@ def curved_filament_connector_threads() -> Part:
     """
     places the threads for the curved filament connector
     """
-    path = curved_filament_line()
+    with BuildLine() as path:
+        add(curved_filament_line())
     offset = (config.minimum_thickness/4)/sqrt(2)
-    with BuildPart(Location(((path.children[2]@1).X-offset,
-                             (path.children[2]@1).Y-offset,config.bracket_depth/2),
+    with BuildPart(Location(((path.line@1).X-offset,
+                             (path.line@1).Y-offset,config.bracket_depth/2),
                              (90,-45,0))) as threads:
         add(connector_threads())
     part = threads.part
@@ -244,5 +252,6 @@ def curved_filament_path(top_exit_fillet=False,draft=True) -> Part:
     return part
 
 if __name__ == '__main__':
-    show(curved_filament_path(top_exit_fillet=False, draft=False).move(Location((config.wheel_radius,0,0))),
-         straight_filament_path(draft=False).move(Location((-config.wheel_radius,0,0))))
+    show(curved_filament_path(top_exit_fillet=True, draft=False).move(Location((config.wheel_radius,0,0))),
+         straight_filament_path(draft=False).move(Location((-config.wheel_radius,0,0))),
+         reset_camera=Camera.CENTER)
