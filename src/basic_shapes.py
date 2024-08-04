@@ -2,12 +2,24 @@
 utility for creating a bar with a zig-zag shape
 """
 from build123d import (BuildPart, BuildSketch, BuildLine, Polyline, extrude, make_face,
-                       fillet, Axis, add, Plane, Part, loft, Sketch)
+                       fillet, Axis, Circle, add, Plane, Cylinder, Part, loft, Sketch,
+                       Align, Rectangle, Location, Mode)
 from ocp_vscode import show
 from geometry_utils import find_angle_intersection
 from bank_config import BankConfig
 
 config = BankConfig()
+
+def rounded_cylinder(radius, height, align=(Align.CENTER, Align.CENTER, Align.CENTER)) -> Part:
+    """
+    creates a rounded off cylinder
+    """
+    with BuildPart() as cylinder:
+        Cylinder(radius=radius, height=height,align=align)
+        fillet(cylinder.faces().sort_by(Axis.Z)[-1].edges()+
+               cylinder.faces().sort_by(Axis.Z)[0].edges(),
+               radius = radius)
+    return cylinder.part
 
 def curvebar(length, bar_width, depth, climb, angle=45):
     """
@@ -91,7 +103,7 @@ def side_line(bottom_adjust=0,right_adjust=0) -> Sketch:
                 inclusive=(False, False)), config.spoke_bar_height/3)
     return sketch.sketch
 
-def frame_side(thickness=config.wall_thickness, channel=False) -> Part:
+def old_frame_side(thickness=config.wall_thickness, channel=False) -> Part:
     """
     builds a side of the frame
     arguments:
@@ -111,6 +123,42 @@ def frame_side(thickness=config.wall_thickness, channel=False) -> Part:
                 add(side_line(bottom_adjust=0))
             with BuildSketch(Plane.XY.offset(thickness/2)):
                 add(side_line(bottom_adjust=0))
+            loft(ruled=True)
+    part = side.part.rotate(Axis.X, 90)
+    part.label = "Frame Side"
+    return part
+
+def sidewall_sketch(offset=0) -> Sketch:
+    with BuildSketch(mode=Mode.PRIVATE) as wall:
+        Rectangle(width=config.sidewall_width+offset*2, height=config.sidewall_section_depth+offset*2,
+            align=(Align.CENTER, Align.MAX))
+    with BuildSketch() as side:
+        Circle(radius=config.wheel_radius+offset)
+        Rectangle(width=config.wheel_diameter+offset*2, height=config.minimum_structural_thickness,
+                align=(Align.CENTER, Align.MAX))
+        add(wall.sketch.move(Location((0,-config.minimum_structural_thickness+offset))))
+    return side.sketch.move(Location((0,config.minimum_structural_thickness)))
+
+def frame_side_cut(thickness=config.wall_thickness) -> Part:
+    """
+    builds a side of the frame
+    arguments:
+    thickness: determines the depth of the wall
+    channel: (boolean) -- determines whether to cut a channel in the bottom part of the frame
+    """
+    mid_adjustor = thickness/4
+    with BuildPart() as side:
+        with BuildPart():
+            with BuildSketch(Plane.XY.offset(-thickness/2)):
+                add(sidewall_sketch(offset=0))
+            with BuildSketch(Plane.XY.offset(-thickness/4)):
+                add(sidewall_sketch(offset=0))
+            with BuildSketch():
+                add(sidewall_sketch(offset=mid_adjustor))
+            with BuildSketch(Plane.XY.offset(thickness/4)):
+                add(sidewall_sketch(offset=0))
+            with BuildSketch(Plane.XY.offset(thickness/2)):
+                add(sidewall_sketch(offset=0))
             loft(ruled=True)
     part = side.part.rotate(Axis.X, 90)
     part.label = "Frame Side"

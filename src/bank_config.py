@@ -38,8 +38,7 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    # filament_count = 3
-    filament_count = 2
+    filament_count = 3
 
     # sidewall_section_depth = 240
     # extension_section_depth = 100
@@ -128,6 +127,18 @@ class BankConfig:
                             self.clip_length-self.frame_bracket_tolerance/2, -135)
         return Point(barpoint.x, barpoint.y)
         #return Point(right_top_intersection.x, right_top_intersection.y)
+
+    @property
+    def frame_bracket_exterior_radius(self) -> float:
+        """
+        the correct exterior radius for the cylinder of the frame bracket
+        """
+        return point_distance(Point(0,0), Point(
+            self.wheel_radius-self.bracket_depth/2, self.bracket_height))
+
+    @property
+    def frame_bracket_exterior_diameter(self) -> float:
+        return self.frame_bracket_exterior_radius * 2
 
     @property
     def frame_bracket_spacing(self) -> Point:
@@ -219,6 +230,7 @@ class BankConfig:
         right_bottom_intersection = self.find_point_along_right(
                         -self.spoke_height/2)
         return right_bottom_intersection.x + self.minimum_structural_thickness*2
+
     @property
     def frame_back_wall_center_distance(self) -> float:
         """the distance from the center of the frame to the center of the back wall"""
@@ -268,21 +280,6 @@ class BankConfig:
             (( self.minimum_structural_thickness + self.wall_thickness) *2)
 
     @property
-    def exit_tube_entry_point(self) -> Point:
-        """
-        returns the x,y coordinates where the filament enters the outbound tube
-        """
-        angular_distance = self.wheel_radius*sqrt(2)/2
-        return Point(angular_distance, -angular_distance)
-
-    @property
-    def exit_tube_exit_point(self) -> Point:
-        """
-        returns the x,y coordinates where the filament enters the outbound tube
-        """
-        return find_related_point_by_distance(self.exit_tube_entry_point, self.tube_length, 45)
-
-    @property
     def connection_foundation_mid(self) -> float:
         """
         returns the distance from an edge to the
@@ -301,43 +298,40 @@ class BankConfig:
                                point=(self.wheel_radius-self.tube_outer_radius,0),
                                angle=90)
 
-    def find_point_along_right(self, y_point) -> Point:
-        """
-        returns the rightmost point of bracket based on a y value
-        errors if lower than the right connector foundation or higher
-        than the bracket
-        """
-        top_of_foundation = find_related_point_by_distance(self.exit_tube_exit_point,
-                                        self.connection_foundation_mid, 135)
-        base_of_foundation = find_related_point_by_distance(self.exit_tube_entry_point,
-                                        self.connection_foundation_mid, -45)
-        outer_top_of_foundation = find_related_point_by_distance(self.exit_tube_exit_point,
-                                        self.connection_foundation_mid, -45)
-        right_foundation_boundary = LineString([(base_of_foundation.x, base_of_foundation.y),
-                        (outer_top_of_foundation.x, outer_top_of_foundation.y)])
-        right_tip_boundary = LineString([(top_of_foundation.x, top_of_foundation.y),
-                         (outer_top_of_foundation.x, outer_top_of_foundation.y)])
-        y_line = LineString([(-self.bracket_width, y_point), (self.bracket_width, y_point)])
-        if self.bracket_height >= y_point >= top_of_foundation.y:
-            return self.bracket_width/2
-        elif top_of_foundation.y > y_point >= outer_top_of_foundation.y:
-            return y_line.intersection(right_tip_boundary)
-        elif y_point >= base_of_foundation.y:
-            return y_line.intersection(right_foundation_boundary)
-        raise ValueError("unable to calculate the rightmost point at this distance")
+    # def find_point_along_right(self, y_point) -> Point:
+    #     """
+    #     returns the rightmost point of bracket based on a y value
+    #     errors if lower than the right connector foundation or higher
+    #     than the bracket
+    #     """
+    #     top_of_foundation = find_related_point_by_distance(self.exit_tube_exit_point,
+    #                                     self.connection_foundation_mid, 135)
+    #     base_of_foundation = find_related_point_by_distance(self.exit_tube_entry_point,
+    #                                     self.connection_foundation_mid, -45)
+    #     outer_top_of_foundation = find_related_point_by_distance(self.exit_tube_exit_point,
+    #                                     self.connection_foundation_mid, -45)
+    #     right_foundation_boundary = LineString([(base_of_foundation.x, base_of_foundation.y),
+    #                     (outer_top_of_foundation.x, outer_top_of_foundation.y)])
+    #     right_tip_boundary = LineString([(top_of_foundation.x, top_of_foundation.y),
+    #                      (outer_top_of_foundation.x, outer_top_of_foundation.y)])
+    #     y_line = LineString([(-self.bracket_width, y_point), (self.bracket_width, y_point)])
+    #     if self.bracket_height >= y_point >= top_of_foundation.y:
+    #         return self.bracket_width/2
+    #     elif top_of_foundation.y > y_point >= outer_top_of_foundation.y:
+    #         return y_line.intersection(right_tip_boundary)
+    #     elif y_point >= base_of_foundation.y:
+    #         return y_line.intersection(right_foundation_boundary)
+    #     raise ValueError("unable to calculate the rightmost point at this distance")
 
     @property
     def sidewall_width(self) -> float:
         """
         returns the appropriate width for the sidewalls
         """
-        right_bottom_intersection = self.find_point_along_right(
-            -self.spoke_height/2)
-        return self.bracket_width/2 + \
-                right_bottom_intersection.x + \
-                self.minimum_structural_thickness - \
-                self.wall_thickness
-
+        return self.wheel_diameter + \
+                (self.wheel_radial_tolerance+ \
+                    self.connector_diameter+self.fillet_radius +\
+                        self.wall_thickness+self.frame_bracket_tolerance)*2
 
 
     #todo -- spoke_length is a confusing name for this

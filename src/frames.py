@@ -5,13 +5,16 @@ filament brackets in place
 from build123d import (BuildPart, BuildSketch, Part, CenterArc, Cylinder,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 loft, fillet, Axis, Box, Align, GridLocations, Plane,
-                Rectangle, Sphere, RegularPolygon, Circle, export_stl)
-from ocp_vscode import show
+                offset, Rectangle, Sphere, RegularPolygon, Circle, Kind,
+                Align, GeomType,
+                export_stl)
+from ocp_vscode import show, Camera
 from shapely.geometry import Point
 from bank_config import BankConfig
-from curvebar import frame_side
+from basic_shapes import rounded_cylinder,frame_side_cut
 from geometry_utils import find_related_point_by_distance
 from wall_cut_template import wall_cut_template
+from filament_bracket import bottom_bracket_block, bottom_bracket
 
 config = BankConfig()
 
@@ -62,6 +65,24 @@ def straight_wall_groove() -> Part:
     part.label = "groove"
     return part
 
+def flat_wall_grooves() -> Part:
+    """
+    creates the grooves for the fronte and back walls
+    """
+    with BuildPart() as grooves:
+        # with BuildPart(Location((config.frame_front_wall_center_distance-config.buffer_frame_center_x,
+        #                          0,0),(180,0,0))):
+        with BuildPart(Location((config.sidewall_width/2+config.wall_thickness/2,
+                                 0,0),(180,0,0))):
+            add(straight_wall_groove().mirror(Plane.YZ))
+
+        # with BuildPart(Location((config.frame_back_wall_center_distance-config.buffer_frame_center_x,
+        #                 0,0),(180,0,0))):
+        with BuildPart(Location((-config.sidewall_width/2-config.wall_thickness/2,
+                        0,0),(180,0,0))):
+            add(straight_wall_groove())
+    return grooves.part
+
 def backfloor() -> Part:
     with BuildPart() as floor:
         Box(config.frame_tongue_depth+config.minimum_structural_thickness,
@@ -79,7 +100,78 @@ def backfloor() -> Part:
     part = floor.part
     return part
 
+def bracket_cutblock() -> Part:
+    """
+    the block that needs to be cut for each filament bracket in the top frame
+    """
+    with BuildPart() as cutblock:
+        add(bottom_bracket_block(offset=config.frame_bracket_tolerance).rotate(
+            Axis.X, 90).move(Location((0,config.bracket_depth/2+config.frame_bracket_tolerance,
+                                    config.minimum_structural_thickness))))
+        with BuildPart(Location((-config.wheel_radius-config.bracket_depth/2,0,config.minimum_structural_thickness))) as boxcut:
+            Box(config.bracket_width*2,
+                config.bracket_depth+config.frame_bracket_tolerance*2,
+                config.bracket_height*2,
+                align=(Align.MIN, Align.CENTER, Align.MIN)
+                )
+        with BuildPart(Location((0,0,config.minimum_structural_thickness))) as boxcut:
+            Cylinder(radius=config.wheel_radius + \
+                    config.wheel_radial_tolerance+config.connector_diameter+config.fillet_radius,
+                    height=config.bracket_depth+config.frame_bracket_tolerance*2,
+                    align=(Align.CENTER, Align.CENTER, Align.CENTER),rotation=(90,0,0))
+            fillet(boxcut.edges(), radius=config.fillet_radius)
+    return cutblock.part
+
 def top_frame() -> Part:
+    with BuildPart() as tframe:
+        Box(config.frame_bracket_exterior_diameter+config.minimum_structural_thickness*2,
+            config.frame_exterior_width,
+            config.minimum_structural_thickness*2,
+            align=(Align.CENTER, Align.CENTER, Align.MIN))
+        Box(config.frame_bracket_exterior_radius+config.minimum_structural_thickness,
+            config.frame_exterior_width,
+            config.bracket_height,
+            align=(Align.MAX, Align.CENTER, Align.MIN))
+        with BuildPart(Location((0,0,config.minimum_structural_thickness))) as top_arch:
+            Cylinder(radius=config.frame_bracket_exterior_radius,
+                 height=config.frame_exterior_width,
+                 rotation=(90,0,0), arc_size=180,
+                 align=(Align.CENTER,Align.MIN,Align.CENTER))
+        edge_set=tframe.edges()-tframe.edges().filter_by_position(Axis.X,
+                minimum=config.frame_bracket_exterior_radius-1,
+                maximum=config.frame_bracket_exterior_radius+1)
+        fillet(edge_set,config.fillet_radius)
+        with BuildPart(mode=Mode.SUBTRACT):
+            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count):
+                add(bracket_cutblock())
+            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count+1):
+                add(frame_side_cut())
+            with BuildPart(Location((0,0,config.minimum_structural_thickness))):
+                Cylinder(radius=config.wheel_radius,
+                        height=config.frame_exterior_width,
+                        rotation=(90,0,0))
+                Box(config.wheel_diameter, config.frame_exterior_width,
+                        config.minimum_structural_thickness,
+                        align=(Align.CENTER,Align.CENTER, Align.MAX)
+                    )
+            add(flat_wall_grooves().mirror(Plane.XY))
+
+        with BuildPart(Location((-config.frame_bracket_exterior_radius,0,config.bracket_depth+config.minimum_structural_thickness),(0,90,0))):
+            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count):
+                with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
+                    add(rounded_cylinder(radius=config.wall_thickness-config.frame_bracket_tolerance, height=config.bracket_depth,align=
+                            (Align.CENTER, Align.CENTER, Align.MIN)))
+    return tframe.part
+with BuildPart(Location((0,0,-.5))) as test:
+            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count+1):
+                add(frame_side_cut())
+x = test.part
+x.color = "BLUE"
+f=top_frame()
+show(f, x, reset_camera=Camera.KEEP)
+# export_stl(f, '../stl/test.stl')
+
+def old_top_frame() -> Part:
 
     with BuildPart() as tframe:
 
@@ -170,17 +262,6 @@ def channel_box(length, width, height: float, double:bool = False):
             with BuildPart(Plane.XY.offset(height), mode=Mode.SUBTRACT):
                 add(diamond_cylinder(width/4,length).rotate(Axis.Y, 90))
     return part.part
-
-def flat_wall_grooves() -> Part:
-    with BuildPart() as grooves:
-        with BuildPart(Location((config.frame_front_wall_center_distance-config.buffer_frame_center_x,
-                                 0,0),(180,0,0))):
-            add(straight_wall_groove().mirror(Plane.YZ))
-
-        with BuildPart(Location((config.frame_back_wall_center_distance-config.buffer_frame_center_x,
-                        0,0),(180,0,0))):
-            add(straight_wall_groove())
-    return grooves.part
 
 def connector_frame(bottom:bool = False) -> Part:
     connector_height = config.bottom_frame_depth if bottom else config.bottom_frame_depth*2
@@ -305,7 +386,7 @@ def back_bar(depth: float) -> Part:
     part.label = "back bar"
     return part
 
-if __name__ == '__main__':
+if __name__ == 'x__main__':
     topframe = top_frame()
     bottomframe = bottom_frame()
     export_stl(topframe, '../stl/top_frame.stl')
