@@ -303,6 +303,6 @@ if __name__ == '__main__':
     top = top_bracket()
     show(bottom.move(Location((config.bracket_width/2+5,0,0))),
          top.move(Location((-config.bracket_width/2+5,0,0))),
-         reset_camera=Camera.CENTER)
+         reset_camera=Camera.KEEP)
     export_stl(bottom, '../stl/bottom_bracket.stl')
     export_stl(top, '../stl/top_bracket.stl')

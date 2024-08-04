@@ -42,7 +42,7 @@ class BankConfig:
 
     # sidewall_section_depth = 240
     # extension_section_depth = 100
-    sidewall_section_depth = 50
+    sidewall_section_depth = 70
     extension_section_depth = 20
     solid_walls = False
 
@@ -53,33 +53,47 @@ class BankConfig:
     frame_wall_bracket = True
     wall_bracket_screw_radius = 2.25
     wall_bracket_screw_head_radius=4.5
+    wall_bracket_post_count=3
 
     @property
-    def bottom_frame_depth(self) -> float:
+    def frame_base_depth(self) -> float:
         """
         the appropriate height for the bottom frame
         """
         return self.frame_tongue_depth + self.minimum_structural_thickness
 
     @property
-    def buffer_frame_center_x(self) -> float:
-        return (self.frame_back_distance + self.frame_front_bottom_distance) / 2
+    def sidewall_straight_depth(self) -> float:
+        """
+        the length of the straight portion of the sidewall
+        """
+        return self.sidewall_section_depth-self.wheel_radius-self.frame_base_depth
 
     @property
-    def sidewall_center_x(self) -> float:
-        return (self.frame_back_wall_center_distance + self.frame_front_wall_center_distance) / 2
+    def connector_depth(self) -> float:
+        """
+        the depth of the connector frame
+        """
+        return self.frame_tongue_depth*2 + self.minimum_thickness
+    # @property
+    # def buffer_frame_center_x(self) -> float:
+    #     return (self.frame_back_distance + self.frame_front_bottom_distance) / 2
 
-    @property
-    def bottom_frame_exterior_length(self) -> float:
-        return abs(self.frame_front_bottom_distance) + \
-            abs(self.frame_back_distance)
+    # @property
+    # def sidewall_center_x(self) -> float:
+    #     return (self.frame_back_wall_center_distance + self.frame_front_wall_center_distance) / 2
 
-    @property
-    def bottom_frame_interior_length(self) -> float:
-        return abs(self.frame_back_wall_center_distance) + \
-            abs(self.frame_front_wall_center_distance) - \
-            self.wall_thickness - self.frame_bracket_tolerance - \
-            self.minimum_thickness * 4
+    # @property
+    # def bottom_frame_exterior_length(self) -> float:
+    #     return abs(self.frame_front_bottom_distance) + \
+    #         abs(self.frame_back_distance)
+
+    # @property
+    # def bottom_frame_interior_length(self) -> float:
+    #     return abs(self.frame_back_wall_center_distance) + \
+    #         abs(self.frame_front_wall_center_distance) - \
+    #         self.wall_thickness - self.frame_bracket_tolerance - \
+    #         self.minimum_thickness * 4
 
     @property
     def wall_window_apothem(self) -> float:
@@ -224,27 +238,27 @@ class BankConfig:
         return -self.bracket_width/2 - \
                         self.frame_bracket_tolerance - \
                             self.minimum_structural_thickness * 2
-    @property
-    def frame_front_bottom_distance(self) -> float:
-        """the distance from the center point to the front of the frame along the bottom"""
-        right_bottom_intersection = self.find_point_along_right(
-                        -self.spoke_height/2)
-        return right_bottom_intersection.x + self.minimum_structural_thickness*2
+    # @property
+    # def frame_front_bottom_distance(self) -> float:
+    #     """the distance from the center point to the front of the frame along the bottom"""
+    #     right_bottom_intersection = self.find_point_along_right(
+    #                     -self.spoke_height/2)
+    #     return right_bottom_intersection.x + self.minimum_structural_thickness*2
 
-    @property
-    def frame_back_wall_center_distance(self) -> float:
-        """the distance from the center of the frame to the center of the back wall"""
-        return self.frame_back_distance + \
-                    self.frame_back_foot_length + \
-                    (self.wall_thickness+self.frame_bracket_tolerance)/2
+    # @property
+    # def frame_back_wall_center_distance(self) -> float:
+    #     """the distance from the center of the frame to the center of the back wall"""
+    #     return self.frame_back_distance + \
+    #                 self.frame_back_foot_length + \
+    #                 (self.wall_thickness+self.frame_bracket_tolerance)/2
 
-    @property
-    def frame_front_wall_center_distance(self) -> float:
-        """the distance from the center of the frame to the center of the front wall"""
-        right_bottom_intersection = self.find_point_along_right(
-                        -self.spoke_height/2)
-        return right_bottom_intersection.x + self.minimum_structural_thickness + \
-                self.wall_thickness/2 + self.frame_bracket_tolerance
+    # @property
+    # def frame_front_wall_center_distance(self) -> float:
+    #     """the distance from the center of the frame to the center of the front wall"""
+    #     right_bottom_intersection = self.find_point_along_right(
+    #                     -self.spoke_height/2)
+    #     return right_bottom_intersection.x + self.minimum_structural_thickness + \
+    #             self.wall_thickness/2 + self.frame_bracket_tolerance
 
     @property
     def frame_back_foot_length(self) -> float:

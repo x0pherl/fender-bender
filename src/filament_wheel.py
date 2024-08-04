@@ -5,7 +5,7 @@ from build123d import (BuildPart, BuildSketch, Part, Sketch, Circle, CenterArc,
                 extrude, Mode, JernArc, BuildLine, Line, make_face, add,
                 PolarLocations, RegularPolygon, sweep, Location,
                 export_stl)
-from ocp_vscode import show
+from ocp_vscode import show, Camera
 from bank_config import BankConfig
 
 config = BankConfig()
@@ -61,5 +61,5 @@ def filament_wheel() -> Part:
 if __name__ == '__main__':
     part = filament_wheel()
     part.label = "filament wheel"
-    show(part)
+    show(part, Camera.KEEP)
     export_stl(part, '../stl/filament_wheel.stl')

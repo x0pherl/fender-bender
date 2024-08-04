@@ -254,4 +254,4 @@ def curved_filament_path(top_exit_fillet=False,draft=True) -> Part:
 if __name__ == '__main__':
     show(curved_filament_path(top_exit_fillet=True, draft=False).move(Location((config.wheel_radius,0,0))),
          straight_filament_path(draft=False).move(Location((-config.wheel_radius,0,0))),
-         reset_camera=Camera.CENTER)
+         reset_camera=Camera.KEEP)

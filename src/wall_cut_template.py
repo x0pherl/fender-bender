@@ -2,7 +2,7 @@ from build123d import (BuildPart, BuildSketch, Part,
                 add, Location,
                 loft, Axis, Box, Align, GridLocations, Plane,
                 chamfer, Rectangle, Mode)
-from ocp_vscode import show
+from ocp_vscode import show, Camera
 
 def wall_slot(width, height, depth) -> Part:
     with BuildPart() as slot:
@@ -29,7 +29,7 @@ def wall_cut_template(length, width,height:float, bottom:bool=True, post_count=2
             chamfer(back_edge.faces().sort_by(Axis.Z)[-1].edges().sort_by(Axis.X)[0], cut_unit)
         with BuildPart(back_edge.faces().sort_by(Axis.X)[-1]):
             with GridLocations(0,width/post_count,1,post_count):
-                add(wall_slot(length+effective_tolerance*3, height-cut_unit*2, cut_unit+effective_tolerance))
+                add(wall_slot(width/(post_count+3), height-cut_unit*2, cut_unit+effective_tolerance))
     return cut.part
 
 with BuildPart() as hanger:
@@ -45,5 +45,5 @@ with BuildPart() as hung:
 if __name__ == '__main__':
     show(
     hanger.part,
-    hung.part.move(Location((0,0,0))),
-    )
+    hung.part.move(Location((0,0,40))),
+    reset_camera=Camera.KEEP)
