@@ -2,7 +2,7 @@
 Generates the part for the chamber walls of the filament bank
 """
 from build123d import (BuildPart, BuildSketch, Part, Cylinder,
-                extrude, Mode, add, Location, chamfer, offset,
+                extrude, Mode, add, Location, offset,
                 loft, fillet, Axis, Box, Align, GridLocations,
                 Plane, Rectangle, Sphere, export_stl)
 from ocp_vscode import show, Camera
@@ -88,29 +88,6 @@ def guide_side(length:float) -> Part:
         fillet(side.edges().filter_by(Axis.Y), config.wall_thickness/4)
     return side.part
 
-def sidewall_base(length:float, depth:float=config.wall_thickness,
-                top_cut=True, inset: float=0) -> Part:
-    """
-    Defines the shape of the sidewall with the correct shape for the
-    sides
-    """
-    with BuildPart() as wall:
-        with BuildSketch():
-            Rectangle(config.sidewall_width, length)
-            if top_cut:
-                with BuildSketch(mode=Mode.SUBTRACT):
-                    add(side_line(bottom_adjust=0,right_adjust=config.sidewall_width) \
-                        .move(Location((config.wall_thickness, length/2 - \
-                                        config.spoke_bar_height/2+config.frame_bracket_tolerance*2))))
-                    add(side_line(bottom_adjust=0,right_adjust=config.sidewall_width) \
-                        .move(Location((config.wall_thickness, length/2 + \
-                                        config.spoke_bar_height/2+config.frame_bracket_tolerance*2))))
-            offset(amount = -inset)
-        extrude(amount=depth/2, both=True)
-    part = wall.part
-    part.label = "top cut sidewall base"
-    return part
-
 def sidewall_divots(length:float=config.sidewall_straight_depth):
     """
     positions the holes that get punched along a sidewall to connect to
@@ -141,19 +118,18 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False) -> Par
         if reinforce:
             with BuildPart():
                 with BuildSketch():
-                    add(sidewall_shape(inset=config.wall_thickness/2+config.minimum_structural_thickness))
+                    add(sidewall_shape(inset=config.wall_thickness/2, length=length,
+                                       straignt_inset=config.minimum_structural_thickness))
                     with BuildSketch(mode=Mode.SUBTRACT):
-                        add(sidewall_shape(inset=config.wall_thickness/2+config.minimum_structural_thickness*2))
+                        add(sidewall_shape(inset=config.wall_thickness/2+config.minimum_structural_thickness,
+                                           length=length,straignt_inset=config.minimum_structural_thickness))
                 extrude(amount=config.minimum_structural_thickness)
         if not config.solid_walls:
-            inset_distance = config.wall_thickness/2 - \
-                config.frame_bracket_tolerance + \
-                config.minimum_structural_thickness
-            if reinforce:
-                inset_distance += config.minimum_structural_thickness
+            multiplier = 1 if reinforce else 0
             with BuildPart(mode=Mode.SUBTRACT):
                 with BuildSketch():
-                    add(sidewall_shape(inset=inset_distance))
+                        add(sidewall_shape(inset=config.wall_thickness/2+config.minimum_structural_thickness,
+                                           length=length,straignt_inset=config.minimum_structural_thickness*multiplier))
                 extrude(amount=config.wall_thickness)
                 with BuildPart(mode=Mode.INTERSECT):
                     add(HexWall(width=length*2, length=config.sidewall_width,

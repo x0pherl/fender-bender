@@ -97,7 +97,7 @@ class BankConfig:
 
     @property
     def wall_window_apothem(self) -> float:
-        return self.bracket_depth/3
+        return self.bracket_depth/2.5
 
     @property
     def front_wall_depth(self) -> float:
