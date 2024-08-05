@@ -103,8 +103,9 @@ def connector_frame() -> Part:
                 add(flat_wall_grooves())
                 with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count+1):
                     add(frame_side_flat_cut())
-            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count):
-                add(chamber_cut())
+            with BuildPart(Location((-config.minimum_structural_thickness/2,0,0))):
+                with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count):
+                    add(chamber_cut())
     return cframe.part
 
 def bottom_frame() -> Part:
@@ -184,6 +185,12 @@ def top_frame() -> Part:
                 with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
                     add(rounded_cylinder(radius=config.wall_thickness-config.frame_bracket_tolerance, height=config.bracket_depth,align=
                             (Align.CENTER, Align.CENTER, Align.MIN)))
+
+        with BuildPart(Location((config.frame_click_sphere_point.x,0,config.frame_click_sphere_point.y+config.frame_base_depth))):
+            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count):
+                with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
+                    Sphere(config.frame_click_sphere_radius*.75)
+
         if config.frame_wall_bracket:
             with BuildPart(Location((-config.frame_bracket_exterior_radius-config.minimum_structural_thickness*1.25,0,0)), mode=Mode.SUBTRACT):
                 add(wall_cut_template(config.minimum_structural_thickness*1.5,config.frame_exterior_width,config.bracket_height,bottom=False, post_count=config.wall_bracket_post_count, tolerance=config.frame_bracket_tolerance))

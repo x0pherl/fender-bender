@@ -7,7 +7,7 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Axis, Box, Align, Cylinder, Torus,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
-                sweep, Compound, export_stl, Sphere)
+                sweep, Compound, export_stl, Sphere, Locations)
 from ocp_vscode import show, Camera
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
@@ -243,6 +243,9 @@ def bottom_bracket_frame() -> Part:
             with BuildPart(Location((-config.frame_bracket_exterior_radius,config.bracket_depth,config.bracket_depth/2),(0,90,0))):
                 with GridLocations(config.bracket_depth,0,2,1):
                     add(pin_channel())
+            with Locations(Location((config.frame_click_sphere_point.x, config.frame_click_sphere_point.y,config.bracket_depth)),
+                            Location((config.frame_click_sphere_point.x, config.frame_click_sphere_point.y,0))):
+                Sphere(config.frame_click_sphere_radius)
 
     part = constructed_bracket.part
     part.label = "bracket"

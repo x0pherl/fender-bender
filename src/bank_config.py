@@ -122,25 +122,25 @@ class BankConfig:
     #     #todo I don't like this value or name, it's confusing
     #     return(self.wheel_radius+self.connector_radius+self.minimum_thickness)*sqrt(2)/2
 
-    @property
-    def bracket_clip_point(self) -> Point:
-        """
-        returns the x,y coordinates 1/2-way along the edge of the exit tube
-        which is where the filament buffer has a cut to clip into the top frame
-        """
-        # right_bottom_bar_distance = -self.spoke_climb/2-self.spoke_bar_height/2
-        right_top_intersection = self.find_point_along_right(
-                        -self.spoke_height/2 + self.spoke_bar_height)
-        # right_bottom_bar_distance = -self.spoke_climb/2 - \
-        #     self.spoke_bar_height/2
-        # right_bottom_intersection = self.find_point_along_right(
-        #                 right_bottom_bar_distance)
-        # right_top_intersection = self.find_point_along_right(
-        #                 right_bottom_bar_distance + self.spoke_bar_height)
-        barpoint = find_related_point_by_distance(right_top_intersection,
-                            self.clip_length-self.frame_bracket_tolerance/2, -135)
-        return Point(barpoint.x, barpoint.y)
-        #return Point(right_top_intersection.x, right_top_intersection.y)
+    # @property
+    # def bracket_clip_point(self) -> Point:
+    #     """
+    #     returns the x,y coordinates 1/2-way along the edge of the exit tube
+    #     which is where the filament buffer has a cut to clip into the top frame
+    #     """
+    #     # right_bottom_bar_distance = -self.spoke_climb/2-self.spoke_bar_height/2
+    #     right_top_intersection = self.find_point_along_right(
+    #                     -self.spoke_height/2 + self.spoke_bar_height)
+    #     # right_bottom_bar_distance = -self.spoke_climb/2 - \
+    #     #     self.spoke_bar_height/2
+    #     # right_bottom_intersection = self.find_point_along_right(
+    #     #                 right_bottom_bar_distance)
+    #     # right_top_intersection = self.find_point_along_right(
+    #     #                 right_bottom_bar_distance + self.spoke_bar_height)
+    #     barpoint = find_related_point_by_distance(right_top_intersection,
+    #                         self.clip_length-self.frame_bracket_tolerance/2, -135)
+    #     return Point(barpoint.x, barpoint.y)
+    #     #return Point(right_top_intersection.x, right_top_intersection.y)
 
     @property
     def frame_bracket_exterior_radius(self) -> float:
@@ -152,6 +152,9 @@ class BankConfig:
 
     @property
     def frame_bracket_exterior_diameter(self) -> float:
+        """
+        the correct exterior diameter for the cylinder of the frame bracket
+        """
         return self.frame_bracket_exterior_radius * 2
 
     @property
@@ -226,11 +229,10 @@ class BankConfig:
         """
         the x / y coordinates for the snap fit points
         """
-        return Point(-self.bracket_width/2 + \
-                        self.fillet_radius + \
-                        self.clip_length,
-                        -self.bracket_clip_point.y + \
-                        self.spoke_bar_height/2)
+        return Point(self.frame_bracket_exterior_radius - \
+                     self.minimum_structural_thickness*1.5,
+                     self.fillet_radius+self.frame_click_sphere_radius)
+
 
     @property
     def frame_back_distance(self) -> float:
