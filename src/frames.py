@@ -4,8 +4,8 @@ filament brackets in place
 """
 from build123d import (BuildPart, BuildSketch, Part, Cylinder, extrude,
                        Mode, add, Location, loft, fillet, Axis, Box,
-                       Align, GridLocations, Plane, Rectangle, Sphere,
-                       RegularPolygon, Circle, Locations, export_stl,
+                       Align, GridLocations, Plane, Sphere,
+                       Circle, Locations, export_stl,
                        PolarLocations)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig
@@ -15,11 +15,11 @@ from filament_bracket import bottom_bracket_block
 
 config = BankConfig()
 
-def straight_wall_groove() -> Part:
+def flat_wall_grooves() -> Part:
     """
-    builds the socket for the side walls to fit into
+    creates the grooves in the frame peices for the front and back walls
     """
-    with BuildPart() as groove:
+    with BuildPart(mode=Mode.PRIVATE) as groove:
         Box(config.wall_thickness+config.frame_bracket_tolerance,
             config.top_frame_interior_width+config.frame_bracket_tolerance,
             config.frame_tongue_depth-config.wall_thickness/2+config.frame_bracket_tolerance,
@@ -37,17 +37,10 @@ def straight_wall_groove() -> Part:
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
             with BuildPart(Location((0,0,config.wall_thickness))):
                 Sphere(radius=config.wall_thickness*.5)
-    part = groove.part
-    part.label = "groove"
-    return part
 
-def flat_wall_grooves() -> Part:
-    """
-    creates the grooves for the fronte and back walls
-    """
     with BuildPart() as grooves:
         with PolarLocations(-config.sidewall_width/2-config.wall_thickness/2,2):
-            add(straight_wall_groove().mirror())
+            add(groove.part.mirror())
     return grooves.part
 
 def bracket_cutblock() -> Part:
@@ -74,7 +67,7 @@ def bracket_cutblock() -> Part:
 
 def chamber_cut() -> Part:
     """
-    a filleted box for each chamber in the
+    a filleted box for each chamber in the lower connectors
     """
     with BuildPart() as chamber_cut:
         Box(config.sidewall_width-config.wall_thickness,
@@ -197,14 +190,6 @@ def top_frame() -> Part:
 
 
     return tframe.part
-
-def diamond_cylinder(radius=1, height=10):
-    with BuildPart() as cyl:
-        with BuildSketch():
-            RegularPolygon(radius=radius, side_count=4)
-        extrude(amount=height/2, both=True)
-    part = cyl.part
-    return part
 
 def wall_bracket() -> Part:
     with BuildPart() as bracket:
