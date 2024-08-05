@@ -224,7 +224,7 @@ def screw_head() -> Part:
     #wall_bracket_screw_radius = 2.25
     #wall_bracket_screw_head_radius=4.5
 
-if __name__ == 'x__main__':
+if __name__ == '__main__':
     topframe = top_frame()
     bottomframe = bottom_frame()
     connectorframe = connector_frame()

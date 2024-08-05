@@ -62,4 +62,4 @@ if __name__ == '__main__':
     part = filament_wheel()
     part.label = "filament wheel"
     show(part, Camera.KEEP)
-    export_stl(part, '../stl/filament_wheel.stl')
+    export_stl(part, '../stl/filament_bracket_wheel.stl')

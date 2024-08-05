@@ -5,9 +5,9 @@ from math import sqrt
 from shapely import Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
-                Plane, loft, fillet, Axis, Box, Align, Cylinder,
+                Plane, loft, fillet, Axis, Box, Align, Cylinder, Torus,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
-                sweep, Compound, export_stl)
+                sweep, Compound, export_stl, Sphere)
 from ocp_vscode import show, Camera
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
@@ -131,26 +131,6 @@ def wheel_guide() -> Part:
     part.label = "rim"
     return part
 
-
-def left_connector_threads() -> Part:
-    """
-    returns the threads for the left connector
-    """
-    with BuildPart(left_connector_location) as left_threads:
-        TrapezoidalThread(
-                diameter=config.connector_diameter,
-                pitch=config.connector_thread_pitch,
-                length=config.connector_length,
-                thread_angle = config.connector_thread_angle,
-                external=False,
-                interference=config.connector_thread_interference,
-                hand="right",
-                align=(Align.CENTER, Align.CENTER, Align.MIN)
-                )
-    part = left_threads.part
-    part.label = "left threads"
-    return part
-
 def sweep_cut() -> Part:
     """
     the cut for the clip point on the back of the top frame
@@ -204,9 +184,6 @@ def top_cut_template(tolerance:float=0) -> Part:
     return cut.part
 
 def bottom_bracket_block(offset=0) -> Part:
-    # todo -- nope coz this ends up with the curved exit having a
-    # squared off connection to the straight exit, need to draw the box
-    # I guess
     with BuildPart() as arch:
         with BuildSketch():
             with BuildLine():
@@ -226,6 +203,19 @@ def bottom_bracket_block(offset=0) -> Part:
         add(straight_filament_path_solid())
     part = Compound(label = "bracket_block", children=[arch.part, egresspath.part, ingresspath.part])
     return part
+
+def pin_channel() -> Part:
+    """
+    the channel to lock the filament bracket into the back of the top frame
+    """
+    base_unit = (config.wall_thickness+config.frame_bracket_tolerance)
+    with BuildPart() as channel:
+        add(rounded_cylinder(radius=base_unit, height=config.bracket_depth,align=
+                                (Align.CENTER, Align.CENTER, Align.MIN)))
+        with BuildPart(Location((0,0,-config.bracket_depth/2))) as guide:
+            Cylinder(radius=config.bracket_depth, height=base_unit*2,rotation=(0,90,0))
+            fillet(guide.edges(), base_unit-config.frame_bracket_tolerance/2)
+    return channel.part
 
 def bottom_bracket_frame() -> Part:
     """
@@ -252,8 +242,7 @@ def bottom_bracket_frame() -> Part:
                      align=(Align.CENTER, Align.CENTER, Align.MIN))
             with BuildPart(Location((-config.frame_bracket_exterior_radius,config.bracket_depth,config.bracket_depth/2),(0,90,0))):
                 with GridLocations(config.bracket_depth,0,2,1):
-                    add(rounded_cylinder(radius=config.wall_thickness+config.frame_bracket_tolerance, height=config.bracket_depth,align=
-                            (Align.CENTER, Align.CENTER, Align.MIN)))
+                    add(pin_channel())
 
     part = constructed_bracket.part
     part.label = "bracket"
@@ -304,5 +293,5 @@ if __name__ == '__main__':
     show(bottom.move(Location((config.bracket_width/2+5,0,0))),
          top.move(Location((-config.bracket_width/2+5,0,0))),
          reset_camera=Camera.KEEP)
-    export_stl(bottom, '../stl/bottom_bracket.stl')
-    export_stl(top, '../stl/top_bracket.stl')
+    export_stl(bottom, '../stl/filament_bracket_bottom.stl')
+    export_stl(top, '../stl/filament_bracket_top.stl')
