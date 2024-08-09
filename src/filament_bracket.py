@@ -305,5 +305,5 @@ if __name__ == '__main__':
     show(bottom.move(Location((config.bracket_width/2+5,0,0))),
          top.move(Location((-config.bracket_width/2+5,0,0))),
          reset_camera=Camera.KEEP)
-    export_stl(bottom, '../stl/filament_bracket_bottom.stl')
-    export_stl(top, '../stl/filament_bracket_top.stl')
+    export_stl(bottom, '../stl/filament-bracket-bottom.stl')
+    export_stl(top, '../stl/filament-bracket-top.stl')

@@ -178,11 +178,11 @@ def guide_wall(length:float) -> Part:
 if __name__ == '__main__':
     extension_parts = ()
     gwall=guide_wall(config.sidewall_straight_depth)
-    export_stl(gwall, '../stl/guide_wall.stl')
+    export_stl(gwall, '../stl/wall-guide.stl')
     side_wall = sidewall(length=config.sidewall_section_depth)
-    export_stl(side_wall, '../stl/side_wall.stl')
+    export_stl(side_wall, '../stl/wall-side.stl')
     reinforced_side_wall = sidewall(length=config.sidewall_section_depth,reinforce=True)
-    export_stl(reinforced_side_wall, '../stl/reinforced_side_wall.stl')
+    export_stl(reinforced_side_wall, '../stl/wall-side-reinforced.stl')
 
     show(gwall.move(Location((0,-config.sidewall_straight_depth/2,0))),
         side_wall.move(Location((-config.frame_exterior_width/2-config.sidewall_width/2-1,
