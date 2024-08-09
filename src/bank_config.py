@@ -54,6 +54,7 @@ class BankConfig:
     frame_wall_bracket = True
     wall_bracket_screw_radius = 2.25
     wall_bracket_screw_head_radius=4.5
+    wall_bracket_screw_head_sink=1.4
     wall_bracket_post_count=3
 
     @property
@@ -62,6 +63,15 @@ class BankConfig:
         the appropriate height for the bottom frame
         """
         return self.frame_tongue_depth + self.minimum_structural_thickness
+
+    @property
+    def frame_adjusted_bracket_depth(self) -> float:
+        """
+        appropriate spaceing for GridLocations when placing things
+        on the grid sidewall
+        """
+        return self.bracket_depth + self.frame_bracket_tolerance *2 + \
+                self.wall_thickness
 
     @property
     def sidewall_straight_depth(self) -> float:
