@@ -107,7 +107,33 @@ def connector_frame() -> Part:
                     add(chamber_cut())
     return cframe.part
 
-def bottom_frame() -> Part:
+def bottom_frame_stand() -> Part():
+    with BuildPart(Location((0,0,config.frame_base_depth)),mode=Mode.PRIVATE) as sectioncut:
+        Box(config.frame_bracket_exterior_diameter*2,
+            config.bracket_depth,
+            config.frame_bracket_exterior_radius-config.fillet_radius,
+            align=(Align.CENTER, Align.CENTER, Align.MIN))
+        fillet(sectioncut.edges(), radius=config.fillet_radius)
+
+    with BuildPart(Location((-config.minimum_structural_thickness/2,0,0))) as stand:
+        Box(config.frame_bracket_exterior_diameter+config.minimum_structural_thickness*3,
+            config.frame_exterior_width,
+            config.frame_bracket_exterior_radius+config.frame_base_depth+config.minimum_structural_thickness,
+            align=(Align.CENTER, Align.CENTER, Align.MIN))
+        with BuildPart(Location((0,0,config.frame_base_depth)),mode=Mode.SUBTRACT) as cut:
+            Box(config.frame_bracket_exterior_diameter-config.minimum_structural_thickness*2,
+                config.frame_exterior_width,
+                config.frame_bracket_exterior_radius-config.fillet_radius,
+                align=(Align.CENTER, Align.CENTER, Align.MIN))
+        fillet(stand.edges(), config.fillet_radius)
+        with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count):
+            add(sectioncut,mode=Mode.SUBTRACT)
+
+
+
+    return stand.part
+
+def bottom_frame(stand:bool=False) -> Part:
     """
     the bottom frame for supporting the walls
     """
@@ -130,6 +156,8 @@ def bottom_frame() -> Part:
                 minimum=-config.frame_bracket_exterior_radius-1,
                 maximum=-config.frame_bracket_exterior_radius+1)
         fillet(edge_set,config.fillet_radius)
+        if stand:
+            add(bottom_frame_stand())
         with BuildPart(mode=Mode.SUBTRACT):
             with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2+config.wall_thickness,1,config.filament_count):
                 add(chamber_cut())
@@ -139,6 +167,8 @@ def bottom_frame() -> Part:
                 Cylinder(radius=config.wheel_radius,
                         height=config.frame_exterior_width,
                         rotation=(90,0,0))
+                Box(config.wheel_diameter,config.frame_exterior_width,config.frame_base_depth,
+                    align=(Align.CENTER,Align.CENTER,Align.MAX))
             add(flat_wall_grooves().mirror(Plane.XY))
     return bframe.part
 
@@ -227,13 +257,15 @@ if __name__ == '__main__':
     bracketclip = bracket_clip()
     topframe = top_frame()
     bottomframe = bottom_frame()
+    bottomframestand = bottomframe(stand=True)
     connectorframe = connector_frame()
     wallbracket = wall_bracket()
-    export_stl(bracketclip, '../stl/bracket_clip.stl')
-    export_stl(topframe, '../stl/top_frame.stl')
-    export_stl(bottomframe, '../stl/bottom_frame.stl')
-    export_stl(connectorframe, '../stl/connector_frame.stl')
-    export_stl(wallbracket, '../stl/wall_bracket.stl')
+    export_stl(bracketclip, '../stl/bracket-clip.stl')
+    export_stl(topframe, '../stl/frame-top.stl')
+    export_stl(bottomframe, '../stl/frame-bottom.stl')
+    export_stl(bottomframestand, '../stl/frame-bottom-with-stand.stl')
+    export_stl(connectorframe, '../stl/frame-connector.stl')
+    export_stl(wallbracket, '../stl/frame-wall-bracket.stl')
     show(topframe,
         bracketclip.rotate(Axis.X,180).move(Location((config.fillet_radius,0,0))).rotate(Axis.Y,-config.frame_clip_angle).move(Location((0,0,config.frame_base_depth))),
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
