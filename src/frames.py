@@ -48,7 +48,7 @@ def bracket_cutblock() -> Part:
     the block that needs to be cut for each filament bracket in the top frame
     """
     with BuildPart() as cutblock:
-        add(bottom_bracket_block(offset=config.frame_bracket_tolerance).rotate(
+        add(bottom_bracket_block(inset=-config.frame_bracket_tolerance).rotate(
             Axis.X, 90).move(Location((0,config.bracket_depth/2+config.frame_bracket_tolerance,
                                     config.frame_base_depth))))
         with BuildPart(Location((-config.wheel_radius-config.bracket_depth/2,0,config.frame_base_depth))) as boxcut:

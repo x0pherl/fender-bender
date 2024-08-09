@@ -7,7 +7,7 @@ from build123d import (BuildPart, BuildSketch, Part, Cylinder,
                 Plane, Rectangle, Sphere, export_stl)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig
-from basic_shapes import side_line,sidewall_shape
+from basic_shapes import sidewall_shape
 from hexwall import HexWall
 
 config = BankConfig()
