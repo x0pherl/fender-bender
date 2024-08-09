@@ -11,7 +11,7 @@ from ocp_vscode import show, Camera
 from bank_config import BankConfig
 from basic_shapes import rounded_cylinder,frame_side_cut,frame_side_flat_cut
 from wall_cut_template import wall_cut_template
-from filament_bracket import bottom_bracket_block
+from filament_bracket import bottom_bracket_block, bracket_clip
 
 config = BankConfig()
 
@@ -63,6 +63,12 @@ def bracket_cutblock() -> Part:
                     height=config.bracket_depth+config.frame_bracket_tolerance*2,
                     align=(Align.CENTER, Align.CENTER, Align.CENTER),rotation=(90,0,0))
             fillet(boxcut.edges(), radius=config.fillet_radius)
+
+        with BuildPart(Location((0,0,config.frame_base_depth+config.frame_bracket_tolerance),(0,-config.frame_clip_angle,0))):
+            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2,1,2):
+                Box(config.wheel_diameter*4,config.wall_thickness*2/3-config.frame_bracket_tolerance,
+                    config.wall_thickness*2+config.frame_bracket_tolerance,
+                    align=(Align.MIN,Align.CENTER,Align.MAX))
     return cutblock.part
 
 def chamber_cut() -> Part:
@@ -217,45 +223,6 @@ def screw_head() -> Part:
     #wall_bracket_screw_head_radius=4.5
 
 
-def clip_rails(tolerance=0, length=config.bracket_depth*2) -> Part:
-    with BuildPart(mode=Mode.PRIVATE) as rail:
-        add(rounded_cylinder(radius=config.wall_thickness+tolerance/2, height=length, align=(Align.MAX,Align.CENTER,Align.CENTER)),rotation=(0,90,0))
-        with BuildPart(mode=Mode.SUBTRACT):
-            Box(length,config.wall_thickness+tolerance,config.wall_thickness*2+tolerance,
-                align=(Align.CENTER, Align.MIN, Align.MIN))
-        Box(length-(config.wall_thickness+tolerance/2)*2,config.wall_thickness/3+tolerance,config.wall_thickness*2+tolerance,
-            align=(Align.CENTER, Align.MIN, Align.MIN))
-        with PolarLocations(length/2-config.wall_thickness+tolerance/2,2,rotate=False):
-            Cylinder(radius=config.wall_thickness+tolerance/2, height=config.wall_thickness/3+tolerance, rotation=(90,0,0),
-                 align=(Align.CENTER,Align.MIN,Align.MAX))
-    with BuildPart() as rails:
-        with PolarLocations(config.bracket_depth/2,2,start_angle=90):
-            add(rail.part.rotate(Axis.Z,-90))
-    return rails.part
-
-def bracket_clip() -> Part:
-    """
-    the part for locking the frame bracket into the frame
-    """
-    with BuildPart(Plane.XZ, mode=Mode.PRIVATE) as clip:
-        Cylinder(radius=config.frame_bracket_exterior_radius, height=config.bracket_depth,arc_size=18,
-                align=(Align.MIN,Align.MIN,Align.CENTER))
-        fillet(clip.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
-        with BuildPart(Plane.XZ,mode=Mode.SUBTRACT) as cut:
-            Cylinder(radius=config.frame_bracket_exterior_radius-config.minimum_structural_thickness, height=config.bracket_depth-config.wall_thickness,arc_size=18,
-                    align=(Align.MIN,Align.MIN,Align.CENTER))
-            fillet(cut.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
-            Cylinder(radius=config.frame_bracket_exterior_radius-config.minimum_structural_thickness*2, height=config.bracket_depth,arc_size=18,
-                    align=(Align.MIN,Align.MIN,Align.CENTER))
-        with BuildPart(Location((config.frame_bracket_exterior_radius-config.bracket_depth/2-config.fillet_radius,0,0))):
-            add(clip_rails(length=config.frame_bracket_exterior_radius-config.wheel_radius+config.fillet_radius))
-            with BuildPart(Plane.XZ, mode=Mode.INTERSECT):
-                Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius, height=config.bracket_depth*2,arc_size=18,
-                    align=(Align.MIN,Align.MIN,Align.CENTER))
-    part = clip.part
-    part.label = "Bracket Clip"
-    return part
-
 if __name__ == '__main__':
     bracketclip = bracket_clip()
     topframe = top_frame()
@@ -268,7 +235,7 @@ if __name__ == '__main__':
     export_stl(connectorframe, '../stl/connector_frame.stl')
     export_stl(wallbracket, '../stl/wall_bracket.stl')
     show(topframe,
-        bracketclip.rotate(Axis.Y,180+18).rotate(Axis.Z,180).move(Location((config.fillet_radius, 0, config.frame_base_depth))),
+        bracketclip.rotate(Axis.X,180).move(Location((config.fillet_radius,0,0))).rotate(Axis.Y,-config.frame_clip_angle).move(Location((0,0,config.frame_base_depth))),
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
             -config.frame_base_depth*3))),
         connectorframe.move(Location((0,0,-config.frame_base_depth*2))),

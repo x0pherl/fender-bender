@@ -49,6 +49,7 @@ class BankConfig:
     wall_thickness = 2
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
+    frame_clip_angle = 33
 
     frame_wall_bracket = True
     wall_bracket_screw_radius = 2.25
@@ -97,7 +98,15 @@ class BankConfig:
 
     @property
     def wall_window_apothem(self) -> float:
+        """
+        controls the size of the hexagonal cuts on the walls
+        """
         return self.bracket_depth/2.5
+
+    @property
+    def bracket_rail_length(self) -> float:
+        """the length of the rails on the bracket clip"""
+        return self.frame_bracket_exterior_radius-self.wheel_radius+self.fillet_radius-self.wall_thickness
 
     @property
     def front_wall_depth(self) -> float:
