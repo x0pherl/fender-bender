@@ -254,13 +254,12 @@ def screw_head() -> Part:
 
 
 if __name__ == '__main__':
-    bracketclip = bracket_clip()
+    bracketclip = bracket_clip(inset=-config.frame_bracket_tolerance/2)
     topframe = top_frame()
     bottomframe = bottom_frame()
     bottomframestand = bottom_frame(stand=True)
     connectorframe = connector_frame()
     wallbracket = wall_bracket()
-    export_stl(bracketclip, '../stl/filament-bracket-clip.stl')
     export_stl(topframe, '../stl/frame-top.stl')
     export_stl(bottomframe, '../stl/frame-bottom.stl')
     export_stl(bottomframestand, '../stl/frame-bottom-with-stand.stl')

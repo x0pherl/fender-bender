@@ -165,20 +165,23 @@ def top_cut_template(tolerance:float=0) -> Part:
         loft()
     return cut.part
 
-def bracket_clip() -> Part:
+def bracket_clip(inset=0) -> Part:
     """
     the part for locking the frame bracket into the frame
+    arguments:
+    inset: the amount to push the boundries to the interior of the clip,
+    a positive inset results in a larger part, a negative inset is smaller
     """
-    clip_height = find_related_point_by_x(Point(0,0), config.frame_bracket_exterior_radius,angle=5).y
+    clip_height = find_related_point_by_x(Point(0,0), config.frame_bracket_exterior_radius,angle=5).y - inset
     with BuildPart(mode=Mode.PRIVATE) as rails:
         with BuildPart(Plane.XZ):
             Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius, height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
                 align=(Align.MIN,Align.MIN,Align.CENTER),rotation=(0,0,-2.5))
-        with BuildPart(Location((config.frame_bracket_exterior_radius-config.wall_thickness-config.bracket_depth,0,0)),mode=Mode.INTERSECT):
-            with GridLocations(0,config.bracket_depth+config.wall_thickness*.75,1,2):
-                Cylinder(radius=clip_height/2,height=config.bracket_depth,
+        with BuildPart(Location((config.frame_bracket_exterior_radius-config.wall_thickness-config.bracket_depth-inset,0,0)),mode=Mode.INTERSECT):
+            with GridLocations(0,config.bracket_depth+config.wall_thickness*.75-inset,1,2):
+                Cylinder(radius=clip_height/2+inset,height=config.bracket_depth,
                          align=(Align.CENTER,Align.CENTER,Align.MAX), rotation = (0,-90,0))
-                Sphere(radius=clip_height/2)
+                Sphere(radius=clip_height/2+inset)
     with BuildPart(Plane.XZ, mode=Mode.PRIVATE) as clip:
         Cylinder(radius=config.frame_bracket_exterior_radius, height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
                 align=(Align.MIN,Align.MIN,Align.CENTER))
@@ -187,7 +190,7 @@ def bracket_clip() -> Part:
         edge_set = clip.faces().sort_by(Axis.X)[-1].edges().filter_by(GeomType.CIRCLE)
         fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
         with BuildPart(Plane.XZ,mode=Mode.SUBTRACT) as cut:
-            Cylinder(radius=config.frame_bracket_exterior_radius-config.wall_thickness, height=config.bracket_depth-config.wall_thickness,arc_size=5,
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.wall_thickness-inset, height=config.bracket_depth-config.wall_thickness-inset,arc_size=5,
                     align=(Align.MIN,Align.MIN,Align.CENTER))
             fillet(cut.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
             Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius, height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
@@ -208,7 +211,7 @@ def bottom_bracket_block(offset=0) -> Part:
         fillet(arch.edges(),
             config.fillet_radius)
         with BuildPart(Location((0,0,config.bracket_depth/2),(90,config.frame_clip_angle,0)), mode=Mode.SUBTRACT):
-            add(bracket_clip())
+            add(bracket_clip(inset=config.frame_bracket_tolerance/2))
     with BuildPart(Location((config.wheel_radius,0,0))) as egresspath:
         add(curved_filament_path_solid(top_exit_fillet=True))
     with BuildPart(Location((-config.wheel_radius,0,0))) as ingresspath:
@@ -259,10 +262,11 @@ def bottom_bracket(draft:bool = False) -> Part:
             with Locations(Location((config.frame_click_sphere_point.x, config.frame_click_sphere_point.y,config.bracket_depth)),
                             Location((config.frame_click_sphere_point.x, config.frame_click_sphere_point.y,0))):
                 Sphere(config.frame_click_sphere_radius)
-            with BuildPart(Location((0,0,config.bracket_depth/2),(90,config.frame_clip_angle,0))):
-                add(bracket_clip())
         add(wheel_guide())
         add(spoke_assembly())
+        with BuildPart(mode=Mode.SUBTRACT):
+            with BuildPart(Location((0,0,config.bracket_depth/2),(90,config.frame_clip_angle,0))):
+                add(bracket_clip(inset=config.frame_bracket_tolerance/2))
         if not draft:
             add(straight_filament_connector_threads().move(Location((-config.wheel_radius,0,0)))),
             add(curved_filament_connector_threads().move(Location((config.wheel_radius,0,0))))
@@ -275,13 +279,11 @@ def top_bracket(tolerance:float=0) -> Part:
     returns the top slide-in part for the filament bracket
     """
     with BuildPart() as frame:
-        add(top_cut_template(tolerance))
+        add(bottom_bracket(draft=True).mirror(Plane.YZ))
         with BuildPart(mode=Mode.INTERSECT):
-            add(bottom_bracket(draft=True).mirror(Plane.YZ))
-        add(wheel_guide())
-        add(spoke_assembly().mirror(Plane.YZ))
-        with BuildPart(Location((0,0,config.bracket_depth/2),(90,180-config.frame_clip_angle,0)), mode=Mode.SUBTRACT):
-            add(bracket_clip())
+            add(top_cut_template(tolerance))
+            Cylinder(radius=config.bearing_shelf_radius, height=config.bracket_depth/2,
+                     align=(Align.CENTER,Align.CENTER,Align.MIN))
 
     part = frame.part
     part.label = "top bracket"
@@ -290,8 +292,11 @@ def top_bracket(tolerance:float=0) -> Part:
 if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)
     top = top_bracket()
+    clip = bracket_clip(inset=-config.frame_bracket_tolerance/2)
     show(bottom.move(Location((config.bracket_width/2+5,0,0))),
          top.move(Location((-config.bracket_width/2+5,0,0))),
+         clip.rotate(Axis.X,90).move(Location((config.bracket_depth,0,0))).rotate(Axis.Z,config.frame_clip_angle).move(Location((config.bracket_width/2+5,0,config.bracket_depth/2))),
          reset_camera=Camera.KEEP)
     export_stl(bottom, '../stl/filament-bracket-bottom.stl')
     export_stl(top, '../stl/filament-bracket-top.stl')
+    export_stl(clip, '../stl/filament-bracket-clip.stl')
