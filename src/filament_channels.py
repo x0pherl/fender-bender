@@ -12,7 +12,6 @@ from ocp_vscode import show, Camera
 from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
 from geometry_utils import (find_related_point_by_distance, find_related_point_by_y)
-from basic_shapes import curvebar
 
 config = BankConfig()
 

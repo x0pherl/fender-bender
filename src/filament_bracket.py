@@ -5,37 +5,34 @@ from math import sqrt
 from shapely import Point
 from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
-                Plane, loft, fillet, Axis, Box, Align, Cylinder, Torus,
+                Plane, loft, fillet, Align, Cylinder, GeomType, Box, Axis,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
                 sweep, Compound, export_stl, Sphere, Locations)
 from ocp_vscode import show, Camera
-from bd_warehouse.thread import TrapezoidalThread
 from bank_config import BankConfig
-from geometry_utils import (find_related_point_by_distance, x_point_to_angle,
-                            point_distance)
-from basic_shapes import curvebar, rounded_cylinder
-from filament_channels import (curved_filament_path_solid, curved_filament_path_cut,
-                straight_filament_path_cut, straight_filament_path_solid,
+from geometry_utils import point_distance,find_related_point_by_x
+from basic_shapes import rounded_cylinder, top_rounded_cylinder
+from filament_channels import (curved_filament_path_solid,
+                straight_filament_path_solid,
                 straight_filament_connector_threads,curved_filament_connector_threads,
                 curved_filament_path, straight_filament_path)
 
 config = BankConfig()
 
-#connector_distance = config.bracket_depth/2 #config.connector_radius+config.minimum_thickness
-inner_edge_distance = config.wheel_radius - \
-    config.connection_foundation_mid
-outer_edge_distance = config.wheel_radius + \
-    config.connection_foundation_mid
-inner_angled_distance = inner_edge_distance*sqrt(2)/2
-outer_angled_distance = outer_edge_distance*sqrt(2)/2
+# inner_edge_distance = config.wheel_radius - \
+#     config.connection_foundation_mid
+# outer_edge_distance = config.wheel_radius + \
+#     config.connection_foundation_mid
+# inner_angled_distance = inner_edge_distance*sqrt(2)/2
+# outer_angled_distance = outer_edge_distance*sqrt(2)/2
 
-inner_bottom_corner =  Point(inner_angled_distance, -inner_angled_distance)
-outer_bottom_corner =  Point(outer_angled_distance, -outer_angled_distance)
-inner_top_corner= find_related_point_by_distance(inner_bottom_corner,
-                                config.tube_length, 45)
-outer_top_corner = find_related_point_by_distance(outer_bottom_corner,
-                                config.tube_length, 45)
-bracket_width = abs(inner_bottom_corner.y) - abs(inner_top_corner.y)
+# inner_bottom_corner =  Point(inner_angled_distance, -inner_angled_distance)
+# outer_bottom_corner =  Point(outer_angled_distance, -outer_angled_distance)
+# inner_top_corner= find_related_point_by_distance(inner_bottom_corner,
+#                                 config.tube_length, 45)
+# outer_top_corner = find_related_point_by_distance(outer_bottom_corner,
+#                                 config.tube_length, 45)
+# bracket_width = abs(inner_bottom_corner.y) - abs(inner_top_corner.y)
 
 def wheel_guide_cut() -> Part:
     """
@@ -183,6 +180,74 @@ def top_cut_template(tolerance:float=0) -> Part:
         loft()
     return cut.part
 
+def delete_clip_rails(tolerance=0, length=config.bracket_depth*2) -> Part:
+    with BuildPart(mode=Mode.PRIVATE) as rail:
+        add(rounded_cylinder(radius=config.wall_thickness+tolerance/2, height=length, align=(Align.MAX,Align.CENTER,Align.CENTER)),rotation=(0,90,0))
+        with BuildPart(mode=Mode.SUBTRACT):
+            Box(length,config.wall_thickness+tolerance,config.wall_thickness*2+tolerance,
+                align=(Align.CENTER, Align.MIN, Align.MIN))
+        Box(length-(config.wall_thickness+tolerance/2)*2,config.wall_thickness/3+tolerance,config.wall_thickness*2+tolerance,
+            align=(Align.CENTER, Align.MIN, Align.MIN))
+        with PolarLocations(length/2-config.wall_thickness+tolerance/2,2,rotate=False):
+            Cylinder(radius=config.wall_thickness+tolerance/2, height=config.wall_thickness/3+tolerance, rotation=(90,0,0),
+                 align=(Align.CENTER,Align.MIN,Align.MAX))
+    with BuildPart() as rails:
+        with PolarLocations(config.bracket_depth/2,2,start_angle=90):
+            add(rail.part.rotate(Axis.Z,-90))
+    return rails.part
+
+def delete_bracket_clip() -> Part:
+    """
+    the part for locking the frame bracket into the frame
+    """
+    with BuildPart(Plane.XZ, mode=Mode.PRIVATE) as clip:
+        Cylinder(radius=config.frame_bracket_exterior_radius, height=config.bracket_depth,arc_size=18,
+                align=(Align.MIN,Align.MIN,Align.CENTER))
+        fillet(clip.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
+        with BuildPart(Plane.XZ,mode=Mode.SUBTRACT) as cut:
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.minimum_structural_thickness, height=config.bracket_depth-config.wall_thickness,arc_size=18,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+            fillet(cut.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.minimum_structural_thickness*2, height=config.bracket_depth,arc_size=18,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+        with BuildPart(Location((config.frame_bracket_exterior_radius-config.bracket_depth/2-config.fillet_radius,0,0))):
+            add(clip_rails(length=config.bracket_rail_length))
+            with BuildPart(Plane.XZ, mode=Mode.INTERSECT):
+                Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius, height=config.bracket_depth*2,arc_size=18,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+    part = clip.part
+    part.label = "Bracket Clip"
+    return part
+
+def bracket_clip() -> Part:
+    """
+    the part for locking the frame bracket into the frame
+    """
+    clip_height = find_related_point_by_x(Point(0,0), config.frame_bracket_exterior_radius,angle=5).y
+    with BuildPart(mode=Mode.PRIVATE) as rails:
+        with BuildPart(Plane.XZ):
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius, height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
+                align=(Align.MIN,Align.MIN,Align.CENTER),rotation=(0,0,-2.5))
+        with BuildPart(Location((config.frame_bracket_exterior_radius-config.wall_thickness-config.bracket_depth,0,0)),mode=Mode.INTERSECT):
+            with GridLocations(0,config.bracket_depth+config.wall_thickness*.75,1,2):
+                Cylinder(radius=clip_height*.5,height=config.bracket_depth,
+                         align=(Align.CENTER,Align.CENTER,Align.MAX), rotation = (0,-90,0))
+                Sphere(radius=clip_height/2)
+    with BuildPart(Plane.XZ, mode=Mode.PRIVATE) as clip:
+        Cylinder(radius=config.frame_bracket_exterior_radius, height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
+                align=(Align.MIN,Align.MIN,Align.CENTER))
+        fillet(clip.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
+        with BuildPart(Plane.XZ,mode=Mode.SUBTRACT) as cut:
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.wall_thickness, height=config.bracket_depth-config.wall_thickness,arc_size=5,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+            fillet(cut.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius, height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+        add(rails.part.rotate(Axis.X,90).rotate(Axis.Z,2.5))
+    part = clip.part
+    part.label = "Bracket Clip"
+    return part
+
 def bottom_bracket_block(offset=0) -> Part:
     with BuildPart() as arch:
         with BuildSketch():
@@ -197,10 +262,13 @@ def bottom_bracket_block(offset=0) -> Part:
 
         fillet(arch.edges(),
             config.fillet_radius)
+        with BuildPart(Location((0,0,config.bracket_depth/2),(90,config.frame_clip_angle,0)), mode=Mode.SUBTRACT):
+            add(bracket_clip())
     with BuildPart(Location((config.wheel_radius,0,0))) as egresspath:
         add(curved_filament_path_solid(top_exit_fillet=True))
     with BuildPart(Location((-config.wheel_radius,0,0))) as ingresspath:
         add(straight_filament_path_solid())
+
     part = Compound(label = "bracket_block", children=[arch.part, egresspath.part, ingresspath.part])
     return part
 
