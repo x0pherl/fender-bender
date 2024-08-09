@@ -7,7 +7,7 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Align, Cylinder, GeomType, Box, Axis,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
-                sweep, Compound, export_stl, Sphere, Locations)
+                sweep, Compound, export_stl, Sphere, Locations, Select)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig
 from geometry_utils import point_distance,find_related_point_by_x
@@ -18,21 +18,6 @@ from filament_channels import (curved_filament_path_solid,
                 curved_filament_path, straight_filament_path)
 
 config = BankConfig()
-
-# inner_edge_distance = config.wheel_radius - \
-#     config.connection_foundation_mid
-# outer_edge_distance = config.wheel_radius + \
-#     config.connection_foundation_mid
-# inner_angled_distance = inner_edge_distance*sqrt(2)/2
-# outer_angled_distance = outer_edge_distance*sqrt(2)/2
-
-# inner_bottom_corner =  Point(inner_angled_distance, -inner_angled_distance)
-# outer_bottom_corner =  Point(outer_angled_distance, -outer_angled_distance)
-# inner_top_corner= find_related_point_by_distance(inner_bottom_corner,
-#                                 config.tube_length, 45)
-# outer_top_corner = find_related_point_by_distance(outer_bottom_corner,
-#                                 config.tube_length, 45)
-# bracket_width = abs(inner_bottom_corner.y) - abs(inner_top_corner.y)
 
 def wheel_guide_cut() -> Part:
     """
@@ -191,13 +176,16 @@ def bracket_clip() -> Part:
                 align=(Align.MIN,Align.MIN,Align.CENTER),rotation=(0,0,-2.5))
         with BuildPart(Location((config.frame_bracket_exterior_radius-config.wall_thickness-config.bracket_depth,0,0)),mode=Mode.INTERSECT):
             with GridLocations(0,config.bracket_depth+config.wall_thickness*.75,1,2):
-                Cylinder(radius=clip_height*.5,height=config.bracket_depth,
+                Cylinder(radius=clip_height/2,height=config.bracket_depth,
                          align=(Align.CENTER,Align.CENTER,Align.MAX), rotation = (0,-90,0))
                 Sphere(radius=clip_height/2)
     with BuildPart(Plane.XZ, mode=Mode.PRIVATE) as clip:
         Cylinder(radius=config.frame_bracket_exterior_radius, height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
                 align=(Align.MIN,Align.MIN,Align.CENTER))
         fillet(clip.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
+        extrude(clip.faces().sort_by(Axis.X)[-1],amount=10,dir=(1,0,1.5))
+        edge_set = clip.faces().sort_by(Axis.X)[-1].edges().filter_by(GeomType.CIRCLE)
+        fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
         with BuildPart(Plane.XZ,mode=Mode.SUBTRACT) as cut:
             Cylinder(radius=config.frame_bracket_exterior_radius-config.wall_thickness, height=config.bracket_depth-config.wall_thickness,arc_size=5,
                     align=(Align.MIN,Align.MIN,Align.CENTER))
