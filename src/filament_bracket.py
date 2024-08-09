@@ -180,6 +180,48 @@ def top_cut_template(tolerance:float=0) -> Part:
         loft()
     return cut.part
 
+<<<<<<< HEAD
+=======
+def delete_clip_rails(tolerance=0, length=config.bracket_depth*2) -> Part:
+    with BuildPart(mode=Mode.PRIVATE) as rail:
+        add(rounded_cylinder(radius=config.wall_thickness+tolerance/2, height=length, align=(Align.MAX,Align.CENTER,Align.CENTER)),rotation=(0,90,0))
+        with BuildPart(mode=Mode.SUBTRACT):
+            Box(length,config.wall_thickness+tolerance,config.wall_thickness*2+tolerance,
+                align=(Align.CENTER, Align.MIN, Align.MIN))
+        Box(length-(config.wall_thickness+tolerance/2)*2,config.wall_thickness/3+tolerance,config.wall_thickness*2+tolerance,
+            align=(Align.CENTER, Align.MIN, Align.MIN))
+        with PolarLocations(length/2-config.wall_thickness+tolerance/2,2,rotate=False):
+            Cylinder(radius=config.wall_thickness+tolerance/2, height=config.wall_thickness/3+tolerance, rotation=(90,0,0),
+                 align=(Align.CENTER,Align.MIN,Align.MAX))
+    with BuildPart() as rails:
+        with PolarLocations(config.bracket_depth/2,2,start_angle=90):
+            add(rail.part.rotate(Axis.Z,-90))
+    return rails.part
+
+def delete_bracket_clip() -> Part:
+    """
+    the part for locking the frame bracket into the frame
+    """
+    with BuildPart(Plane.XZ, mode=Mode.PRIVATE) as clip:
+        Cylinder(radius=config.frame_bracket_exterior_radius, height=config.bracket_depth,arc_size=18,
+                align=(Align.MIN,Align.MIN,Align.CENTER))
+        fillet(clip.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
+        with BuildPart(Plane.XZ,mode=Mode.SUBTRACT) as cut:
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.minimum_structural_thickness, height=config.bracket_depth-config.wall_thickness,arc_size=18,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+            fillet(cut.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
+            Cylinder(radius=config.frame_bracket_exterior_radius-config.minimum_structural_thickness*2, height=config.bracket_depth,arc_size=18,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+        with BuildPart(Location((config.frame_bracket_exterior_radius-config.bracket_depth/2-config.fillet_radius,0,0))):
+            add(clip_rails(length=config.bracket_rail_length))
+            with BuildPart(Plane.XZ, mode=Mode.INTERSECT):
+                Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius, height=config.bracket_depth*2,arc_size=18,
+                    align=(Align.MIN,Align.MIN,Align.CENTER))
+    part = clip.part
+    part.label = "Bracket Clip"
+    return part
+
+>>>>>>> 095b82628bf48fbaebc0d4c200723486ca8c6821
 def bracket_clip() -> Part:
     """
     the part for locking the frame bracket into the frame
@@ -219,6 +261,8 @@ def bottom_bracket_block(offset=0) -> Part:
         extrude(amount=config.bracket_depth+offset*2)
         fillet(arch.edges(),
             config.fillet_radius)
+        with BuildPart(Location((0,0,config.bracket_depth/2),(90,config.frame_clip_angle,0)), mode=Mode.SUBTRACT):
+            add(bracket_clip())
     with BuildPart(Location((config.wheel_radius,0,0))) as egresspath:
         add(curved_filament_path_solid(top_exit_fillet=True))
     with BuildPart(Location((-config.wheel_radius,0,0))) as ingresspath:
