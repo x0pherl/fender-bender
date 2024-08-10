@@ -186,7 +186,14 @@ def bottom_frame(stand:bool=False) -> Part:
                 Box(config.wheel_diameter,config.frame_exterior_width,config.frame_base_depth,
                     align=(Align.CENTER,Align.CENTER,Align.MAX))
             add(flat_wall_grooves().mirror(Plane.XY))
-    return bframe.part
+    part = bframe.part
+    if stand:
+        part = part.mirror().move(Location(
+                (0, 0, config.frame_bracket_exterior_radius + \
+                 config.frame_base_depth + \
+                config.minimum_structural_thickness)))
+    part.label = "bottom stand with frame"
+    return part
 
 def top_frame() -> Part:
     """
