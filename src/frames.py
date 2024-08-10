@@ -104,11 +104,11 @@ def connector_frame() -> Part:
             with Locations(cframe.faces().sort_by(Axis.Z)[-1],
                            cframe.faces().sort_by(Axis.Z)[0]):
                 add(flat_wall_grooves().move(Location((config.minimum_structural_thickness/2,0,0))))
-                with GridLocations(0, config.frame_adjusted_bracket_depth, 1,
+                with GridLocations(0, config.frame_bracket_spacing, 1,
                                    config.filament_count+1):
                     add(frame_flat_sidewall_cut())
             with BuildPart(Location((-config.minimum_structural_thickness/2,0,0))):
-                with GridLocations(0,config.frame_adjusted_bracket_depth, 1,
+                with GridLocations(0,config.frame_bracket_spacing, 1,
                                    config.filament_count):
                     add(chamber_cut().move(Location((config.minimum_structural_thickness/2,0,0))))
     return cframe.part
@@ -138,7 +138,7 @@ def bottom_frame_stand() -> Part:
                 config.frame_bracket_exterior_radius-config.fillet_radius,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
         fillet(stand.edges(), config.fillet_radius)
-        with GridLocations(0,config.frame_adjusted_bracket_depth,1,
+        with GridLocations(0,config.frame_bracket_spacing,1,
                            config.filament_count):
             add(sectioncut,mode=Mode.SUBTRACT)
 
@@ -172,10 +172,10 @@ def bottom_frame() -> Part:
         if not config.frame_wall_bracket:
             add(bottom_frame_stand())
         with BuildPart(mode=Mode.SUBTRACT):
-            with GridLocations(0,config.frame_adjusted_bracket_depth,1,
+            with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count):
                 add(chamber_cut())
-            with GridLocations(0,config.frame_adjusted_bracket_depth,1,
+            with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count+1):
                 add(frame_arched_sidewall_cut())
             with BuildPart(Location((0,0,config.frame_base_depth))):
@@ -217,10 +217,10 @@ def top_frame() -> Part:
                 maximum=config.frame_bracket_exterior_radius+1)
         fillet(edge_set,config.fillet_radius)
         with BuildPart(mode=Mode.SUBTRACT):
-            with GridLocations(0,config.frame_adjusted_bracket_depth,1,
+            with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count):
                 add(bracket_cutblock())
-            with GridLocations(0,config.frame_adjusted_bracket_depth,1,
+            with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count+1):
                 add(frame_arched_sidewall_cut())
             with BuildPart(Location((0,0,config.frame_base_depth))):
@@ -236,7 +236,7 @@ def top_frame() -> Part:
         with BuildPart(Location((-config.frame_bracket_exterior_radius,0,
                                  config.bracket_depth+config.frame_base_depth),
                                  (0,90,0))):
-            with GridLocations(0,config.frame_adjusted_bracket_depth,1,
+            with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count):
                 with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
                     add(rounded_cylinder(radius=config.wall_thickness - \
@@ -246,7 +246,7 @@ def top_frame() -> Part:
 
         with BuildPart(Location((config.frame_click_sphere_point.x,0,
                             config.frame_click_sphere_point.y+config.frame_base_depth))):
-            with GridLocations(0,config.frame_adjusted_bracket_depth,1,config.filament_count):
+            with GridLocations(0,config.frame_bracket_spacing,1,config.filament_count):
                 with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
                     Sphere(config.frame_click_sphere_radius*.75)
 
@@ -269,7 +269,7 @@ def wall_bracket() -> Part:
     """
     with BuildPart() as bracket:
         Box(config.minimum_structural_thickness*3,config.frame_exterior_width,
-            config.spoke_depth+config.spoke_bar_height,
+            config.bracket_height,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
         fillet(bracket.edges(), config.minimum_structural_thickness/config.fillet_ratio)
         with BuildPart(mode=Mode.INTERSECT):
@@ -278,7 +278,7 @@ def wall_bracket() -> Part:
                                 post_count=config.wall_bracket_post_count,
                                 tolerance=config.frame_bracket_tolerance))
         with BuildPart(Location((config.minimum_structural_thickness/3,0,
-                                (config.spoke_depth+config.spoke_bar_height)/2),(0,-90,0)),
+                                config.bracket_height/2),(0,-90,0)),
                                 mode=Mode.SUBTRACT):
             add(screw_head())
     return bracket.part
@@ -296,7 +296,7 @@ def screw_head() -> Part:
                         config.wall_bracket_screw_head_radius - \
                         config.wall_bracket_screw_radius)):
             Circle(config.wall_bracket_screw_radius)
-        with BuildSketch(Plane.XY.offset(config.frame_back_foot_length)):
+        with BuildSketch(Plane.XY.offset(config.minimum_structural_thickness*2)):
             Circle(config.wall_bracket_screw_radius)
         loft(ruled=True)
     return head.part

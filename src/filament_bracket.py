@@ -62,9 +62,9 @@ def cut_spokes() -> Part:
         #design A
         # with PolarLocations(config.wheel_radius/2+config.bearing_shelf_radius,2):
         #     Cylinder(radius=config.wheel_radius/2+config.bearing_shelf_diameter,
-        #         height=config.spoke_depth,
+        #         height=config.wheel_radius*.8,
         #         align=(Align.CENTER, Align.CENTER, Align.MIN))
-        #     Cylinder(radius=config.wheel_radius/2, height=config.spoke_depth,
+        #     Cylinder(radius=config.wheel_radius/2, height=config.wheel_radius*.8,
         #         align=(Align.CENTER, Align.CENTER, Align.MIN),
         #         mode=Mode.SUBTRACT)
         #design B

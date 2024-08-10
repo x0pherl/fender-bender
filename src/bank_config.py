@@ -3,10 +3,8 @@ module for all of the configuration required to build a filament bank
 """
 from dataclasses import dataclass
 from math import sqrt
-from build123d import CenterArc, Location, Locations
-from shapely.geometry import Point, LineString
-from geometry_utils import (distance_to_circle_edge, find_related_point_by_distance,
-            point_distance, x_point_to_angle, y_point_to_angle)
+from shapely.geometry import Point
+from geometry_utils import distance_to_circle_edge, point_distance
 
 
 @dataclass
@@ -65,15 +63,6 @@ class BankConfig:
         return self.frame_tongue_depth + self.minimum_structural_thickness
 
     @property
-    def frame_adjusted_bracket_depth(self) -> float:
-        """
-        appropriate spaceing for GridLocations when placing things
-        on the grid sidewall
-        """
-        return self.bracket_depth + self.frame_bracket_tolerance *2 + \
-                self.wall_thickness
-
-    @property
     def sidewall_straight_depth(self) -> float:
         """
         the length of the straight portion of the sidewall
@@ -86,25 +75,6 @@ class BankConfig:
         the depth of the connector frame
         """
         return self.frame_tongue_depth*2 + self.minimum_thickness
-    # @property
-    # def buffer_frame_center_x(self) -> float:
-    #     return (self.frame_back_distance + self.frame_front_bottom_distance) / 2
-
-    # @property
-    # def sidewall_center_x(self) -> float:
-    #     return (self.frame_back_wall_center_distance + self.frame_front_wall_center_distance) / 2
-
-    # @property
-    # def bottom_frame_exterior_length(self) -> float:
-    #     return abs(self.frame_front_bottom_distance) + \
-    #         abs(self.frame_back_distance)
-
-    # @property
-    # def bottom_frame_interior_length(self) -> float:
-    #     return abs(self.frame_back_wall_center_distance) + \
-    #         abs(self.frame_front_wall_center_distance) - \
-    #         self.wall_thickness - self.frame_bracket_tolerance - \
-    #         self.minimum_thickness * 4
 
     @property
     def wall_window_apothem(self) -> float:
@@ -112,54 +82,6 @@ class BankConfig:
         controls the size of the hexagonal cuts on the walls
         """
         return self.bracket_depth/2.5
-
-    @property
-    def bracket_rail_length(self) -> float:
-        """the length of the rails on the bracket clip"""
-        return self.frame_bracket_exterior_radius-self.wheel_radius+self.fillet_radius-self.wall_thickness
-
-    @property
-    def front_wall_depth(self) -> float:
-        """
-        the calculated length for the front wall
-        """
-        return self.sidewall_section_depth - self.spoke_depth
-
-    @property
-    def back_wall_depth(self) -> float:
-        """
-        the calculated length for the front wall
-        """
-        return self.sidewall_section_depth - self.spoke_bar_height + \
-                    self.frame_tongue_depth - self.frame_bracket_tolerance
-
-    # @property
-    # def frame_bracket_distance(self) -> tuple:
-    #     """
-    #     this is the distance to the bottom outmost corner of the exit bracket
-    #     """
-    #     #todo I don't like this value or name, it's confusing
-    #     return(self.wheel_radius+self.connector_radius+self.minimum_thickness)*sqrt(2)/2
-
-    # @property
-    # def bracket_clip_point(self) -> Point:
-    #     """
-    #     returns the x,y coordinates 1/2-way along the edge of the exit tube
-    #     which is where the filament buffer has a cut to clip into the top frame
-    #     """
-    #     # right_bottom_bar_distance = -self.spoke_climb/2-self.spoke_bar_height/2
-    #     right_top_intersection = self.find_point_along_right(
-    #                     -self.spoke_height/2 + self.spoke_bar_height)
-    #     # right_bottom_bar_distance = -self.spoke_climb/2 - \
-    #     #     self.spoke_bar_height/2
-    #     # right_bottom_intersection = self.find_point_along_right(
-    #     #                 right_bottom_bar_distance)
-    #     # right_top_intersection = self.find_point_along_right(
-    #     #                 right_bottom_bar_distance + self.spoke_bar_height)
-    #     barpoint = find_related_point_by_distance(right_top_intersection,
-    #                         self.clip_length-self.frame_bracket_tolerance/2, -135)
-    #     return Point(barpoint.x, barpoint.y)
-    #     #return Point(right_top_intersection.x, right_top_intersection.y)
 
     @property
     def frame_bracket_exterior_radius(self) -> float:
@@ -184,66 +106,6 @@ class BankConfig:
         return self.bracket_depth + self.wall_thickness + self.frame_bracket_tolerance * 2
 
     @property
-    def sweep_cut_break_channel_locations(self) -> Locations:
-        """
-        The location (including angle) for the break point right before the click sphere
-        """
-        start_point = Point(self.frame_click_sphere_point.x,
-                            self.frame_click_sphere_point.y - self.sweep_cut_width/2)
-        base_angle = 180-x_point_to_angle(radius=self.sweep_cut_arc_radius,
-                                x_position=start_point.x)
-        return Locations(Location((start_point.x, start_point.y,
-                                self.sweep_cut_width/2), (90,base_angle,0)),
-                         Location((start_point.x, start_point.y,
-                                self.bracket_depth-self.sweep_cut_width/2), (90,base_angle,0)))
-
-    @property
-    def sweep_cut_width(self) -> float:
-        """
-        the width (diameter) for the sphere and the sweep cut for the click bracket
-        """
-        return (self.frame_click_sphere_radius + \
-                        self.frame_bracket_tolerance) * 2
-
-    @property
-    def sweep_cut_arc_radius(self) -> float:
-        """
-        the radius for the sweep cut (the distance from the front clip bar
-        to the rear sphere clip point)
-        """
-
-        return point_distance(self.frame_click_sphere_point,
-                self.bracket_clip_point)
-
-    @property
-    def sweep_cut_top_angle(self) -> float:
-        """
-        the angle from the front clip bar to the rear sphere clip point
-        """
-        x_distance = self.bracket_clip_point.x + \
-            abs(self.frame_click_sphere_point.x)
-        return 180-x_point_to_angle(radius=self.sweep_cut_arc_radius, x_position=x_distance)
-
-    @property
-    def sweep_cut_arc(self) -> CenterArc:
-        """
-        The complete arc for the click sphere to pass through on the bracket
-        """
-
-        arc_radius = point_distance(self.frame_click_sphere_point,
-                self.bracket_clip_point)
-        x_distance = self.bracket_clip_point.x + \
-            abs(self.frame_click_sphere_point.x)
-        top_angle = 180-x_point_to_angle(radius=arc_radius, x_position=x_distance)
-        bottom_angle = 180-y_point_to_angle(radius=arc_radius,
-        y_position=abs(self.bracket_clip_point.y))
-
-        return CenterArc(center=(self.bracket_clip_point.x,
-                        self.bracket_clip_point.y),
-                        radius=arc_radius, start_angle=bottom_angle,
-                        arc_size=-bottom_angle+top_angle)
-
-    @property
     def frame_click_sphere_point(self) -> Point:
         """
         the x / y coordinates for the snap fit points
@@ -252,48 +114,12 @@ class BankConfig:
                      self.minimum_structural_thickness*1.5,
                      self.fillet_radius+self.frame_click_sphere_radius)
 
-
-    @property
-    def frame_back_distance(self) -> float:
-        """the distance from the center point to the back of the frame"""
-        return -self.bracket_width/2 - \
-                        self.frame_bracket_tolerance - \
-                            self.minimum_structural_thickness * 2
-    # @property
-    # def frame_front_bottom_distance(self) -> float:
-    #     """the distance from the center point to the front of the frame along the bottom"""
-    #     right_bottom_intersection = self.find_point_along_right(
-    #                     -self.spoke_height/2)
-    #     return right_bottom_intersection.x + self.minimum_structural_thickness*2
-
-    # @property
-    # def frame_back_wall_center_distance(self) -> float:
-    #     """the distance from the center of the frame to the center of the back wall"""
-    #     return self.frame_back_distance + \
-    #                 self.frame_back_foot_length + \
-    #                 (self.wall_thickness+self.frame_bracket_tolerance)/2
-
-    # @property
-    # def frame_front_wall_center_distance(self) -> float:
-    #     """the distance from the center of the frame to the center of the front wall"""
-    #     right_bottom_intersection = self.find_point_along_right(
-    #                     -self.spoke_height/2)
-    #     return right_bottom_intersection.x + self.minimum_structural_thickness + \
-    #             self.wall_thickness/2 + self.frame_bracket_tolerance
-
-    @property
-    def frame_back_foot_length(self) -> float:
-        """
-        the x dimension of the back foot of the frame
-        """
-        return self.minimum_structural_thickness*2
-
     @property
     def frame_click_sphere_radius(self) -> Point:
         """
         the radius for the snap fit points
         """
-        return self.clip_length/3
+        return self.minimum_thickness
 
     @property
     def top_frame_interior_width(self) -> float:
@@ -315,15 +141,6 @@ class BankConfig:
             (( self.minimum_structural_thickness + self.wall_thickness) *2)
 
     @property
-    def connection_foundation_mid(self) -> float:
-        """
-        returns the distance from an edge to the
-        midpoint for the foundation box supporting a tube/connector
-        """
-        return self.bracket_depth/2
-
-
-    @property
     def filament_funnel_height(self) -> float:
         """
         calculates the appropriate filament funnel height to clear the filament wheel
@@ -332,31 +149,6 @@ class BankConfig:
                                self.wheel_radial_tolerance+self.minimum_thickness,
                                point=(self.wheel_radius-self.tube_outer_radius,0),
                                angle=90)
-
-    # def find_point_along_right(self, y_point) -> Point:
-    #     """
-    #     returns the rightmost point of bracket based on a y value
-    #     errors if lower than the right connector foundation or higher
-    #     than the bracket
-    #     """
-    #     top_of_foundation = find_related_point_by_distance(self.exit_tube_exit_point,
-    #                                     self.connection_foundation_mid, 135)
-    #     base_of_foundation = find_related_point_by_distance(self.exit_tube_entry_point,
-    #                                     self.connection_foundation_mid, -45)
-    #     outer_top_of_foundation = find_related_point_by_distance(self.exit_tube_exit_point,
-    #                                     self.connection_foundation_mid, -45)
-    #     right_foundation_boundary = LineString([(base_of_foundation.x, base_of_foundation.y),
-    #                     (outer_top_of_foundation.x, outer_top_of_foundation.y)])
-    #     right_tip_boundary = LineString([(top_of_foundation.x, top_of_foundation.y),
-    #                      (outer_top_of_foundation.x, outer_top_of_foundation.y)])
-    #     y_line = LineString([(-self.bracket_width, y_point), (self.bracket_width, y_point)])
-    #     if self.bracket_height >= y_point >= top_of_foundation.y:
-    #         return self.bracket_width/2
-    #     elif top_of_foundation.y > y_point >= outer_top_of_foundation.y:
-    #         return y_line.intersection(right_tip_boundary)
-    #     elif y_point >= base_of_foundation.y:
-    #         return y_line.intersection(right_foundation_boundary)
-    #     raise ValueError("unable to calculate the rightmost point at this distance")
 
     @property
     def sidewall_width(self) -> float:
@@ -367,42 +159,6 @@ class BankConfig:
                 (self.wheel_radial_tolerance+ \
                     self.connector_diameter+self.fillet_radius +\
                         self.wall_thickness+self.frame_bracket_tolerance)*2
-
-
-    #todo -- spoke_length is a confusing name for this
-    @property
-    def spoke_length(self) -> float:
-        return self.bracket_width + \
-                    (self.frame_bracket_tolerance + \
-                    self.wall_thickness)*2
-
-    @property
-    def spoke_bar_height(self) -> float:
-        return self.bracket_height/3
-
-    @property
-    def spoke_depth(self) -> float:
-        """
-        this is the overall distance of the angled bar of the top frame
-        """
-        return self.wheel_radius*.8
-
-    @property
-    def spoke_angle(self) -> float:
-        return 45
-
-    @property
-    def spoke_height(self) -> float:
-        return self.spoke_depth + self.spoke_bar_height
-
-    @property
-    def clip_length(self) -> float:
-        """
-        returns the length of the clip that will hold in the bracket
-        """
-        #return (self.connector_radius-self.tube_outer_radius+self.minimum_thickness)
-        return (self.bracket_depth/2-self.tube_outer_radius - \
-                min(self.wheel_radial_tolerance, self.wheel_lateral_tolerance))
 
     @property
     def bearing_shelf_radius(self) -> float:
@@ -459,14 +215,6 @@ class BankConfig:
         returnes the outer radius of the tube
         """
         return self.tube_outer_diameter/2
-
-    @property
-    def tube_length(self) -> float:
-        """returns the length of the diagonal tube segment"""
-        inner_edge_distance = self.wheel_radius-(self.connector_radius+self.minimum_thickness)
-        inner_angled_distance = inner_edge_distance*sqrt(2)/2
-        return distance_to_circle_edge(self.bracket_width/2,
-                (inner_angled_distance, -inner_angled_distance), 45)
 
     @property
     def rim_thickness(self) -> float:
