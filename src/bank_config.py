@@ -51,7 +51,7 @@ class BankConfig:
     frame_bracket_tolerance = 0.2
     frame_clip_angle = 33
 
-    frame_wall_bracket = True
+    frame_wall_bracket = False
     wall_bracket_screw_radius = 2.25
     wall_bracket_screw_head_radius=4.5
     wall_bracket_screw_head_sink=1.4

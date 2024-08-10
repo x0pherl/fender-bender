@@ -203,13 +203,17 @@ def bottom_bracket_block(inset=0) -> Part:
         with BuildPart(Location((0,0,config.bracket_depth/2),
                         (90,config.frame_clip_angle,0)), mode=Mode.SUBTRACT):
             add(bracket_clip(inset=config.frame_bracket_tolerance/2))
-    with BuildPart(Location((config.wheel_radius,0,0))) as egresspath:
-        add(curved_filament_path_solid(top_exit_fillet=True))
-    with BuildPart(Location((-config.wheel_radius,0,0))) as ingresspath:
-        add(straight_filament_path_solid())
+        with BuildPart(Location((config.wheel_radius,0,0)), mode=Mode.SUBTRACT):
+            add(curved_filament_path_solid(top_exit_fillet=True))
+        with BuildPart(Location((-config.wheel_radius,0,0)),mode=Mode.SUBTRACT):
+            add(straight_filament_path_solid())
+        with BuildPart(Location((config.wheel_radius,0,0))):
+            add(curved_filament_path_solid(top_exit_fillet=True))
+        with BuildPart(Location((-config.wheel_radius,0,0))):
+            add(straight_filament_path_solid())
 
-    part = Compound(label = "bracket_block",
-                children=[arch.part, egresspath.part,ingresspath.part])
+    part = arch.part
+    part.label = "solid bracket block"
     return part
 
 def pin_channel() -> Part:

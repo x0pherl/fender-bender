@@ -63,7 +63,7 @@ def frame_cut_sketch(offset=0) -> Sketch:
         add(wall.sketch.move(Location((0,-config.frame_base_depth+offset))))
     return side.sketch.move(Location((0,config.frame_base_depth)))
 
-def frame_side_flat_cut(thickness=config.wall_thickness) -> Part:
+def frame_flat_sidewall_cut(thickness=config.wall_thickness) -> Part:
     """
     builds a side of the frame
     arguments:
@@ -87,9 +87,9 @@ def frame_side_flat_cut(thickness=config.wall_thickness) -> Part:
     return part
 
 
-def frame_side_cut(thickness=config.wall_thickness) -> Part:
+def frame_arched_sidewall_cut(thickness=config.wall_thickness) -> Part:
     """
-    builds a side of the frame
+    a template to subtract in order to create the groove for fitting the side wall
     arguments:
     thickness: determines the depth of the wall
     """
@@ -110,4 +110,4 @@ def frame_side_cut(thickness=config.wall_thickness) -> Part:
 if __name__ == '__main__':
     # show(side_line(), reset_camera=Camera.KEEP)
     show(sidewall_shape(), sidewall_shape(inset=9), sidewall_shape(inset=5), reset_camera=Camera.KEEP)
-    # show(frame_side_cut(thickness=config.wall_thickness), reset_camera=Camera.KEEP)
+    # show(frame_arched_sidewall_cut(thickness=config.wall_thickness), reset_camera=Camera.KEEP)
