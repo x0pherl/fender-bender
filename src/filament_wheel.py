@@ -43,6 +43,9 @@ def diamond_torus(major_radius:float, minor_radius:float) -> Part:
     return torus.part
 
 def filament_wheel() -> Part:
+    """
+    the wheel for passing the filament through the bracket
+    """
     with BuildPart() as wheel:
         with BuildSketch():
             Circle(radius=config.wheel_radius)

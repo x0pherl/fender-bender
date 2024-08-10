@@ -2,9 +2,9 @@
 Generates the part for the chamber walls of the filament bank
 """
 from build123d import (BuildPart, BuildSketch, Part, Cylinder,
-                extrude, Mode, add, Location, offset,
-                loft, fillet, Axis, Box, Align, GridLocations,
-                Plane, Rectangle, Sphere, export_stl)
+                extrude, Mode, add, Location, loft, fillet, Axis,
+                Box, Align, GridLocations, Plane, Rectangle,
+                Sphere, export_stl)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig
 from basic_shapes import sidewall_shape
@@ -108,11 +108,11 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False) -> Par
     returns a sidewall
     """
     with BuildPart() as wall:
-        with BuildSketch(Plane.XY) as sk:
+        with BuildSketch(Plane.XY):
             add(sidewall_shape(inset=config.wall_thickness/2))
-        with BuildSketch(Plane.XY.offset(config.wall_thickness/2)) as sk_mid:
+        with BuildSketch(Plane.XY.offset(config.wall_thickness/2)):
             add(sidewall_shape())
-        with BuildSketch(Plane.XY.offset(config.wall_thickness)) as sk_top:
+        with BuildSketch(Plane.XY.offset(config.wall_thickness)):
             add(sidewall_shape(inset=config.wall_thickness/2))
         loft(ruled=True)
         if reinforce:
@@ -121,15 +121,17 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False) -> Par
                     add(sidewall_shape(inset=config.wall_thickness/2, length=length,
                                        straignt_inset=config.minimum_structural_thickness))
                     with BuildSketch(mode=Mode.SUBTRACT):
-                        add(sidewall_shape(inset=config.wall_thickness/2+config.minimum_structural_thickness,
-                                           length=length,straignt_inset=config.minimum_structural_thickness))
+                        add(sidewall_shape(inset=config.wall_thickness/2 + \
+                            config.minimum_structural_thickness, length=length,
+                            straignt_inset=config.minimum_structural_thickness))
                 extrude(amount=config.minimum_structural_thickness)
         if not config.solid_walls:
             multiplier = 1 if reinforce else 0
             with BuildPart(mode=Mode.SUBTRACT):
                 with BuildSketch():
-                        add(sidewall_shape(inset=config.wall_thickness/2+config.minimum_structural_thickness,
-                                           length=length,straignt_inset=config.minimum_structural_thickness*multiplier))
+                        add(sidewall_shape(inset=config.wall_thickness/2 + \
+                                config.minimum_structural_thickness, length=length,
+                                straignt_inset=config.minimum_structural_thickness*multiplier))
                 extrude(amount=config.wall_thickness)
                 with BuildPart(mode=Mode.INTERSECT):
                     add(HexWall(width=length*2, length=config.sidewall_width,
