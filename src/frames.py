@@ -60,19 +60,20 @@ def bracket_cutblock() -> Part:
                 )
             with BuildPart(Location((0,0,config.frame_base_depth))):
                 Cylinder(radius=config.wheel_radius + \
-                        config.wheel_radial_tolerance+config.connector_diameter+config.fillet_radius,
-                        height=config.bracket_depth+config.frame_bracket_tolerance*2,
+                        config.wheel_radial_tolerance + \
+                        config.connector_diameter + \
+                        config.fillet_radius,
+                        height=config.bracket_depth + \
+                        config.frame_bracket_tolerance*2,
                         align=(Align.CENTER, Align.CENTER, Align.CENTER),rotation=(90,0,0))
             fillet(boxcut.edges(), radius=config.fillet_radius)
-
-        with BuildPart(Location((0,0,
-                    config.frame_base_depth+config.frame_bracket_tolerance),
-                    (0,-config.frame_clip_angle,0))):
-            with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2,1,2):
-                Box(config.wheel_diameter*4,
-                    config.wall_thickness*2/3-config.frame_bracket_tolerance,
-                    config.wall_thickness*2+config.frame_bracket_tolerance,
-                    align=(Align.MIN,Align.CENTER,Align.MAX))
+        with BuildPart(Location((0,0,config.frame_base_depth),
+                    (90,0,config.frame_clip_angle-config.frame_click_arc/2))):
+            Cylinder(radius=config.frame_bracket_exterior_radius,
+                height=config.bracket_depth+config.frame_bracket_tolerance + \
+                config.wall_thickness*2/3,arc_size=config.frame_click_arc,
+                align=(Align.MIN,Align.MIN,Align.CENTER),
+                rotation=(0,0,-config.frame_click_arc))
     return cutblock.part
 
 def chamber_cut() -> Part:
@@ -312,7 +313,6 @@ if __name__ == '__main__':
     export_stl(connectorframe, '../stl/frame-connector.stl')
     export_stl(wallbracket, '../stl/frame-wall-bracket.stl')
     show(topframe,
-        # bottom_bracket_block().move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X,90).move(Location((0,-config.bracket_depth-config.wall_thickness-config.frame_bracket_tolerance*2,config.frame_base_depth))),
         bracketclip.rotate(Axis.X,180).move(Location(
                 (config.fillet_radius,0,0))).rotate(Axis.Y,
                 -config.frame_clip_angle).move(Location(

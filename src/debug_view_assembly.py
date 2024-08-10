@@ -8,7 +8,7 @@ from ocp_vscode import show, Camera
 from frames import top_frame, bottom_frame, connector_frame
 from walls import guide_wall, sidewall
 from bank_config import BankConfig
-from filament_bracket import bottom_bracket_frame, spoke_assembly, wheel_guide
+from filament_bracket import bottom_bracket, spoke_assembly, wheel_guide
 
 config = BankConfig()
 
@@ -19,7 +19,7 @@ def bracket() -> Part:
     useful in debugging
     """
     with BuildPart() as fil_bracket:
-        add(bottom_bracket_frame().rotate(axis=Axis.X, angle=90).move(Location(
+        add(bottom_bracket(draft=True).rotate(axis=Axis.X, angle=90).move(Location(
             (0,config.bracket_depth/2, 0))))
         add(spoke_assembly().rotate(axis=Axis.X, angle=90).move(Location(
             (0,config.bracket_depth/2, 0))))

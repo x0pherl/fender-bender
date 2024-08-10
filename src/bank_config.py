@@ -36,7 +36,7 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    filament_count = 3
+    filament_count = 1#3
 
     # sidewall_section_depth = 240
     # extension_section_depth = 100
@@ -48,6 +48,7 @@ class BankConfig:
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
     frame_clip_angle = 33
+    frame_click_arc = 5
 
     frame_wall_bracket = False
     wall_bracket_screw_radius = 2.25

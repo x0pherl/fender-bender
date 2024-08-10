@@ -151,12 +151,12 @@ def bracket_clip(inset=0) -> Part:
     a positive inset results in a larger part, a negative inset is smaller
     """
     clip_height = find_related_point_by_x(Point(0,0),
-                        config.frame_bracket_exterior_radius,angle=5).y - inset
+                        config.frame_bracket_exterior_radius,angle=config.frame_click_arc).y - inset
     with BuildPart(mode=Mode.PRIVATE) as rails:
         with BuildPart(Plane.XZ):
             Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius,
-                height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
-                align=(Align.MIN,Align.MIN,Align.CENTER),rotation=(0,0,-2.5))
+                height=config.bracket_depth+config.wall_thickness*.75,arc_size=config.frame_click_arc,
+                align=(Align.MIN,Align.MIN,Align.CENTER),rotation=(0,0,-config.frame_click_arc/2))
         with BuildPart(Location((config.frame_bracket_exterior_radius - \
                             config.wall_thickness-config.bracket_depth-inset,0,0)),
                             mode=Mode.INTERSECT):
@@ -166,7 +166,7 @@ def bracket_clip(inset=0) -> Part:
                 Sphere(radius=clip_height/2+inset)
     with BuildPart(Plane.XZ) as clip:
         Cylinder(radius=config.frame_bracket_exterior_radius,
-                height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
+                height=config.bracket_depth+config.wall_thickness*.75,arc_size=config.frame_click_arc,
                 align=(Align.MIN,Align.MIN,Align.CENTER))
         fillet(clip.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
         extrude(clip.faces().sort_by(Axis.X)[-1],amount=10,dir=(1,0,1.5))
@@ -175,13 +175,13 @@ def bracket_clip(inset=0) -> Part:
         with BuildPart(Plane.XZ,mode=Mode.SUBTRACT) as cut:
             Cylinder(radius=config.frame_bracket_exterior_radius - \
                     config.wall_thickness-inset,
-                    height=config.bracket_depth-config.wall_thickness-inset,arc_size=5,
+                    height=config.bracket_depth-config.wall_thickness-inset,arc_size=config.frame_click_arc,
                     align=(Align.MIN,Align.MIN,Align.CENTER))
             fillet(cut.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
             Cylinder(radius=config.frame_bracket_exterior_radius-config.fillet_radius,
-                    height=config.bracket_depth+config.wall_thickness*.75,arc_size=5,
+                    height=config.bracket_depth+config.wall_thickness*.75,arc_size=config.frame_click_arc,
                     align=(Align.MIN,Align.MIN,Align.CENTER))
-        add(rails.part.rotate(Axis.X,90).rotate(Axis.Z,2.5))
+        add(rails.part.rotate(Axis.X,90).rotate(Axis.Z,config.frame_click_arc/2))
     part = clip.part
     part.label = "Bracket Clip"
     return part
