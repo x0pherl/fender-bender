@@ -32,7 +32,8 @@ def bracket() -> Part:
 bwall = guide_wall(config.sidewall_straight_depth).rotate(Axis.Z, 90).rotate(Axis.Y, 90).move(
                 Location((-config.sidewall_width/2-config.wall_thickness,0,
                         -config.sidewall_straight_depth/2)))
-fwall = guide_wall(config.sidewall_straight_depth).rotate(Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
+fwall = guide_wall(config.sidewall_straight_depth).rotate(
+        Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
         config.sidewall_width/2+config.wall_thickness, 0,
         -config.sidewall_straight_depth/2)))
 swall = sidewall(length=config.sidewall_section_depth) \
@@ -40,9 +41,12 @@ swall = sidewall(length=config.sidewall_section_depth) \
 
 topframe = top_frame()
 
-bframe = bottom_frame().rotate(Axis.X, 180).move(
+ROTATION_VALUE = 180 if config.frame_wall_bracket else 0
+DEPTH_SHIFT_VALUE = 0 if config.frame_wall_bracket else -config.sidewall_straight_depth - \
+        config.connector_depth - config.sidewall_straight_depth
+bframe = bottom_frame().rotate(Axis.X, ROTATION_VALUE).move(
             Location((0,0,
-                    -config.sidewall_straight_depth*2-config.connector_depth)))
+                    -config.sidewall_straight_depth*2-config.connector_depth+DEPTH_SHIFT_VALUE)))
 
 cframe = connector_frame().move(
             Location((0,0,
