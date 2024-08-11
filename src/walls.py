@@ -129,9 +129,9 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False, flippe
             multiplier = 1 if reinforce else 0
             with BuildPart(mode=Mode.SUBTRACT):
                 with BuildSketch():
-                        add(sidewall_shape(inset=config.wall_thickness/2 + \
-                                config.minimum_structural_thickness, length=length,
-                                straignt_inset=config.minimum_structural_thickness*multiplier))
+                    add(sidewall_shape(inset=config.wall_thickness/2 + \
+                        config.minimum_structural_thickness, length=length,
+                        straignt_inset=config.minimum_structural_thickness*multiplier))
                 extrude(amount=config.wall_thickness)
                 with BuildPart(mode=Mode.INTERSECT):
                     hw=HexWall(width=length*2, length=config.sidewall_width,
@@ -182,17 +182,19 @@ def guide_wall(length:float,flipped=False) -> Part:
     part = wall.part
     return part
 
-if __name__ == 'x__main__':
+if __name__ == '__main__':
     extension_parts = ()
     gwall_one=guide_wall(config.sidewall_straight_depth)
     side_wall = sidewall(length=config.sidewall_section_depth)
     export_stl(side_wall, '../stl/wall-side.stl')
-    reinforced_side_wall_one = sidewall(length=config.sidewall_section_depth,reinforce=True)
+    reinforced_side_wall_one = sidewall(length=config.sidewall_section_depth,
+                                        reinforce=True)
     if config.solid_walls:
         export_stl(reinforced_side_wall_one, '../stl/wall-side-reinforced.stl')
         export_stl(gwall_one, '../stl/wall-guide.stl')
     else:
-        reinforced_side_wall_two = sidewall(length=config.sidewall_section_depth,reinforce=True,flipped=True)
+        reinforced_side_wall_two = sidewall(length=config.sidewall_section_depth,
+                                            reinforce=True,flipped=True)
         gwall_two=guide_wall(config.sidewall_straight_depth,flipped=True)
         export_stl(reinforced_side_wall_one, '../stl/wall-side-reinforced-one.stl')
         export_stl(reinforced_side_wall_two, '../stl/wall-side-reinforced-two.stl')
@@ -202,8 +204,8 @@ if __name__ == 'x__main__':
     show(gwall_one.move(Location((0,-config.sidewall_straight_depth/2,0))),
         side_wall.move(Location((-config.frame_exterior_width/2-config.sidewall_width/2-1,
                             0,0))),
-        reinforced_side_wall_one.move(Location((config.frame_exterior_width/2+config.sidewall_width/2+1,
-                            0,0))),
+        reinforced_side_wall_one.move(
+                Location((config.frame_exterior_width/2+config.sidewall_width/2+1,0,0))),
         extension_parts,
         reset_camera=Camera.KEEP
         )

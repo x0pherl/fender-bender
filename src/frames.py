@@ -65,11 +65,13 @@ def bracket_cutblock() -> Part:
                         config.fillet_radius,
                         height=config.bracket_depth + \
                         config.frame_bracket_tolerance*2,
-                        align=(Align.CENTER, Align.CENTER, Align.CENTER),rotation=(90,0,0))
+                        align=(Align.CENTER, Align.CENTER, Align.CENTER),
+                        rotation=(90,0,0))
             fillet(boxcut.edges(), radius=config.fillet_radius)
         with BuildPart(Location((0,0,config.frame_base_depth),
                     (90,0,config.frame_clip_angle))):
-            Cylinder(radius=config.frame_bracket_exterior_radius+config.bracket_depth+config.frame_bracket_tolerance,
+            Cylinder(radius=config.frame_bracket_exterior_radius + \
+                config.bracket_depth+config.frame_bracket_tolerance,
                 height=config.bracket_depth+config.frame_bracket_tolerance + \
                 config.wall_thickness*2/3,arc_size=config.frame_click_arc,
                 align=(Align.MIN,Align.MIN,Align.CENTER),
