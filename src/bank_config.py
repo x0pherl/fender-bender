@@ -36,7 +36,7 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    filament_count = 1#3
+    filament_count = 3
 
     # sidewall_section_depth = 240
     # extension_section_depth = 100

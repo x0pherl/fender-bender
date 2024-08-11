@@ -103,7 +103,7 @@ def sidewall_divots(length:float=config.sidewall_straight_depth):
             Sphere(radius=config.frame_click_sphere_radius)
     return divots.part
 
-def sidewall(length:float=config.sidewall_section_depth, reinforce=False) -> Part:
+def sidewall(length:float=config.sidewall_section_depth, reinforce=False, flipped=False) -> Part:
     """
     returns a sidewall
     """
@@ -134,17 +134,20 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False) -> Par
                                 straignt_inset=config.minimum_structural_thickness*multiplier))
                 extrude(amount=config.wall_thickness)
                 with BuildPart(mode=Mode.INTERSECT):
-                    add(HexWall(width=length*2, length=config.sidewall_width,
+                    hw=HexWall(width=length*2, length=config.sidewall_width,
                             height=config.wall_thickness,
                             apothem=config.wall_window_apothem,
                             wall_thickness=config.wall_thickness/2, inverse=True,
-                            align=(Align.CENTER, Align.CENTER, Align.MIN)))
+                            align=(Align.CENTER, Align.CENTER, Align.MIN))
+                    if flipped:
+                        hw = hw.mirror(Plane.YZ)
+                    add(hw)
         with BuildPart(Location((0,-config.sidewall_straight_depth/2,0)), mode=Mode.SUBTRACT):
             add(sidewall_divots(config.sidewall_straight_depth))
 
     return wall.part
 
-def guide_wall(length:float) -> Part:
+def guide_wall(length:float,flipped=False) -> Part:
     """
     builds a wall with guides for each sidewall
     """
@@ -157,11 +160,14 @@ def guide_wall(length:float) -> Part:
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
         if config.solid_walls is False:
             with BuildPart(mode=Mode.SUBTRACT):
-                add(HexWall(config.frame_exterior_width - config.minimum_structural_thickness*2,
+                hw=HexWall(config.frame_exterior_width - config.minimum_structural_thickness*2,
                         base_length - config.minimum_structural_thickness * 2,
                         config.wall_thickness, apothem=config.wall_window_apothem,
                         wall_thickness=config.wall_thickness/2,
-                        align=(Align.CENTER, Align.CENTER, Align.MIN), inverse=True))
+                        align=(Align.CENTER, Align.CENTER, Align.MIN), inverse=True)
+                if flipped:
+                    hw = hw.mirror(Plane.YZ)
+                add(hw)
         with BuildPart(wall.faces().sort_by(Axis.Y)[-1]):
             add(straight_wall_tongue())
         with BuildPart(wall.faces().sort_by(Axis.Y)[0]):
@@ -176,20 +182,27 @@ def guide_wall(length:float) -> Part:
     part = wall.part
     return part
 
-
-if __name__ == '__main__':
+if __name__ == 'x__main__':
     extension_parts = ()
-    gwall=guide_wall(config.sidewall_straight_depth)
-    export_stl(gwall, '../stl/wall-guide.stl')
+    gwall_one=guide_wall(config.sidewall_straight_depth)
     side_wall = sidewall(length=config.sidewall_section_depth)
     export_stl(side_wall, '../stl/wall-side.stl')
-    reinforced_side_wall = sidewall(length=config.sidewall_section_depth,reinforce=True)
-    export_stl(reinforced_side_wall, '../stl/wall-side-reinforced.stl')
+    reinforced_side_wall_one = sidewall(length=config.sidewall_section_depth,reinforce=True)
+    if config.solid_walls:
+        export_stl(reinforced_side_wall_one, '../stl/wall-side-reinforced.stl')
+        export_stl(gwall_one, '../stl/wall-guide.stl')
+    else:
+        reinforced_side_wall_two = sidewall(length=config.sidewall_section_depth,reinforce=True,flipped=True)
+        gwall_two=guide_wall(config.sidewall_straight_depth,flipped=True)
+        export_stl(reinforced_side_wall_one, '../stl/wall-side-reinforced-one.stl')
+        export_stl(reinforced_side_wall_two, '../stl/wall-side-reinforced-two.stl')
+        export_stl(gwall_one, '../stl/wall-guide-one.stl')
+        export_stl(gwall_two, '../stl/wall-guide-two.stl')
 
-    show(gwall.move(Location((0,-config.sidewall_straight_depth/2,0))),
+    show(gwall_one.move(Location((0,-config.sidewall_straight_depth/2,0))),
         side_wall.move(Location((-config.frame_exterior_width/2-config.sidewall_width/2-1,
                             0,0))),
-        reinforced_side_wall.move(Location((config.frame_exterior_width/2+config.sidewall_width/2+1,
+        reinforced_side_wall_one.move(Location((config.frame_exterior_width/2+config.sidewall_width/2+1,
                             0,0))),
         extension_parts,
         reset_camera=Camera.KEEP

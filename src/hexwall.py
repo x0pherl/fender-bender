@@ -32,7 +32,9 @@ def HexWall(length,width,height,apothem,wall_thickness: float, align:Union[Align
         combine_mode = Mode.INTERSECT if inverse else Mode.SUBTRACT
         with BuildPart(mode=combine_mode):
             with BuildSketch(wall.faces().sort_by(Axis.Z)[0]) as sk:
-                with HexLocations(apothem=apothem, x_count=int(length//((sqrt(3)/2*apothem)/2))+2, y_count=int(width//apothem/2)+2):
+                with HexLocations(apothem=apothem,
+                            x_count=int(length//((sqrt(3)/2*apothem)/2))+2,
+                            y_count=int(width//apothem/2)+2):
                     RegularPolygon(radius=apothem-wall_thickness/2, major_radius=False, side_count=6)
             extrude(sk.sketch, -height)
     part = wall.part
