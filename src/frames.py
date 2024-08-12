@@ -68,14 +68,13 @@ def bracket_cutblock() -> Part:
                         align=(Align.CENTER, Align.CENTER, Align.CENTER),
                         rotation=(90,0,0))
             fillet(boxcut.edges(), radius=config.fillet_radius)
-        with BuildPart(Location((0,0,config.frame_base_depth),
-                    (90,0,config.frame_clip_angle))):
-            Cylinder(radius=config.frame_bracket_exterior_radius + \
-                config.bracket_depth+config.frame_bracket_tolerance,
-                height=config.bracket_depth+config.frame_bracket_tolerance + \
-                config.wall_thickness*2/3,arc_size=config.frame_click_arc,
-                align=(Align.MIN,Align.MIN,Align.CENTER),
-                rotation=(0,0,-config.frame_click_arc))
+
+        with BuildPart(Location((config.wheel_radius*.75,0,
+                        config.frame_base_depth),(0,-45,0)), mode=Mode.ADD):
+            Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
+                config.frame_clip_thickness+config.frame_bracket_tolerance,
+                align=(Align.MIN, Align.CENTER,Align.CENTER))
+
     return cutblock.part
 
 def chamber_cut() -> Part:
@@ -304,7 +303,8 @@ def screw_head() -> Part:
         loft(ruled=True)
     return head.part
 
-if __name__ == '__main__':
+show(bracket_clip(inset=-config.frame_bracket_tolerance/2))
+if __name__ == 'x__main__':
     bracketclip = bracket_clip(inset=-config.frame_bracket_tolerance/2)
     topframe = top_frame()
     bottomframe = bottom_frame()
@@ -315,9 +315,8 @@ if __name__ == '__main__':
     export_stl(connectorframe, '../stl/frame-connector.stl')
     export_stl(wallbracket, '../stl/frame-wall-bracket.stl')
     show(topframe,
-        bracketclip.rotate(Axis.X,180).move(Location(
-                (config.fillet_radius,0,0))).rotate(Axis.Y,
-                -config.frame_clip_angle).move(Location(
+        bottom_bracket_block().move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location((0,0,config.frame_base_depth))),
+        bracketclip.move(Location(
                 (0,0,config.frame_base_depth+config.frame_bracket_tolerance))),
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
             -config.frame_base_depth*3))),

@@ -36,7 +36,7 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    filament_count = 3
+    filament_count = 1
 
     # sidewall_section_depth = 240
     # extension_section_depth = 100
@@ -55,6 +55,20 @@ class BankConfig:
     wall_bracket_screw_head_radius=4.5
     wall_bracket_screw_head_sink=1.4
     wall_bracket_post_count=3
+
+    @property
+    def frame_clip_width(self) -> float:
+        """
+        the overall width of the clip that locks the filament bracket into the frame
+        """
+        return self.bracket_depth + self.minimum_thickness/2 + self.wall_thickness *.75
+
+    @property
+    def frame_clip_thickness(self) -> float:
+        """
+        how deep to make the bars of the frame clip
+        """
+        return self.minimum_structural_thickness
 
     @property
     def frame_base_depth(self) -> float:
