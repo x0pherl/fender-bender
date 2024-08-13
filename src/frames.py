@@ -46,6 +46,21 @@ def bracket_cutblock() -> Part:
     """
     the block that needs to be cut for each filament bracket in the top frame
     """
+    with BuildPart(mode=Mode.PRIVATE) as railbox:
+        Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
+            config.frame_clip_thickness+config.frame_bracket_tolerance,
+            align=(Align.MIN, Align.CENTER,Align.CENTER))
+        with BuildPart(railbox.faces().sort_by(Axis.Z)[-1]):
+            with GridLocations(0,config.frame_clip_width+config.frame_bracket_tolerance,1,2):
+                Box(config.wheel_diameter,
+                    config.wall_thickness/3+config.frame_bracket_tolerance/2,
+                    config.wall_thickness/3+config.frame_bracket_tolerance/2,
+                    rotation=(45,0,0))
+        with BuildPart(mode=Mode.INTERSECT):
+            Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
+                config.frame_clip_thickness*2+config.frame_bracket_tolerance,
+                align=(Align.MIN, Align.CENTER,Align.CENTER))
+
     with BuildPart() as cutblock:
         with BuildPart(Location((0,0,0))) as curve:
             Cylinder(radius=config.frame_bracket_exterior_radius,
@@ -68,9 +83,7 @@ def bracket_cutblock() -> Part:
             fillet(base_cut.edges().filter_by(Axis.Z), config.fillet_radius)
         with BuildPart(Location((config.wheel_radius*.75,0,
                         0),(0,-45,0)), mode=Mode.ADD):
-            Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
-                config.frame_clip_thickness+config.frame_bracket_tolerance,
-                align=(Align.MIN, Align.CENTER,Align.CENTER))
+            add(railbox)
     part = cutblock.part.move(Location((0,0,config.frame_base_depth)))
     part.label = "cut block"
     return part
@@ -301,9 +314,6 @@ def screw_head() -> Part:
         loft(ruled=True)
     return head.part
 
-# show(bracket_cutblock(), old_bracket_cutblock().move(Location((0,0,0))), reset_camera=Camera.KEEP)
-
-from filament_bracket import bottom_bracket
 if __name__ == '__main__':
     bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
     topframe = top_frame()
@@ -315,7 +325,7 @@ if __name__ == '__main__':
     export_stl(connectorframe, '../stl/frame-connector.stl')
     export_stl(wallbracket, '../stl/frame-wall-bracket.stl')
     show(topframe,
-        bottom_bracket().move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location((0,0,config.frame_base_depth))),
+        bottom_bracket_block().move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location((0,0,config.frame_base_depth))),
         bracketclip.move(Location(
                 (0,0,config.frame_base_depth+config.frame_bracket_tolerance))),
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,

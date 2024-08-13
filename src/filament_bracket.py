@@ -5,7 +5,7 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Align, Cylinder, GeomType, Axis,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
-                export_stl, Sphere, Locations, Box)
+                export_stl, Sphere, Locations, Box, Select)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig
 from basic_shapes import rounded_cylinder
@@ -148,6 +148,14 @@ def bracket_clip(inset=0) -> Part:
     inset: the amount to push the boundries to the interior of the clip,
     a positive inset results in a larger part, a negative inset is smaller
     """
+    with BuildPart(mode=Mode.PRIVATE) as railbox:
+        Box(config.wheel_diameter,config.frame_clip_width-inset*2,
+            config.frame_clip_thickness-inset*2,
+            align=(Align.MIN, Align.CENTER,Align.CENTER))
+        with BuildPart(railbox.faces().sort_by(Axis.Z)[-1]):
+            with GridLocations(0,config.frame_clip_width-inset*2,1,2):
+                Box(config.wheel_diameter,config.wall_thickness/3-inset,config.wall_thickness/3-inset,
+                    rotation=(45,0,0))
     with BuildPart(mode=Mode.PRIVATE) as base_cylinder:
         Cylinder(radius=config.frame_bracket_exterior_radius,
                 height=config.frame_clip_width-inset*2,
@@ -159,9 +167,8 @@ def bracket_clip(inset=0) -> Part:
         offset(amount=-config.wall_thickness+inset)
     with BuildPart() as clip:
         with BuildPart(Location((config.wheel_radius*.75,0,0),(0,-45,0))):
-            Box(config.wheel_diameter,config.frame_clip_width-inset*2,
-                config.frame_clip_thickness-inset*2,
-                align=(Align.MIN, Align.CENTER,Align.CENTER))
+            add(railbox)
+
         add(inset_cylinder, mode=Mode.SUBTRACT)
         Cylinder(radius=config.frame_bracket_exterior_radius - config.wall_thickness - \
                 config.bracket_depth + inset*2,
@@ -169,8 +176,11 @@ def bracket_clip(inset=0) -> Part:
                 align=(Align.CENTER,Align.CENTER,Align.CENTER),
                 rotation=(90,0,0), mode=Mode.SUBTRACT)
         add(base_cylinder, mode=Mode.INTERSECT)
-        extrude(clip.faces().sort_by(Axis.X)[-1],amount=config.bracket_depth,dir=(1,0,0))
+        extrude(clip.faces().sort_by(Axis.X)[-1],amount=config.bracket_depth,dir=(1,0,1))
+
         edge_set = clip.faces().sort_by(Axis.X)[-1].edges().filter_by(GeomType.CIRCLE)
+        fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
+        edge_set = clip.edges(Select.LAST)
         fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
         edge_set = clip.faces().group_by(Axis.X)[0].edges().filter_by(Axis.Y)
         fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))

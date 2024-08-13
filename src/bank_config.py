@@ -44,7 +44,7 @@ class BankConfig:
     extension_section_depth = 20
     solid_walls = False
 
-    wall_thickness = 2
+    wall_thickness = 3
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
     frame_clip_angle = 33
