@@ -164,6 +164,14 @@ class BankConfig:
             self.wall_thickness
 
     @property
+    def frame_exterior_length(self) -> float:
+        """
+        the overall interior length of the top frame
+        """
+        return self.frame_bracket_exterior_diameter + \
+            (self.wall_thickness + self.minimum_structural_thickness)*2
+
+    @property
     def frame_exterior_width(self) -> float:
         """
         the overall interior width of the top frame

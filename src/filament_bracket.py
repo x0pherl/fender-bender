@@ -297,7 +297,7 @@ def top_bracket(tolerance:float=0) -> Part:
     part.label = "top bracket"
     return part
 
-if __name__ == 'x__main__':
+if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)
     top = top_bracket()
     bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
