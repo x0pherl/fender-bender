@@ -70,7 +70,7 @@ def bracket_cutblock() -> Part:
             fillet(boxcut.edges(), radius=config.fillet_radius)
 
         with BuildPart(Location((config.wheel_radius*.75,0,
-                        config.frame_base_depth),(0,-45,0)), mode=Mode.ADD):
+                        config.frame_base_depth+config.frame_bracket_tolerance),(0,-45,0)), mode=Mode.ADD):
             Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
                 config.frame_clip_thickness+config.frame_bracket_tolerance,
                 align=(Align.MIN, Align.CENTER,Align.CENTER))
@@ -303,9 +303,8 @@ def screw_head() -> Part:
         loft(ruled=True)
     return head.part
 
-show(bracket_clip(inset=-config.frame_bracket_tolerance/2))
-if __name__ == 'x__main__':
-    bracketclip = bracket_clip(inset=-config.frame_bracket_tolerance/2)
+if __name__ == '__main__':
+    bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
     topframe = top_frame()
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
