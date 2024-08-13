@@ -248,6 +248,10 @@ class BankConfig:
         return self.wheel_diameter+self.wheel_support_height*5+self.fillet_radius*2
 
     @property
+    def chamber_cut_length(self) -> float:
+        return self.sidewall_width-self.wall_thickness*2
+
+    @property
     def bracket_height(self) -> float:
         """
         returns the height of the bracket

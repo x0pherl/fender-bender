@@ -156,7 +156,7 @@ def bracket_clip(inset=0) -> Part:
         fillet(base_cylinder.edges().filter_by(GeomType.CIRCLE), config.fillet_radius)
     with BuildPart(mode=Mode.PRIVATE) as inset_cylinder:
         add(base_cylinder)
-        offset(amount=-config.wall_thickness+inset*2)
+        offset(amount=-config.wall_thickness+inset)
     with BuildPart() as clip:
         with BuildPart(Location((config.wheel_radius*.75,0,0),(0,-45,0))):
             Box(config.wheel_diameter,config.frame_clip_width-inset*2,
@@ -164,7 +164,7 @@ def bracket_clip(inset=0) -> Part:
                 align=(Align.MIN, Align.CENTER,Align.CENTER))
         add(inset_cylinder, mode=Mode.SUBTRACT)
         Cylinder(radius=config.frame_bracket_exterior_radius - config.wall_thickness - \
-                inset - config.bracket_depth,
+                config.bracket_depth + inset*2,
                 height=config.frame_clip_width-inset*2,
                 align=(Align.CENTER,Align.CENTER,Align.CENTER),
                 rotation=(90,0,0), mode=Mode.SUBTRACT)
