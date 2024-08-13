@@ -53,8 +53,8 @@ def bracket_cutblock() -> Part:
         with BuildPart(railbox.faces().sort_by(Axis.Z)[-1]):
             with GridLocations(0,config.frame_clip_width+config.frame_bracket_tolerance,1,2):
                 Box(config.wheel_diameter,
-                    config.wall_thickness/3+config.frame_bracket_tolerance/2,
-                    config.wall_thickness/3+config.frame_bracket_tolerance/2,
+                    config.frame_clip_rail_width+config.frame_bracket_tolerance/2,
+                    config.frame_clip_rail_width+config.frame_bracket_tolerance/2,
                     rotation=(45,0,0))
         with BuildPart(mode=Mode.INTERSECT):
             Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
@@ -314,6 +314,8 @@ def screw_head() -> Part:
         loft(ruled=True)
     return head.part
 
+
+from filament_bracket import bottom_bracket
 if __name__ == '__main__':
     bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
     topframe = top_frame()
@@ -325,13 +327,13 @@ if __name__ == '__main__':
     export_stl(connectorframe, '../stl/frame-connector.stl')
     export_stl(wallbracket, '../stl/frame-wall-bracket.stl')
     show(topframe,
-        bottom_bracket_block().move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location((0,0,config.frame_base_depth))),
+        bottom_bracket().move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location((0,0,config.frame_base_depth))),
         bracketclip.move(Location(
                 (0,0,config.frame_base_depth+config.frame_bracket_tolerance))),
-        bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
-            -config.frame_base_depth*3))),
-        connectorframe.move(Location((0,0,-config.frame_base_depth*2))),
-        wallbracket.move(Location((-config.frame_bracket_exterior_radius - \
-                            config.minimum_structural_thickness*3,0,0))),
+        # bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
+        #     -config.frame_base_depth*3))),
+        # connectorframe.move(Location((0,0,-config.frame_base_depth*2))),
+        # wallbracket.move(Location((-config.frame_bracket_exterior_radius - \
+        #                     config.minimum_structural_thickness*3,0,0))),
         reset_camera=Camera.KEEP
         )

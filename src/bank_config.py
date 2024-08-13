@@ -36,7 +36,7 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    filament_count = 3
+    filament_count = 1
 
     # sidewall_section_depth = 240
     # extension_section_depth = 100
@@ -63,6 +63,21 @@ class BankConfig:
         """
         return self.bracket_depth + \
             self.minimum_thickness/2 + self.wall_thickness * 2 / 3
+
+
+    @property
+    def frame_clip_inset(self) -> float:
+        """
+        the amount that the frame clip extends into each of the sidewalls of the frame
+        """
+        return self.wall_thickness/3
+
+    @property
+    def frame_clip_rail_width(self) -> float:
+        """
+        the radius of the diamond that helps lock in the clip to the frame
+        """
+        return self.frame_clip_inset/sqrt(2)*2
 
     @property
     def frame_clip_thickness(self) -> float:

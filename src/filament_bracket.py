@@ -141,6 +141,7 @@ def top_cut_template(tolerance:float=0) -> Part:
         loft()
     return cut.part
 
+from build123d import new_edges
 def bracket_clip(inset=0) -> Part:
     """
     the part for locking the frame bracket into the frame
@@ -154,7 +155,7 @@ def bracket_clip(inset=0) -> Part:
             align=(Align.MIN, Align.CENTER,Align.CENTER))
         with BuildPart(railbox.faces().sort_by(Axis.Z)[-1]):
             with GridLocations(0,config.frame_clip_width-inset*2,1,2):
-                Box(config.wheel_diameter,config.wall_thickness/3-inset,config.wall_thickness/3-inset,
+                Box(config.wheel_diameter,config.frame_clip_rail_width-inset,config.frame_clip_rail_width-inset,
                     rotation=(45,0,0))
     with BuildPart(mode=Mode.PRIVATE) as base_cylinder:
         Cylinder(radius=config.frame_bracket_exterior_radius,
@@ -177,10 +178,7 @@ def bracket_clip(inset=0) -> Part:
                 rotation=(90,0,0), mode=Mode.SUBTRACT)
         add(base_cylinder, mode=Mode.INTERSECT)
         extrude(clip.faces().sort_by(Axis.X)[-1],amount=config.bracket_depth,dir=(1,0,1))
-
         edge_set = clip.faces().sort_by(Axis.X)[-1].edges().filter_by(GeomType.CIRCLE)
-        fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
-        edge_set = clip.edges(Select.LAST)
         fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
         edge_set = clip.faces().group_by(Axis.X)[0].edges().filter_by(Axis.Y)
         fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
@@ -188,18 +186,20 @@ def bracket_clip(inset=0) -> Part:
     part.label = "Bracket Clip"
     return part
 
-def bottom_bracket_block(inset=0) -> Part:
+bracket_clip()
+
+def bottom_bracket_block() -> Part:
     """
     the basic block shape of the bottom bracket
     """
     with BuildPart() as arch:
         with BuildSketch():
             with BuildLine():
-                arc=CenterArc((0,0), config.frame_bracket_exterior_radius-inset,
+                arc=CenterArc((0,0), config.frame_bracket_exterior_radius,
                               start_angle=0, arc_size=180)
                 Line(arc@0,arc@1)
             make_face()
-        extrude(amount=config.bracket_depth-inset*2)
+        extrude(amount=config.bracket_depth)
         fillet(arch.edges(),
             config.fillet_radius)
         with BuildPart(Location((config.wheel_radius,0,0)), mode=Mode.SUBTRACT):
@@ -297,7 +297,7 @@ def top_bracket(tolerance:float=0) -> Part:
     part.label = "top bracket"
     return part
 
-if __name__ == '__main__':
+if __name__ == 'x__main__':
     bottom = bottom_bracket(draft=False)
     top = top_bracket()
     bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
