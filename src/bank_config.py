@@ -4,7 +4,7 @@ module for all of the configuration required to build a filament bank
 from dataclasses import dataclass
 from math import sqrt
 from shapely.geometry import Point
-from geometry_utils import distance_to_circle_edge, point_distance
+from geometry_utils import distance_to_circle_edge, point_distance, y_point_to_angle
 
 
 @dataclass
@@ -36,19 +36,22 @@ class BankConfig:
 
     fillet_ratio = 4
 
-    filament_count = 1
+    filament_count = 3
 
     # sidewall_section_depth = 240
     # extension_section_depth = 100
     sidewall_section_depth = 70
     extension_section_depth = 20
     solid_walls = False
+    wall_window_apothem = 7
+    wall_window_bar_thickness = 1.5
 
-    wall_thickness = 3
+    wall_thickness = 2
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
-    frame_clip_angle = 33
-    frame_click_arc = 5
+    frame_clip_depth = 10
+    # frame_clip_angle = 33
+    # frame_click_arc = 5
 
     frame_wall_bracket = False
     wall_bracket_screw_radius = 2.25
@@ -64,6 +67,13 @@ class BankConfig:
         return self.bracket_depth + \
             self.minimum_thickness/2 + self.wall_thickness * 2 / 3
 
+    @property
+    def frame_clip_point(self) -> Point:
+        """
+        the x/y coordinates at which the center of the frame clip is positioned
+        """
+        return Point(distance_to_circle_edge(self.frame_bracket_exterior_radius, \
+                (0,10), angle=0),self.frame_clip_depth)
 
     @property
     def frame_clip_inset(self) -> float:
@@ -106,13 +116,6 @@ class BankConfig:
         the depth of the connector frame
         """
         return self.frame_tongue_depth*2 + self.minimum_thickness
-
-    @property
-    def wall_window_apothem(self) -> float:
-        """
-        controls the size of the hexagonal cuts on the walls
-        """
-        return self.bracket_depth/2.5
 
     @property
     def frame_bracket_exterior_radius(self) -> float:
@@ -169,7 +172,7 @@ class BankConfig:
         the overall interior length of the top frame
         """
         return self.frame_bracket_exterior_diameter + \
-            (self.wall_thickness + self.minimum_structural_thickness)*2
+            self.wall_thickness * 2 + self.minimum_structural_thickness * 2.5
 
     @property
     def frame_exterior_width(self) -> float:
@@ -304,3 +307,7 @@ class BankConfig:
         returns the appropriate height for the bearing shelf
         """
         return (self.bracket_depth - self.bearing_depth - self.wheel_lateral_tolerance)/2
+
+if __name__ == '__main__':
+    config = BankConfig()
+    print(config.frame_clip_point)

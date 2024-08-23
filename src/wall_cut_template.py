@@ -20,27 +20,27 @@ def wall_cut_template(length, width,height:float, bottom:bool=True, post_count=2
     effective_tolerance = -tolerance/2 if bottom else tolerance/2
     cut_unit = length/4
     with BuildPart() as cut:
-        Box(length, width, cut_unit+effective_tolerance, align=(Align.CENTER, Align.CENTER, Align.MIN))
-        with BuildPart(Location((cut_unit-effective_tolerance,0,cut_unit+effective_tolerance))) as lip:
+        Box(length, width, cut_unit*2+effective_tolerance, align=(Align.MIN, Align.CENTER, Align.MIN))
+        with BuildPart(Location((length/2+cut_unit-effective_tolerance,0,cut_unit*2+effective_tolerance))) as lip:
             Box(cut_unit+effective_tolerance, width, cut_unit, align=(Align.MIN, Align.CENTER, Align.MIN))
             chamfer(lip.faces().sort_by(Axis.Z)[-1].edges().sort_by(Axis.X)[0], cut_unit/2)
-        with BuildPart(Location((-length/2,0,cut_unit+effective_tolerance))) as back_edge:
-            Box(cut_unit*2+effective_tolerance,width,height-cut_unit*2,align=(Align.MIN, Align.CENTER, Align.MIN))
+        with BuildPart(Location((0,0,cut_unit*2+effective_tolerance))) as back_edge:
+            Box(cut_unit*2+effective_tolerance,width,height-cut_unit*4,align=(Align.MIN, Align.CENTER, Align.MIN))
             chamfer(back_edge.faces().sort_by(Axis.Z)[-1].edges().sort_by(Axis.X)[0], cut_unit)
         with BuildPart(back_edge.faces().sort_by(Axis.X)[-1]):
             with GridLocations(0,width/post_count,1,post_count):
-                add(wall_slot(width/(post_count+3), height-cut_unit*2, cut_unit+effective_tolerance))
+                add(wall_slot(width/(post_count+3), height-cut_unit*4, cut_unit+effective_tolerance))
     return cut.part
 
 with BuildPart() as hanger:
-    Box(9,80,40, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    Box(9,80,40, align=(Align.MIN, Align.CENTER, Align.MIN))
     with BuildPart(mode=Mode.INTERSECT):
-        add(wall_cut_template(9,80,40,bottom=True, post_count=3, tolerance=.2)),
+        add(wall_cut_template(9,80,40,bottom=True, post_count=3, tolerance=.2))
 
 with BuildPart() as hung:
-    Box(9,80,40, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    Box(9,80,40, align=(Align.MIN, Align.CENTER, Align.MIN))
     with BuildPart(mode=Mode.SUBTRACT):
-        add(wall_cut_template(9,80,40,bottom=False, post_count=3,tolerance=.2)),
+        add(wall_cut_template(9,80,40,bottom=False, post_count=3,tolerance=.2))
 
 if __name__ == '__main__':
     show(

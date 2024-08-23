@@ -76,9 +76,14 @@ def bracket_cutblock() -> Part:
                 align=(Align.MIN, Align.CENTER, Align.MIN))
             fillet(top_block.edges(), config.fillet_radius)
         add(chamber_cut(height=config.frame_base_depth*2))
-        with BuildPart(Location((config.wheel_radius*.75,0,
-                        0),(0,-45,0)), mode=Mode.ADD):
+        with BuildPart(Location((0,0,config.frame_clip_point.y)), mode=Mode.ADD):
             add(railbox)
+        with BuildPart(Location((config.frame_clip_point.x-config.wall_thickness-config.frame_click_sphere_radius, 0,
+                        config.frame_clip_point.y+config.minimum_structural_thickness/2))):
+            Cylinder(radius=config.frame_click_sphere_radius+config.frame_bracket_tolerance,
+                     height=config.frame_clip_width+config.frame_bracket_tolerance,
+                        rotation=(90,0,0))
+
     part = cutblock.part.move(Location((0,0,config.frame_base_depth)))
     part.label = "cut block"
     return part
@@ -194,11 +199,6 @@ def bottom_frame() -> Part:
                     align=(Align.CENTER,Align.CENTER,Align.MAX))
             add(flat_wall_grooves().mirror(Plane.XY))
     part = bframe.part
-    # if not config.frame_wall_bracket:
-    #     part = part.mirror().move(Location(
-    #             (0, 0, config.frame_bracket_exterior_radius + \
-    #              config.frame_base_depth + \
-    #             config.minimum_structural_thickness)))
     part.label = "bottom stand with frame"
     return part
 
@@ -207,14 +207,15 @@ def top_frame() -> Part:
     the top frame for fitting the filament brackets and hanging the walls
     """
     with BuildPart() as tframe:
-        Box(config.frame_exterior_length,
-            config.frame_exterior_width,
-            config.frame_base_depth,
-            align=(Align.CENTER, Align.CENTER, Align.MIN))
-        Box(config.frame_exterior_length/2,
-            config.frame_exterior_width,
-            config.bracket_height,
-            align=(Align.MAX, Align.CENTER, Align.MIN))
+        with BuildPart():
+            Box(config.frame_exterior_length,
+                config.frame_exterior_width,
+                config.frame_base_depth,
+                align=(Align.CENTER, Align.CENTER, Align.MIN))
+            Box(config.frame_exterior_length/2,
+                config.frame_exterior_width,
+                config.bracket_height,
+                align=(Align.MAX, Align.CENTER, Align.MIN))
         with BuildPart(Location((0,0,config.frame_base_depth))):
             Cylinder(radius=config.frame_bracket_exterior_radius,
                  height=config.frame_exterior_width,
@@ -258,9 +259,20 @@ def top_frame() -> Part:
                 with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
                     Sphere(config.frame_click_sphere_radius*.75)
 
+        with BuildPart(Location((config.frame_clip_point.x-config.fillet_radius-config.frame_clip_depth,
+                                 -config.frame_bracket_spacing/2+config.wall_thickness/6+config.frame_bracket_tolerance,
+                                 config.frame_clip_point.y+config.frame_base_depth))):
+            with GridLocations(0,config.frame_bracket_spacing,1,config.filament_count):
+                Sphere(config.frame_click_sphere_radius*.75, arc_size3=180, rotation=(0,0,0))
+
+        with BuildPart(Location((config.frame_clip_point.x-config.fillet_radius-config.frame_clip_depth,
+                                 config.frame_bracket_spacing/2-config.wall_thickness/6-config.frame_bracket_tolerance,
+                                 config.frame_clip_point.y+config.frame_base_depth))):
+            with GridLocations(0,config.frame_bracket_spacing,1,config.filament_count):
+                Sphere(config.frame_click_sphere_radius*.75, arc_size3=180, rotation=(0,0,180))
+
         if config.frame_wall_bracket:
-            with BuildPart(Location((-config.frame_bracket_exterior_radius - \
-                                     config.minimum_structural_thickness*1.25,0,0)),
+            with BuildPart(Location((-config.frame_exterior_length/2-config.minimum_structural_thickness,0,0)),
                                      mode=Mode.SUBTRACT):
                 add(wall_cut_template(config.minimum_structural_thickness*1.5,
                         config.frame_exterior_width,config.bracket_height,bottom=False,
@@ -278,14 +290,14 @@ def wall_bracket() -> Part:
     with BuildPart() as bracket:
         Box(config.minimum_structural_thickness*3,config.frame_exterior_width,
             config.bracket_height,
-            align=(Align.CENTER, Align.CENTER, Align.MIN))
+            align=(Align.MIN, Align.CENTER, Align.MIN))
         fillet(bracket.edges(), config.minimum_structural_thickness/config.fillet_ratio)
         with BuildPart(mode=Mode.INTERSECT):
             add(wall_cut_template(config.minimum_structural_thickness*1.5,
                                 config.frame_exterior_width,config.bracket_height,bottom=True,
                                 post_count=config.wall_bracket_post_count,
                                 tolerance=config.frame_bracket_tolerance))
-        with BuildPart(Location((config.minimum_structural_thickness/3,0,
+        with BuildPart(Location((config.minimum_structural_thickness+.33,0,
                                 config.bracket_height/2),(0,-90,0)),
                                 mode=Mode.SUBTRACT):
             add(screw_head())
@@ -309,8 +321,51 @@ def screw_head() -> Part:
         loft(ruled=True)
     return head.part
 
+
+def clip_test():
+    with BuildPart() as testblock:
+        add(top_frame())
+        with BuildPart(Location((config.frame_exterior_length/4,0,0)),
+                       mode=Mode.SUBTRACT):
+            Box(config.frame_exterior_length, config.frame_exterior_width, config.wheel_diameter,
+                align=(Align.MAX,Align.CENTER,Align.MIN))
+        with BuildPart(Location((0,0,config.wheel_radius/2+config.frame_base_depth)),
+                       mode=Mode.SUBTRACT):
+            Box(config.frame_exterior_length, config.frame_exterior_width,
+            config.wheel_diameter,
+                align=(Align.CENTER,Align.CENTER,Align.MIN))
+        with BuildPart(Location((config.frame_exterior_length/4+3,0,0))):
+            Box(config.minimum_structural_thickness, config.frame_exterior_width,
+                config.wheel_radius/2+config.frame_base_depth,
+                align=(Align.MAX,Align.CENTER,Align.MIN))
+            Box(config.minimum_structural_thickness, config.frame_exterior_width,
+                config.frame_base_depth,
+                align=(Align.MIN,Align.CENTER,Align.MIN))
+
+    with BuildPart() as testbracket:
+        from filament_bracket import bottom_bracket
+        add(bottom_bracket())
+        with BuildPart(mode=Mode.SUBTRACT):
+            Box(config.frame_exterior_length, config.frame_exterior_length,
+                config.frame_exterior_length,
+                    align=(Align.CENTER, Align.MAX, Align.CENTER))
+        with BuildPart(Location((config.frame_exterior_length/4 + 3 + \
+                            config.frame_bracket_tolerance,0,0)), mode=Mode.SUBTRACT):
+            Box(config.frame_exterior_length, config.frame_exterior_width,
+                config.wheel_diameter,
+                align=(Align.MAX,Align.MIN,Align.MIN))
+        with BuildPart(Location((0,config.wheel_radius/2,0)), mode=Mode.SUBTRACT):
+            Box(config.frame_exterior_length, config.frame_exterior_width,
+                config.wheel_diameter,
+                align=(Align.CENTER,Align.MIN,Align.MIN))
+
+    show(testblock.part, testbracket.part.move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X,90).move(Location((0,0,config.frame_base_depth))), reset_camera=Camera.KEEP)
+    export_stl(testblock.part, '../stl/test-frame.stl')
+    export_stl(testbracket.part, '../stl/test-bracket.stl')
+
 if __name__ == '__main__':
-    bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
+    bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2).move(Location(
+            (0,config.bracket_depth/2,0)))
     topframe = top_frame()
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
@@ -320,13 +375,15 @@ if __name__ == '__main__':
     export_stl(connectorframe, '../stl/frame-connector.stl')
     export_stl(wallbracket, '../stl/frame-wall-bracket.stl')
     show(topframe,
-        bottom_bracket_block().move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location((0,0,config.frame_base_depth))),
+        bottom_bracket_block().move(Location(
+                (0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location(
+                (0,0,config.frame_base_depth))),
         bracketclip.move(Location(
                 (0,0,config.frame_base_depth+config.frame_bracket_tolerance))),
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
             -config.frame_base_depth*3))),
         connectorframe.move(Location((0,0,-config.frame_base_depth*2))),
-        wallbracket.move(Location((-config.frame_bracket_exterior_radius - \
+        wallbracket.move(Location((-config.frame_exterior_length/2 - \
                             config.minimum_structural_thickness*3,0,0))),
         reset_camera=Camera.KEEP
         )

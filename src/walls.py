@@ -137,7 +137,7 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False, flippe
                     hw=HexWall(width=length*2, length=config.sidewall_width,
                             height=config.wall_thickness,
                             apothem=config.wall_window_apothem,
-                            wall_thickness=config.wall_thickness/2, inverse=True,
+                            wall_thickness=config.wall_window_bar_thickness, inverse=True,
                             align=(Align.CENTER, Align.CENTER, Align.MIN))
                     if flipped:
                         hw = hw.mirror(Plane.YZ)
@@ -163,7 +163,7 @@ def guide_wall(length:float,flipped=False) -> Part:
                 hw=HexWall(config.frame_exterior_width - config.minimum_structural_thickness*2,
                         base_length - config.minimum_structural_thickness * 2,
                         config.wall_thickness, apothem=config.wall_window_apothem,
-                        wall_thickness=config.wall_thickness/2,
+                        wall_thickness=config.wall_window_bar_thickness,
                         align=(Align.CENTER, Align.CENTER, Align.MIN), inverse=True)
                 if flipped:
                     hw = hw.mirror(Plane.YZ)
