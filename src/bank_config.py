@@ -43,7 +43,7 @@ class BankConfig:
     sidewall_section_depth = 70
     extension_section_depth = 20
     solid_walls = False
-    wall_window_apothem = 7
+    wall_window_apothem = 8
     wall_window_bar_thickness = 1.5
 
     wall_thickness = 3
@@ -74,6 +74,12 @@ class BankConfig:
         """
         return Point(distance_to_circle_edge(self.frame_bracket_exterior_radius, \
                 (0,10), angle=0),self.frame_clip_depth)
+
+    def frame_bracket_exterior_x_distance(self, y_value) -> float:
+        """
+        for a given y value, find the distance from the center to the exterior of the frame curve
+        """
+        return distance_to_circle_edge(self.frame_bracket_exterior_radius,(0,y_value), 0)
 
     @property
     def frame_clip_inset(self) -> float:
