@@ -21,16 +21,6 @@ def rounded_cylinder(radius, height, align=(Align.CENTER, Align.CENTER, Align.CE
                radius = radius)
     return cylinder.part
 
-def top_rounded_cylinder(radius, height, align=(Align.CENTER, Align.CENTER, Align.CENTER)) -> Part:
-    """
-    creates a cylinder with a rounded off top
-    """
-    with BuildPart() as cylinder:
-        Cylinder(radius=radius, height=height,align=align)
-        fillet(cylinder.faces().sort_by(Axis.Z)[-1].edges(),
-               radius = radius)
-    return cylinder.part
-
 def sidewall_shape(inset=0, length=config.sidewall_section_depth, straignt_inset=0) -> Sketch:
     """
     the shape of the sidewall at the defined length
