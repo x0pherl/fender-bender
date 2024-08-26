@@ -10,7 +10,7 @@ from ocp_vscode import show, Camera
 from bank_config import BankConfig
 from basic_shapes import rounded_cylinder,frame_arched_sidewall_cut,frame_flat_sidewall_cut
 from wall_cut_template import wall_cut_template
-from filament_bracket import bottom_bracket_block, bracket_clip
+from filament_bracket import bottom_bracket_block, bracket_clip, bracket_clip_rail_block
 
 config = BankConfig()
 
@@ -46,21 +46,6 @@ def bracket_cutblock() -> Part:
     """
     the block that needs to be cut for each filament bracket in the top frame
     """
-    with BuildPart(mode=Mode.PRIVATE) as railbox:
-        Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
-            config.frame_clip_thickness+config.frame_bracket_tolerance,
-            align=(Align.MIN, Align.CENTER,Align.CENTER))
-        with BuildPart(railbox.faces().sort_by(Axis.Z)[-1]):
-            with GridLocations(0,config.frame_clip_width+config.frame_bracket_tolerance,1,2):
-                Box(config.wheel_diameter,
-                    config.frame_clip_rail_width+config.frame_bracket_tolerance/2,
-                    config.frame_clip_rail_width+config.frame_bracket_tolerance/2,
-                    rotation=(45,0,0))
-        with BuildPart(mode=Mode.INTERSECT):
-            Box(config.wheel_diameter,config.frame_clip_width+config.frame_bracket_tolerance,
-                config.frame_clip_thickness*2+config.frame_bracket_tolerance,
-                align=(Align.MIN, Align.CENTER,Align.CENTER))
-
     with BuildPart() as cutblock:
         with BuildPart(Location((0,0,0))) as curve:
             Cylinder(radius=config.frame_bracket_exterior_radius,
@@ -76,13 +61,9 @@ def bracket_cutblock() -> Part:
                 align=(Align.MIN, Align.CENTER, Align.MIN))
             fillet(top_block.edges(), config.fillet_radius)
         add(chamber_cut(height=config.frame_base_depth*2))
-        with BuildPart(Location((0,0,config.frame_clip_point.y)), mode=Mode.ADD):
-            add(railbox)
-        with BuildPart(Location((config.frame_clip_point.x-config.wall_thickness-config.frame_click_sphere_radius, 0,
-                        config.frame_clip_point.y+config.minimum_structural_thickness/2))):
-            Cylinder(radius=config.frame_click_sphere_radius+config.frame_bracket_tolerance,
-                     height=config.frame_clip_width+config.frame_bracket_tolerance,
-                        rotation=(90,0,0))
+        add(bracket_clip_rail_block(inset=-config.frame_bracket_tolerance/2).move(Location(
+                (0,0,config.frame_base_depth))))
+
 
     part = cutblock.part.move(Location((0,0,config.frame_base_depth)))
     part.label = "cut block"
@@ -229,6 +210,7 @@ def top_frame() -> Part:
             with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count):
                 add(bracket_cutblock())
+
             with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count+1):
                 add(frame_arched_sidewall_cut())
@@ -258,18 +240,6 @@ def top_frame() -> Part:
             with GridLocations(0,config.frame_bracket_spacing,1,config.filament_count):
                 with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
                     Sphere(config.frame_click_sphere_radius*.75)
-
-        with BuildPart(Location((config.frame_clip_point.x-config.fillet_radius-config.frame_clip_depth,
-                                 -config.frame_bracket_spacing/2+config.wall_thickness/6+config.frame_bracket_tolerance,
-                                 config.frame_clip_point.y+config.frame_base_depth))):
-            with GridLocations(0,config.frame_bracket_spacing,1,config.filament_count):
-                Sphere(config.frame_click_sphere_radius*.75, arc_size3=180, rotation=(0,0,0))
-
-        with BuildPart(Location((config.frame_clip_point.x-config.fillet_radius-config.frame_clip_depth,
-                                 config.frame_bracket_spacing/2-config.wall_thickness/6-config.frame_bracket_tolerance,
-                                 config.frame_clip_point.y+config.frame_base_depth))):
-            with GridLocations(0,config.frame_bracket_spacing,1,config.filament_count):
-                Sphere(config.frame_click_sphere_radius*.75, arc_size3=180, rotation=(0,0,180))
 
         if config.frame_wall_bracket:
             with BuildPart(Location((-config.frame_exterior_length/2-config.minimum_structural_thickness,0,0)),
