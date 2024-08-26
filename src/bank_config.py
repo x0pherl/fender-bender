@@ -46,7 +46,7 @@ class BankConfig:
     wall_window_apothem = 7
     wall_window_bar_thickness = 1.5
 
-    wall_thickness = 2
+    wall_thickness = 3
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
     frame_clip_depth = 10

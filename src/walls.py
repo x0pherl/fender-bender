@@ -85,7 +85,6 @@ def guide_side(length:float) -> Part:
         Box(config.minimum_structural_thickness - config.frame_bracket_tolerance,
                 length, config.wall_thickness*3,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
-        fillet(side.edges().filter_by(Axis.Y), config.wall_thickness/4)
     return side.part
 
 def sidewall_divots(length:float=config.sidewall_straight_depth):
@@ -151,7 +150,7 @@ def guide_wall(length:float,flipped=False) -> Part:
     """
     builds a wall with guides for each sidewall
     """
-    base_length = length - config.wall_thickness/2
+    base_length = length - config.wall_thickness
     with BuildPart() as wall:
         with BuildPart():
             Box(config.frame_exterior_width,
@@ -175,10 +174,11 @@ def guide_wall(length:float,flipped=False) -> Part:
         with GridLocations(config.frame_bracket_spacing,0,
                             config.filament_count+1, 1):
             add(wall_channel(base_length))
-        with GridLocations(config.top_frame_interior_width + \
-                            config.frame_bracket_tolerance + \
-                            config.minimum_structural_thickness*2,0,2, 1):
+        with GridLocations(config.frame_exterior_width - \
+                            config.minimum_structural_thickness + config.frame_bracket_tolerance,0,2, 1):
             add(guide_side(base_length))
+        fillet((wall.faces().sort_by(Axis.X)[0] + wall.faces().sort_by(Axis.X)[-1]).edges().filter_by(Axis.Y), config.wall_thickness/4)
+
     part = wall.part
     return part
 
