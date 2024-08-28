@@ -5,7 +5,7 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Align, Cylinder, GeomType, Axis,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
-                export_stl, Sphere, Locations, Box, Select)
+                export_stl, Sphere, Locations, Box)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig
 from basic_shapes import rounded_cylinder
