@@ -3,12 +3,38 @@ utility for creating a bar with a zig-zag shape
 """
 from build123d import (BuildPart, BuildSketch, BuildLine, Polyline, extrude, make_face,
                        fillet, Axis, Circle, add, Plane, Cylinder, Part, loft, Sketch,
-                       Align, Rectangle, Location, Mode, offset, Kind)
+                       Align, Rectangle, Location, Mode, offset, Kind, Box, chamfer)
 from ocp_vscode import show, Camera
 from geometry_utils import find_angle_intersection
 from bank_config import BankConfig
 
 config = BankConfig()
+
+def lock_rail(tolerance=config.frame_bracket_tolerance/2, tie_loop=False):
+    """
+    The rail shape for locking in the filament brackets if LockStyle.RAIL is used
+    """
+    rail_height = config.minimum_structural_thickness-tolerance
+    with BuildPart() as rail:
+        with BuildPart() as lower:
+            Box(config.minimum_structural_thickness-tolerance, config.frame_exterior_width, rail_height/2,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+            chamfer(lower.faces().sort_by(Axis.Z)[-1].edges().filter_by(Axis.Y), length=rail_height/2-abs(tolerance/2),
+                    length2=config.minimum_thickness)
+        with BuildPart(Plane.XY.offset(rail_height/2)) as upper:
+            Box(config.minimum_structural_thickness-tolerance, config.frame_exterior_width, rail_height/2,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+            chamfer(upper.faces().sort_by(Axis.Z)[0].edges().filter_by(Axis.Y), length=rail_height/2-abs(tolerance/2),
+                    length2=config.minimum_thickness)
+        if tie_loop:
+            with BuildPart(Location((0,config.frame_exterior_width/2,0))) as outer_loop:
+                Box(config.minimum_structural_thickness*2,config.minimum_structural_thickness*2,rail_height,
+                    align=(Align.CENTER, Align.MIN, Align.MIN))
+                fillet(outer_loop.faces().sort_by(Axis.Y)[-1].edges().filter_by(Axis.Z), config.minimum_structural_thickness-tolerance)
+            with BuildPart(Location((0,config.frame_exterior_width/2+config.minimum_structural_thickness,0)), mode=Mode.SUBTRACT) as inner_loop:
+                Cylinder(radius=config.minimum_thickness, height=rail_height,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+    return rail.part
 
 def rounded_cylinder(radius, height, align=(Align.CENTER, Align.CENTER, Align.CENTER)) -> Part:
     """
@@ -101,3 +127,4 @@ if __name__ == '__main__':
     # show(side_line(), reset_camera=Camera.KEEP)
     show(sidewall_shape(), sidewall_shape(inset=9), sidewall_shape(inset=5), reset_camera=Camera.KEEP)
     # show(frame_arched_sidewall_cut(thickness=config.wall_thickness), reset_camera=Camera.KEEP)
+    show(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False), reset_camera=Camera.KEEP)

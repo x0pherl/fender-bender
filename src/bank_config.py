@@ -5,7 +5,15 @@ from dataclasses import dataclass
 from math import sqrt
 from shapely.geometry import Point
 from geometry_utils import distance_to_circle_edge, point_distance, y_point_to_angle
+from enum import Enum, auto, Flag
 
+
+class LockStyle(Flag):
+    """What sort of clip to have"""
+    CLIP = auto()
+    RAIL = auto()
+    BOTH = CLIP | RAIL
+    NONE = auto()
 
 @dataclass
 class BankConfig:
@@ -49,11 +57,13 @@ class BankConfig:
     wall_thickness = 3
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
+    frame_lock_style = LockStyle.BOTH
+
     frame_clip_depth = 10
     # frame_clip_angle = 33
     # frame_click_arc = 5
 
-    frame_wall_bracket = False
+    frame_wall_bracket = True
     wall_bracket_screw_radius = 2.25
     wall_bracket_screw_head_radius=4.5
     wall_bracket_screw_head_sink=1.4

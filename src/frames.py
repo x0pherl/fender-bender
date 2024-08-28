@@ -7,8 +7,8 @@ from build123d import (BuildPart, BuildSketch, Part, Cylinder, extrude,
                        Align, GridLocations, Plane, Sphere, Circle,
                        Locations, export_stl, PolarLocations)
 from ocp_vscode import show, Camera
-from bank_config import BankConfig
-from basic_shapes import rounded_cylinder,frame_arched_sidewall_cut,frame_flat_sidewall_cut
+from bank_config import BankConfig, LockStyle
+from basic_shapes import rounded_cylinder,frame_arched_sidewall_cut,frame_flat_sidewall_cut, lock_rail
 from wall_cut_template import wall_cut_template
 from filament_bracket import bottom_bracket_block, bracket_clip, bracket_clip_rail_block
 
@@ -62,7 +62,8 @@ def bracket_cutblock() -> Part:
                 align=(Align.MIN, Align.CENTER, Align.MIN))
             fillet(top_block.edges(), config.fillet_radius)
         add(chamber_cut(height=config.frame_base_depth*2))
-        add(bracket_clip_rail_block(inset=-config.frame_bracket_tolerance/2))
+        if LockStyle.CLIP in config.frame_lock_style:
+            add(bracket_clip_rail_block(inset=-config.frame_bracket_tolerance/2))
 
 
     part = cutblock.part.move(Location((0,0,config.frame_base_depth)))
@@ -249,6 +250,14 @@ def top_frame() -> Part:
                         post_count=config.wall_bracket_post_count,
                         tolerance=config.frame_bracket_tolerance))
 
+        if LockStyle.RAIL in config.frame_lock_style:
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth),
+                            (0,0,0)), mode=Mode.SUBTRACT):
+                add(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False))
+            with BuildPart(Location((config.frame_exterior_length/2-config.minimum_thickness*2,0,0)), mode=Mode.SUBTRACT):
+                Cylinder(radius=config.minimum_thickness, height=config.frame_base_depth,
+                         align=(Align.CENTER, Align.CENTER, Align.MIN))
+
     part = tframe.part
     part.label = "Top Frame"
     return part
@@ -298,6 +307,8 @@ if __name__ == '__main__':
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
     wallbracket = wall_bracket()
+    lockrail = lock_rail(tolerance=config.frame_bracket_tolerance/2, tie_loop=True)
+    export_stl(lockrail, '../stl/lock_rail.stl')
     export_stl(topframe, '../stl/frame-top.stl')
     export_stl(bottomframe, '../stl/frame-bottom.stl')
     export_stl(connectorframe, '../stl/frame-connector.stl')

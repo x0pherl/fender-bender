@@ -5,15 +5,14 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Align, Cylinder, GeomType, Axis,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
-                export_stl, Sphere, Locations, Box)
+                export_stl, Sphere, Locations, Box, chamfer)
 from ocp_vscode import show, Camera
-from bank_config import BankConfig
-from basic_shapes import rounded_cylinder
+from bank_config import BankConfig, LockStyle
+from basic_shapes import rounded_cylinder,lock_rail
 from filament_channels import (curved_filament_path_solid,
                 straight_filament_path_solid,
                 straight_filament_connector_threads,curved_filament_connector_threads,
                 curved_filament_path, straight_filament_path)
-
 config = BankConfig()
 
 def wheel_guide_cut() -> Part:
@@ -243,9 +242,14 @@ def bottom_bracket_block() -> Part:
             add(curved_filament_path_solid(top_exit_fillet=True))
         with BuildPart(Location((-config.wheel_radius,0,0))):
             add(straight_filament_path_solid())
-        with BuildPart(Location((0,0,config.bracket_depth/2),
-                        (-90,0,0)), mode=Mode.SUBTRACT):
-            add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
+        if LockStyle.CLIP in config.frame_lock_style:
+            with BuildPart(Location((0,0,config.bracket_depth/2),
+                            (-90,0,0)), mode=Mode.SUBTRACT):
+                add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
+        if LockStyle.RAIL in config.frame_lock_style:
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
+                            (-90,0,0)), mode=Mode.SUBTRACT):
+                add(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False))
 
     part = arch.part
     part.label = "solid bracket block"
@@ -303,9 +307,14 @@ def bottom_bracket(draft:bool = False) -> Part:
                 Sphere(config.frame_click_sphere_radius)
         add(wheel_guide())
         add(spoke_assembly())
-        with BuildPart(Location((0,0,config.bracket_depth/2),
-                        (-90,0,0)), mode=Mode.SUBTRACT):
-            add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
+        if LockStyle.CLIP in config.frame_lock_style:
+            with BuildPart(Location((0,0,config.bracket_depth/2),
+                            (-90,0,0)), mode=Mode.SUBTRACT):
+                add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
+        if LockStyle.RAIL in config.frame_lock_style:
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
+                            (-90,0,0)), mode=Mode.SUBTRACT):
+                add(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False))
         if not draft:
             add(straight_filament_connector_threads().move(
                 Location((-config.wheel_radius,0,0))))
@@ -333,13 +342,14 @@ def top_bracket(tolerance:float=0) -> Part:
 if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)
     top = top_bracket()
-    bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
+    if LockStyle.CLIP in config.frame_lock_style:
+        bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
+        export_stl(bracketclip, '../stl/filament-bracket-clip.stl')
     show(bottom.move(Location((config.bracket_width/2+5,0,0))),
          top.move(Location((-config.bracket_width/2+5,0,0))),
          bracketclip.rotate(Axis.X,-90).move(Location(
                 (config.bracket_width/2+5+config.bracket_depth/2,0,
-                 config.bracket_depth/2))),
+                 config.bracket_depth/2))) if LockStyle.CLIP in config.frame_lock_style else None,
          reset_camera=Camera.KEEP)
     export_stl(bottom, '../stl/filament-bracket-bottom.stl')
     export_stl(top, '../stl/filament-bracket-top.stl')
-    export_stl(bracketclip, '../stl/filament-bracket-clip.stl')
