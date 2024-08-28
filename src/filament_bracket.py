@@ -249,7 +249,7 @@ def bottom_bracket_block() -> Part:
         if LockStyle.RAIL in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
-                add(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False))
+                add(lock_rail(tolerance=-config.frame_bracket_tolerance, tie_loop=False))
 
     part = arch.part
     part.label = "solid bracket block"
@@ -314,7 +314,7 @@ def bottom_bracket(draft:bool = False) -> Part:
         if LockStyle.RAIL in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
-                add(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False))
+                add(lock_rail(tolerance=-config.frame_bracket_tolerance, tie_loop=False))
         if not draft:
             add(straight_filament_connector_threads().move(
                 Location((-config.wheel_radius,0,0))))

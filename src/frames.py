@@ -253,7 +253,7 @@ def top_frame() -> Part:
         if LockStyle.RAIL in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth),
                             (0,0,0)), mode=Mode.SUBTRACT):
-                add(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False))
+                add(lock_rail(tolerance=-config.frame_bracket_tolerance, tie_loop=False))
             with BuildPart(Location((config.frame_exterior_length/2-config.minimum_thickness*2,0,0)), mode=Mode.SUBTRACT):
                 Cylinder(radius=config.minimum_thickness, height=config.frame_base_depth,
                          align=(Align.CENTER, Align.CENTER, Align.MIN))
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
     wallbracket = wall_bracket()
-    lockrail = lock_rail(tolerance=config.frame_bracket_tolerance/2, tie_loop=True)
+    lockrail = lock_rail(tolerance=config.frame_bracket_tolerance, tie_loop=True)
     export_stl(lockrail, '../stl/lock_rail.stl')
     export_stl(topframe, '../stl/frame-top.stl')
     export_stl(bottomframe, '../stl/frame-bottom.stl')
@@ -318,7 +318,10 @@ if __name__ == '__main__':
                 (0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location(
                 (0,0,config.frame_base_depth))),
         bracketclip.move(Location(
-                (0,0,config.frame_base_depth+config.frame_bracket_tolerance))),
+                (0,config.bracket_depth,0))) if LockStyle.CLIP in config.frame_lock_style else None,
+        lockrail.move(Location((config.wheel_radius+config.bracket_depth/2,0,
+                config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth + \
+                config.frame_bracket_tolerance/2))) if LockStyle.RAIL in config.frame_lock_style else None,
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
             -config.frame_base_depth*3))),
         connectorframe.move(Location((0,0,-config.frame_base_depth*2))),
