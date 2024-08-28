@@ -10,12 +10,12 @@ from bank_config import BankConfig
 
 config = BankConfig()
 
-def lock_rail(tolerance=config.frame_bracket_tolerance/2, tie_loop=False):
+def lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=False):
     """
-    The rail shape for locking in the filament brackets if LockStyle.RAIL is used
+    The pin shape for locking in the filament brackets if LockStyle.PIN is used
     """
     rail_height = config.minimum_structural_thickness-tolerance
-    with BuildPart() as rail:
+    with BuildPart() as pin:
         with BuildPart() as lower:
             Box(config.minimum_structural_thickness-tolerance, config.frame_exterior_width, rail_height/2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
@@ -30,11 +30,11 @@ def lock_rail(tolerance=config.frame_bracket_tolerance/2, tie_loop=False):
             with BuildPart(Location((0,config.frame_exterior_width/2,0))) as outer_loop:
                 Box(config.minimum_structural_thickness*2,config.minimum_structural_thickness*2,rail_height,
                     align=(Align.CENTER, Align.MIN, Align.MIN))
-                fillet(outer_loop.faces().sort_by(Axis.Y)[-1].edges().filter_by(Axis.Z), config.minimum_structural_thickness-tolerance)
+                fillet(outer_loop.faces().sort_by(Axis.Y)[-1].edges().filter_by(Axis.Z), config.minimum_structural_thickness-(abs(tolerance)))
             with BuildPart(Location((0,config.frame_exterior_width/2+config.minimum_structural_thickness,0)), mode=Mode.SUBTRACT) as inner_loop:
-                Cylinder(radius=config.minimum_thickness, height=rail_height,
+                Cylinder(radius=config.minimum_structural_thickness-config.minimum_thickness, height=rail_height,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-    return rail.part
+    return pin.part
 
 def rounded_cylinder(radius, height, align=(Align.CENTER, Align.CENTER, Align.CENTER)) -> Part:
     """
@@ -127,4 +127,4 @@ if __name__ == '__main__':
     # show(side_line(), reset_camera=Camera.KEEP)
     show(sidewall_shape(), sidewall_shape(inset=9), sidewall_shape(inset=5), reset_camera=Camera.KEEP)
     # show(frame_arched_sidewall_cut(thickness=config.wall_thickness), reset_camera=Camera.KEEP)
-    show(lock_rail(tolerance=-config.frame_bracket_tolerance/2, tie_loop=False), reset_camera=Camera.KEEP)
+    show(lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=True), reset_camera=Camera.KEEP)

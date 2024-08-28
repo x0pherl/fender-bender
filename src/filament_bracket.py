@@ -5,10 +5,10 @@ from build123d import (BuildPart, BuildSketch, Part, Circle, CenterArc,
                 extrude, Mode, BuildLine, Line, make_face, add, Location,
                 Plane, loft, fillet, Align, Cylinder, GeomType, Axis,
                 offset, Rectangle, Sketch, GridLocations, PolarLocations,
-                export_stl, Sphere, Locations, Box, chamfer)
+                export_stl, Sphere, Locations, Box)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig, LockStyle
-from basic_shapes import rounded_cylinder,lock_rail
+from basic_shapes import rounded_cylinder,lock_pin
 from filament_channels import (curved_filament_path_solid,
                 straight_filament_path_solid,
                 straight_filament_connector_threads,curved_filament_connector_threads,
@@ -246,10 +246,10 @@ def bottom_bracket_block() -> Part:
             with BuildPart(Location((0,0,config.bracket_depth/2),
                             (-90,0,0)), mode=Mode.SUBTRACT):
                 add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
-        if LockStyle.RAIL in config.frame_lock_style:
+        if LockStyle.PIN in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
-                add(lock_rail(tolerance=-config.frame_bracket_tolerance, tie_loop=False))
+                add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
 
     part = arch.part
     part.label = "solid bracket block"
@@ -311,10 +311,10 @@ def bottom_bracket(draft:bool = False) -> Part:
             with BuildPart(Location((0,0,config.bracket_depth/2),
                             (-90,0,0)), mode=Mode.SUBTRACT):
                 add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
-        if LockStyle.RAIL in config.frame_lock_style:
+        if LockStyle.PIN in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
-                add(lock_rail(tolerance=-config.frame_bracket_tolerance, tie_loop=False))
+                add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
         if not draft:
             add(straight_filament_connector_threads().move(
                 Location((-config.wheel_radius,0,0))))
@@ -338,6 +338,15 @@ def top_bracket(tolerance:float=0) -> Part:
     part = frame.part
     part.label = "top bracket"
     return part
+
+
+# with BuildPart() as testbracket:
+#     Box(10,10,10)
+#     with BuildPart(mode=Mode.SUBTRACT):
+#         add(lock_pin(tolerance=-config.frame_lock_pin_tolerance, tie_loop=False).move(Location((0,0,-config.minimum_structural_thickness/2))))
+
+# show(testbracket.part, reset_camera=Camera.KEEP)
+# export_stl(testbracket.part, '../stl/test.stl')
 
 if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)

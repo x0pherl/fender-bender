@@ -11,8 +11,8 @@ from enum import Enum, auto, Flag
 class LockStyle(Flag):
     """What sort of clip to have"""
     CLIP = auto()
-    RAIL = auto()
-    BOTH = CLIP | RAIL
+    PIN = auto()
+    BOTH = CLIP | PIN
     NONE = auto()
 
 @dataclass
@@ -57,6 +57,7 @@ class BankConfig:
     wall_thickness = 3
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
+    frame_lock_pin_tolerance = 0.6
     frame_lock_style = LockStyle.BOTH
 
     frame_clip_depth = 10

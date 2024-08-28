@@ -8,7 +8,7 @@ from build123d import (BuildPart, BuildSketch, Part, Cylinder, extrude,
                        Locations, export_stl, PolarLocations)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig, LockStyle
-from basic_shapes import rounded_cylinder,frame_arched_sidewall_cut,frame_flat_sidewall_cut, lock_rail
+from basic_shapes import rounded_cylinder,frame_arched_sidewall_cut,frame_flat_sidewall_cut, lock_pin
 from wall_cut_template import wall_cut_template
 from filament_bracket import bottom_bracket_block, bracket_clip, bracket_clip_rail_block
 
@@ -250,12 +250,12 @@ def top_frame() -> Part:
                         post_count=config.wall_bracket_post_count,
                         tolerance=config.frame_bracket_tolerance))
 
-        if LockStyle.RAIL in config.frame_lock_style:
+        if LockStyle.PIN in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth),
                             (0,0,0)), mode=Mode.SUBTRACT):
-                add(lock_rail(tolerance=-config.frame_bracket_tolerance, tie_loop=False))
-            with BuildPart(Location((config.frame_exterior_length/2-config.minimum_thickness*2,0,0)), mode=Mode.SUBTRACT):
-                Cylinder(radius=config.minimum_thickness, height=config.frame_base_depth,
+                add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
+            with BuildPart(Location((config.frame_exterior_length/2-config.minimum_thickness-config.minimum_structural_thickness,0,0)), mode=Mode.SUBTRACT):
+                Cylinder(radius=config.minimum_structural_thickness-config.minimum_thickness, height=config.frame_base_depth,
                          align=(Align.CENTER, Align.CENTER, Align.MIN))
 
     part = tframe.part
@@ -307,8 +307,8 @@ if __name__ == '__main__':
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
     wallbracket = wall_bracket()
-    lockrail = lock_rail(tolerance=config.frame_bracket_tolerance, tie_loop=True)
-    export_stl(lockrail, '../stl/lock_rail.stl')
+    lockpin = lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=True)
+    export_stl(lockpin, '../stl/lock_pin.stl')
     export_stl(topframe, '../stl/frame-top.stl')
     export_stl(bottomframe, '../stl/frame-bottom.stl')
     export_stl(connectorframe, '../stl/frame-connector.stl')
@@ -319,9 +319,9 @@ if __name__ == '__main__':
                 (0,0,config.frame_base_depth))),
         bracketclip.move(Location(
                 (0,config.bracket_depth,0))) if LockStyle.CLIP in config.frame_lock_style else None,
-        lockrail.move(Location((config.wheel_radius+config.bracket_depth/2,0,
+        lockpin.move(Location((config.wheel_radius+config.bracket_depth/2,0,
                 config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth + \
-                config.frame_bracket_tolerance/2))) if LockStyle.RAIL in config.frame_lock_style else None,
+                config.frame_lock_pin_tolerance/2))) if LockStyle.PIN in config.frame_lock_style else None,
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
             -config.frame_base_depth*3))),
         connectorframe.move(Location((0,0,-config.frame_base_depth*2))),
