@@ -36,7 +36,7 @@ fwall = guide_wall(config.sidewall_straight_depth).rotate(
         Axis.Z, 90).rotate(Axis.Y, -90).move(Location((\
         config.sidewall_width/2+config.wall_thickness, 0,
         -config.sidewall_straight_depth/2)))
-swall = sidewall(length=config.sidewall_section_depth) \
+swall = sidewall(length=config.sidewall_section_depth, reinforce=True) \
     .rotate(Axis.X, 90).move(Location((0,-config.top_frame_interior_width/2,0)))
 
 topframe = top_frame()

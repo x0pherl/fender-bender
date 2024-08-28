@@ -14,7 +14,7 @@ from filament_bracket import bottom_bracket_block, bracket_clip, bracket_clip_ra
 
 config = BankConfig()
 
-def flat_wall_grooves() -> Part:
+def straight_wall_grooves() -> Part:
     """
     creates the grooves in the frame peices for the front and back walls
     """
@@ -34,8 +34,9 @@ def flat_wall_grooves() -> Part:
             Box(config.wall_thickness+config.frame_bracket_tolerance, config.wall_thickness/2,
                     config.frame_tongue_depth+config.frame_bracket_tolerance,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-            with BuildPart(Location((0,0,config.wall_thickness))):
+            with BuildPart(Location((0,0,config.wall_thickness*.75))):
                 Sphere(radius=config.wall_thickness*.5)
+
 
     with BuildPart() as grooves:
         with PolarLocations(-config.sidewall_width/2-config.wall_thickness/2,2):
@@ -97,14 +98,14 @@ def connector_frame() -> Part:
         with BuildPart(mode=Mode.SUBTRACT):
             with Locations(cframe.faces().sort_by(Axis.Z)[-1],
                            cframe.faces().sort_by(Axis.Z)[0]):
-                add(flat_wall_grooves())
+                add(straight_wall_grooves())
                 with GridLocations(0, config.frame_bracket_spacing, 1,
                                    config.filament_count+1):
                     add(frame_flat_sidewall_cut())
             # with BuildPart(Location((-config.minimum_structural_thickness/2,0,0))):
             with GridLocations(0,config.frame_bracket_spacing, 1,
                                    config.filament_count):
-                    add(chamber_cut())
+                add(chamber_cut())
     return cframe.part
 
 def bottom_frame_stand() -> Part:
@@ -178,7 +179,7 @@ def bottom_frame() -> Part:
                         rotation=(90,0,0))
                 Box(config.wheel_diameter,config.frame_exterior_width,config.frame_base_depth,
                     align=(Align.CENTER,Align.CENTER,Align.MAX))
-            add(flat_wall_grooves().mirror(Plane.XY))
+            add(straight_wall_grooves().mirror(Plane.XY))
     part = bframe.part
     part.label = "bottom stand with frame"
     return part
@@ -222,7 +223,7 @@ def top_frame() -> Part:
                         config.frame_base_depth,
                         align=(Align.CENTER,Align.CENTER, Align.MAX)
                     )
-            add(flat_wall_grooves().mirror(Plane.XY))
+            add(straight_wall_grooves().mirror(Plane.XY))
 
         with BuildPart(Location((-config.frame_bracket_exterior_radius,0,
                                  config.bracket_depth+config.frame_base_depth),
@@ -333,7 +334,15 @@ def clip_test():
     export_stl(testblock.part, '../stl/test-frame.stl')
     export_stl(testbracket.part, '../stl/test-bracket.stl')
 
-if __name__ == '__main__':
+def half_top() -> Part:
+    with BuildPart() as half:
+        add(top_frame())
+        Box(1000,1000,1000, align=(Align.CENTER,Align.MIN, Align.CENTER), mode=Mode.SUBTRACT)
+    return half.part
+
+show(straight_wall_grooves(), reset_camera=Camera.KEEP)
+
+if __name__ == 'x__main__':
     bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2).move(Location(
             (0,config.bracket_depth/2,0)))
     topframe = top_frame()

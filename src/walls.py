@@ -65,9 +65,9 @@ def straight_wall_tongue() -> Part:
                     config.wall_thickness/2+config.frame_bracket_tolerance,
                     config.frame_tongue_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-            with BuildPart(Location((0,0,config.wall_thickness))):
+            with BuildPart(Location((0,0,config.wall_thickness*.75))):
                 Sphere(radius=config.wall_thickness*.75)
-                Cylinder(radius=config.wall_thickness*.5,
+                Cylinder(radius=config.wall_thickness*.6,
                     height=config.wall_thickness,
                     rotation=(0,0,0),
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
