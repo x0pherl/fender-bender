@@ -118,12 +118,12 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False, flippe
             with BuildPart():
                 with BuildSketch():
                     add(sidewall_shape(inset=config.wall_thickness/2, length=length,
-                                       straignt_inset=config.minimum_structural_thickness))
+                                       straignt_inset=config.minimum_structural_thickness+config.frame_bracket_tolerance))
                     with BuildSketch(mode=Mode.SUBTRACT):
                         add(sidewall_shape(inset=config.wall_thickness/2 + \
                             config.minimum_structural_thickness, length=length,
                             straignt_inset=config.minimum_structural_thickness))
-                extrude(amount=config.minimum_structural_thickness)
+                extrude(amount=config.minimum_structural_thickness+config.wall_thickness)
         if not config.solid_walls:
             multiplier = 1 if reinforce else 0
             with BuildPart(mode=Mode.SUBTRACT):
