@@ -119,7 +119,7 @@ def curved_filament_line() -> Compound:
     channel for the ingress funnel, the PTFE tube,
     and the connector
     """
-    straight_distance = (config.bracket_depth/2)/sqrt(2)
+    straight_distance = (config.connector_depth/2+config.minimum_structural_thickness)/sqrt(2)
     egress_point=(config.bracket_width-config.wheel_radius-straight_distance,config.bracket_height*2-straight_distance)
     connector_egress_point=(egress_point[0]-straight_distance, egress_point[1]-straight_distance)
 
