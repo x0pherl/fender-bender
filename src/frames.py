@@ -334,15 +334,7 @@ def clip_test():
     export_stl(testblock.part, '../stl/test-frame.stl')
     export_stl(testbracket.part, '../stl/test-bracket.stl')
 
-def half_top() -> Part:
-    with BuildPart() as half:
-        add(top_frame())
-        Box(1000,1000,1000, align=(Align.CENTER,Align.MIN, Align.CENTER), mode=Mode.SUBTRACT)
-    return half.part
-
-show(straight_wall_grooves(), reset_camera=Camera.KEEP)
-
-if __name__ == 'x__main__':
+if __name__ == '__main__':
     bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2).move(Location(
             (0,config.bracket_depth/2,0)))
     topframe = top_frame()
