@@ -184,20 +184,15 @@ def guide_wall(length:float,flipped=False) -> Part:
 
 if __name__ == '__main__':
     extension_parts = ()
-    gwall_one=guide_wall(config.sidewall_straight_depth)
+    gwall=guide_wall(config.sidewall_straight_depth)
     side_wall = sidewall(length=config.sidewall_section_depth)
     export_stl(side_wall, '../stl/wall-side.stl')
     reinforced_side_wall = sidewall(length=config.sidewall_section_depth,
                                         reinforce=True)
     export_stl(reinforced_side_wall, '../stl/wall-side-reinforced.stl')
-    if config.solid_walls:
-        export_stl(gwall_one, '../stl/wall-guide.stl')
-    else:
-        gwall_two=guide_wall(config.sidewall_straight_depth,flipped=True)
-        export_stl(gwall_one, '../stl/wall-guide-one.stl')
-        export_stl(gwall_two, '../stl/wall-guide-two.stl')
+    export_stl(gwall, '../stl/wall-guide.stl')
 
-    show(gwall_one.move(Location((0,-config.sidewall_straight_depth/2,0))),
+    show(gwall.move(Location((0,-config.sidewall_straight_depth/2,0))),
         side_wall.move(Location((-config.frame_exterior_width/2-config.sidewall_width/2-1,
                             0,0))),
         reinforced_side_wall.move(
