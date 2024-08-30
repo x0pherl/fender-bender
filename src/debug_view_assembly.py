@@ -77,7 +77,7 @@ def clip_test():
                 config.frame_exterior_length,
                     align=(Align.CENTER, Align.MAX, Align.CENTER))
         with BuildPart(Location((config.frame_exterior_length/4 + 3 + \
-                            config.frame_bracket_tolerance,0,0)), mode=Mode.SUBTRACT):
+                            config.tolerance,0,0)), mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_width,
                 config.wheel_diameter,
                 align=(Align.MAX,Align.MIN,Align.MIN))
@@ -92,8 +92,8 @@ def clip_test():
     export_stl(testblock.part, '../stl/test-frame.stl')
     export_stl(testbracket.part, '../stl/test-bracket.stl')
 
-ROTATION_VALUE = 180 if config.frame_wall_bracket else 0
-DEPTH_SHIFT_VALUE = 0 if config.frame_wall_bracket else -config.sidewall_straight_depth - \
+ROTATION_VALUE = 180 if config.frame_hanger else 0
+DEPTH_SHIFT_VALUE = 0 if config.frame_hanger else -config.sidewall_straight_depth - \
         config.connector_depth - config.sidewall_straight_depth
 bframe = bottom_frame().rotate(Axis.X, ROTATION_VALUE).move(
             Location((0,0,

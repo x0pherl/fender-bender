@@ -245,7 +245,7 @@ def bottom_bracket_block() -> Part:
         if LockStyle.CLIP in config.frame_lock_style:
             with BuildPart(Location((0,0,config.bracket_depth/2),
                             (-90,0,0)), mode=Mode.SUBTRACT):
-                add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
+                add(bracket_clip(inset=-config.tolerance/2))
         if LockStyle.PIN in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
@@ -259,14 +259,14 @@ def pin_channel() -> Part:
     """
     the channel to lock the filament bracket into the back of the top frame
     """
-    base_unit = config.wall_thickness+config.frame_bracket_tolerance
+    base_unit = config.wall_thickness+config.tolerance
     with BuildPart() as channel:
         add(rounded_cylinder(radius=base_unit,
-                    height=config.bracket_depth+config.frame_bracket_tolerance,align=
+                    height=config.bracket_depth+config.tolerance,align=
                     (Align.CENTER, Align.CENTER, Align.MIN)))
         with BuildPart(Location((0,0,-config.bracket_depth/2))) as guide:
             Cylinder(radius=config.bracket_depth, height=base_unit*2,rotation=(0,90,0))
-            fillet(guide.edges(), base_unit-config.frame_bracket_tolerance/2)
+            fillet(guide.edges(), base_unit-config.tolerance/2)
     return channel.part
 
 def bottom_bracket(draft:bool = False) -> Part:
@@ -285,7 +285,7 @@ def bottom_bracket(draft:bool = False) -> Part:
         with BuildPart(Location((-config.wheel_radius,0,0)), mode=Mode.ADD):
             add(straight_filament_path())
         with BuildPart(mode=Mode.SUBTRACT):
-            add(top_cut_template(config.frame_bracket_tolerance).mirror().move(
+            add(top_cut_template(config.tolerance).mirror().move(
             Location((0,0,config.bracket_depth))))
             Cylinder(radius=config.wheel_radius + \
                      config.wheel_radial_tolerance,
@@ -310,7 +310,7 @@ def bottom_bracket(draft:bool = False) -> Part:
         if LockStyle.CLIP in config.frame_lock_style:
             with BuildPart(Location((0,0,config.bracket_depth/2),
                             (-90,0,0)), mode=Mode.SUBTRACT):
-                add(bracket_clip(inset=-config.frame_bracket_tolerance/2))
+                add(bracket_clip(inset=-config.tolerance/2))
         if LockStyle.PIN in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
@@ -344,7 +344,7 @@ if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)
     top = top_bracket()
     if LockStyle.CLIP in config.frame_lock_style:
-        bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2)
+        bracketclip = bracket_clip(inset=config.tolerance/2)
         export_stl(bracketclip, '../stl/filament-bracket-clip.stl')
     show(bottom.move(Location((config.bracket_width/2+5,0,0))),
          top.move(Location((-config.bracket_width/2+5,0,0))),

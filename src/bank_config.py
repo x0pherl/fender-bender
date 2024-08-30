@@ -3,10 +3,9 @@ module for all of the configuration required to build a filament bank
 """
 from dataclasses import dataclass
 from math import sqrt
+from enum import auto, Flag
 from shapely.geometry import Point
 from geometry_utils import distance_to_circle_edge, point_distance
-from enum import auto, Flag
-
 
 class LockStyle(Flag):
     """What sort of clip to have"""
@@ -43,40 +42,27 @@ class BankConfig:
     tube_outer_diameter = 6.5
 
     fillet_ratio = 4
-
+    tolerance = 0.2
     filament_count = 3
 
     # sidewall_section_depth = 240
-    # extension_section_depth = 100
     sidewall_section_depth = 70
-    extension_section_depth = 20
     solid_walls = False
     wall_window_apothem = 8
     wall_window_bar_thickness = 1.5
-
     wall_thickness = 3
+
     frame_tongue_depth = 4
-    frame_bracket_tolerance = 0.2
     frame_lock_pin_tolerance = 0.3
     frame_lock_style = LockStyle.BOTH
 
-    frame_clip_depth = 10
-    # frame_clip_angle = 33
-    # frame_click_arc = 5
+    frame_clip_depth_offset = 10
 
-    frame_wall_bracket = True
+    frame_hanger = True
     wall_bracket_screw_radius = 2.25
     wall_bracket_screw_head_radius=4.5
     wall_bracket_screw_head_sink=1.4
     wall_bracket_post_count=3
-
-    @property
-    def frame_clip_width(self) -> float:
-        """
-        the overall width of the clip that locks the filament bracket into the frame
-        """
-        return self.bracket_depth + \
-            self.minimum_thickness/2 + self.wall_thickness * 2 / 3
 
     @property
     def frame_clip_point(self) -> Point:
@@ -84,7 +70,7 @@ class BankConfig:
         the x/y coordinates at which the center of the frame clip is positioned
         """
         return Point(distance_to_circle_edge(self.frame_bracket_exterior_radius, \
-                (0,10), angle=0),self.frame_clip_depth)
+                (0,self.frame_clip_depth_offset), angle=0),self.frame_clip_depth_offset)
 
     def frame_bracket_exterior_x_distance(self, y_value) -> float:
         """
@@ -105,13 +91,6 @@ class BankConfig:
         the radius of the diamond that helps lock in the clip to the frame
         """
         return self.frame_clip_inset/sqrt(2)*2
-
-    @property
-    def frame_clip_thickness(self) -> float:
-        """
-        how deep to make the bars of the frame clip
-        """
-        return self.minimum_structural_thickness
 
     @property
     def frame_base_depth(self) -> float:
@@ -154,7 +133,7 @@ class BankConfig:
         """
         returns the distance between the sidewalls of the frame
         """
-        return self.bracket_depth + self.wall_thickness + self.frame_bracket_tolerance * 2
+        return self.bracket_depth + self.wall_thickness + self.tolerance * 2
 
     @property
     def frame_click_sphere_point(self) -> Point:
@@ -179,7 +158,7 @@ class BankConfig:
         """
         return ((self.bracket_depth + \
             self.wall_thickness + \
-            self.frame_bracket_tolerance*2) * \
+            self.tolerance*2) * \
             self.filament_count) - \
             self.wall_thickness
 
@@ -198,7 +177,7 @@ class BankConfig:
         """
         the offset to adjust for a wall bracket if enabled
         """
-        return self.minimum_structural_thickness/2 if self.frame_wall_bracket else 0
+        return self.minimum_structural_thickness/2 if self.frame_hanger else 0
 
     @property
     def frame_exterior_width(self) -> float:
@@ -226,7 +205,7 @@ class BankConfig:
         return self.wheel_diameter + \
                 (self.wheel_radial_tolerance+ \
                     self.connector_diameter+self.fillet_radius +\
-                        self.wall_thickness+self.frame_bracket_tolerance)*2
+                        self.wall_thickness+self.tolerance)*2
 
     @property
     def bearing_shelf_radius(self) -> float:
@@ -296,8 +275,7 @@ class BankConfig:
         """
         returns the width of the bracket
         """
-        #todo 5 feels like a magic value here
-        return self.wheel_diameter+self.wheel_support_height*5+self.fillet_radius*2
+        return self.wheel_diameter+self.wheel_support_height*2+self.minimum_structural_thickness*3+self.fillet_radius*2
 
     @property
     def chamber_cut_length(self) -> float:
@@ -336,7 +314,3 @@ class BankConfig:
         returns the appropriate height for the bearing shelf
         """
         return (self.bracket_depth - self.bearing_depth - self.wheel_lateral_tolerance)/2
-
-if __name__ == '__main__':
-    config = BankConfig()
-    print(config.frame_clip_point)

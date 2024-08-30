@@ -19,9 +19,9 @@ def straight_wall_grooves() -> Part:
     creates the grooves in the frame peices for the front and back walls
     """
     with BuildPart(mode=Mode.PRIVATE) as groove:
-        Box(config.wall_thickness+config.frame_bracket_tolerance,
-            config.top_frame_interior_width+config.frame_bracket_tolerance,
-            config.frame_tongue_depth-config.wall_thickness/2+config.frame_bracket_tolerance,
+        Box(config.wall_thickness+config.tolerance,
+            config.top_frame_interior_width+config.tolerance,
+            config.frame_tongue_depth-config.wall_thickness/2+config.tolerance,
             align=(Align.CENTER, Align.CENTER, Align.MIN))
         extrude(groove.faces().sort_by(Axis.Z)[-1], amount=config.wall_thickness/2, taper=44)
         with BuildPart(groove.faces().sort_by(Axis.X)[-1], mode=Mode.ADD):
@@ -31,8 +31,8 @@ def straight_wall_grooves() -> Part:
             with GridLocations(0,config.top_frame_interior_width/1.5,1,2):
                 Sphere(radius=config.frame_click_sphere_radius*.75)
         with BuildPart(mode=Mode.SUBTRACT):
-            Box(config.wall_thickness+config.frame_bracket_tolerance, config.wall_thickness/2,
-                    config.frame_tongue_depth+config.frame_bracket_tolerance,
+            Box(config.wall_thickness+config.tolerance, config.wall_thickness/2,
+                    config.frame_tongue_depth+config.tolerance,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
             with BuildPart(Location((0,0,config.wall_thickness*.75))):
                 Sphere(radius=config.wall_thickness*.5)
@@ -50,20 +50,20 @@ def bracket_cutblock() -> Part:
     with BuildPart() as cutblock:
         with BuildPart(Location((0,0,0))) as curve:
             Cylinder(radius=config.frame_bracket_exterior_radius,
-                     height=config.bracket_depth+config.frame_bracket_tolerance*2,
+                     height=config.bracket_depth+config.tolerance*2,
                      arc_size=180,
                      align=(Align.CENTER, Align.MIN, Align.CENTER),
                      rotation=(90,0,0))
             fillet(curve.edges(), config.fillet_radius)
         with BuildPart(Location((-config.wheel_radius-config.bracket_depth/2,0,0))) as top_block:
             Box(config.frame_bracket_exterior_diameter,
-                config.bracket_depth+config.frame_bracket_tolerance*2,
+                config.bracket_depth+config.tolerance*2,
                 config.bracket_width,
                 align=(Align.MIN, Align.CENTER, Align.MIN))
             fillet(top_block.edges(), config.fillet_radius)
         add(chamber_cut(height=config.frame_base_depth*2))
         if LockStyle.CLIP in config.frame_lock_style:
-            add(bracket_clip_rail_block(inset=-config.frame_bracket_tolerance/2))
+            add(bracket_clip_rail_block(inset=-config.tolerance/2))
 
 
     part = cutblock.part.move(Location((0,0,config.frame_base_depth)))
@@ -76,7 +76,7 @@ def chamber_cut(height=config.bracket_height*3) -> Part:
     """
     with BuildPart() as cut:
         Box(config.chamber_cut_length,
-                config.bracket_depth+config.frame_bracket_tolerance*2,
+                config.bracket_depth+config.tolerance*2,
                 height,
                 align=(Align.CENTER, Align.CENTER, Align.CENTER)
                 )
@@ -164,7 +164,7 @@ def bottom_frame() -> Part:
                 minimum=-config.frame_bracket_exterior_radius+config.frame_hanger_offset-1,
                 maximum=-config.frame_bracket_exterior_radius+config.frame_hanger_offset+1)
         fillet(edge_set,config.fillet_radius)
-        if not config.frame_wall_bracket:
+        if not config.frame_hanger:
             add(bottom_frame_stand())
         with BuildPart(Location((config.frame_hanger_offset,0,0)),mode=Mode.SUBTRACT):
             with GridLocations(0,config.frame_bracket_spacing,1,
@@ -230,25 +230,25 @@ def top_frame() -> Part:
                                  (0,90,0))):
             with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count):
-                with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
+                with GridLocations(0,config.bracket_depth+config.tolerance*2, 1,2):
                     add(rounded_cylinder(radius=config.wall_thickness - \
-                            config.frame_bracket_tolerance,
+                            config.tolerance,
                             height=config.bracket_depth,
                             align=(Align.CENTER, Align.CENTER, Align.MIN)))
 
         with BuildPart(Location((config.frame_click_sphere_point.x,0,
                             config.frame_click_sphere_point.y+config.frame_base_depth))):
             with GridLocations(0,config.frame_bracket_spacing,1,config.filament_count):
-                with GridLocations(0,config.bracket_depth+config.frame_bracket_tolerance*2, 1,2):
+                with GridLocations(0,config.bracket_depth+config.tolerance*2, 1,2):
                     Sphere(config.frame_click_sphere_radius*.75)
 
-        if config.frame_wall_bracket:
+        if config.frame_hanger:
             with BuildPart(Location((-config.frame_exterior_length/2,0,0)),
                                      mode=Mode.SUBTRACT):
                 add(wall_cut_template(config.minimum_structural_thickness*1.5,
                         config.frame_exterior_width,config.bracket_height,bottom=False,
                         post_count=config.wall_bracket_post_count,
-                        tolerance=config.frame_bracket_tolerance))
+                        tolerance=config.tolerance))
 
         if LockStyle.PIN in config.frame_lock_style:
             with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth)),
@@ -277,7 +277,7 @@ def wall_bracket() -> Part:
             add(wall_cut_template(config.minimum_structural_thickness*1.5,
                                 config.frame_exterior_width,config.bracket_height,bottom=True,
                                 post_count=config.wall_bracket_post_count,
-                                tolerance=config.frame_bracket_tolerance))
+                                tolerance=config.tolerance))
         with BuildPart(Location((config.minimum_structural_thickness+.33,0,
                                 config.bracket_height/2),(0,-90,0)),
                                 mode=Mode.SUBTRACT):
@@ -304,7 +304,7 @@ def screw_head() -> Part:
 
 
 if __name__ == '__main__':
-    bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2).move(Location((config.bracket_depth,0,config.frame_clip_point.y-config.minimum_structural_thickness/2)))
+    bracketclip = bracket_clip(inset=config.tolerance/2).move(Location((config.bracket_depth,0,config.frame_clip_point.y-config.minimum_structural_thickness/2)))
     topframe = top_frame()
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
