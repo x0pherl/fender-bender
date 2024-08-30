@@ -16,23 +16,31 @@ def lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=False):
     rail_height = config.minimum_structural_thickness-tolerance
     with BuildPart() as pin:
         with BuildPart() as lower:
-            Box(config.minimum_structural_thickness-tolerance, config.frame_exterior_width, rail_height/2,
+            Box(config.minimum_structural_thickness-tolerance,
+                    config.frame_exterior_width, rail_height/2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-            chamfer(lower.faces().sort_by(Axis.Z)[-1].edges().filter_by(Axis.Y), length=rail_height/2-abs(tolerance/2),
+            chamfer(lower.faces().sort_by(Axis.Z)[-1].edges().filter_by(Axis.Y),
+                    length=rail_height/2-abs(tolerance/2),
                     length2=config.minimum_thickness)
         with BuildPart(Plane.XY.offset(rail_height/2)) as upper:
-            Box(config.minimum_structural_thickness-tolerance, config.frame_exterior_width, rail_height/2,
+            Box(config.minimum_structural_thickness-tolerance,
+                    config.frame_exterior_width, rail_height/2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-            chamfer(upper.faces().sort_by(Axis.Z)[0].edges().filter_by(Axis.Y), length=rail_height/2-abs(tolerance/2),
+            chamfer(upper.faces().sort_by(Axis.Z)[0].edges().filter_by(Axis.Y),
+                    length=rail_height/2-abs(tolerance/2),
                     length2=config.minimum_thickness)
         if tie_loop:
             with BuildPart(Location((0,config.frame_exterior_width/2,0))) as outer_loop:
-                Box(config.minimum_structural_thickness*2,config.minimum_structural_thickness*2,rail_height,
+                Box(config.minimum_structural_thickness*2,
+                    config.minimum_structural_thickness*2,rail_height,
                     align=(Align.CENTER, Align.MIN, Align.MIN))
-                fillet(outer_loop.faces().sort_by(Axis.Y)[-1].edges().filter_by(Axis.Z), config.minimum_structural_thickness-(abs(tolerance)))
-            with BuildPart(Location((0,config.frame_exterior_width/2+config.minimum_structural_thickness,0)), mode=Mode.SUBTRACT) as inner_loop:
-                Cylinder(radius=config.minimum_structural_thickness-config.minimum_thickness, height=rail_height,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+                fillet(outer_loop.faces().sort_by(Axis.Y)[-1].edges().filter_by(Axis.Z),
+                    config.minimum_structural_thickness-(abs(tolerance)))
+            with BuildPart(Location((0,
+                            config.frame_exterior_width/2+config.minimum_structural_thickness,0)),
+                            mode=Mode.SUBTRACT):
+                Cylinder(radius=config.minimum_structural_thickness-config.minimum_thickness,
+                    height=rail_height, align=(Align.CENTER, Align.CENTER, Align.MIN))
     return pin.part
 
 def rounded_cylinder(radius, height, align=(Align.CENTER, Align.CENTER, Align.CENTER)) -> Part:
@@ -66,18 +74,6 @@ def sidewall_shape(inset=0, length=config.sidewall_section_depth, straignt_inset
         add(wall.sketch.move(Location((0,-config.frame_base_depth-inset))))
     return side.sketch.move(Location((0,config.frame_base_depth)))
 
-#todo is this just a duplicate of the sidewall sketch? should it really be a separate thing?
-def frame_cut_sketch(inset=0) -> Sketch:
-    with BuildSketch(mode=Mode.PRIVATE) as wall:
-        Rectangle(width=config.sidewall_width, height=1-inset*2,
-            align=(Align.CENTER, Align.MAX))
-    with BuildSketch() as side:
-        Circle(radius=config.wheel_radius-inset)
-        Rectangle(width=config.wheel_diameter-inset*2, height=config.frame_base_depth,
-                align=(Align.CENTER, Align.MAX))
-        add(wall.sketch.move(Location((0,-config.frame_base_depth-inset))))
-    return side.sketch.move(Location((0,config.frame_base_depth)))
-
 def frame_flat_sidewall_cut(thickness=config.wall_thickness) -> Part:
     """
     builds a side of the frame
@@ -101,6 +97,19 @@ def frame_flat_sidewall_cut(thickness=config.wall_thickness) -> Part:
     part.label = "Frame Side"
     return part
 
+def frame_cut_sketch(inset=0) -> Sketch:
+    """
+    the overall shape of the sidewall with the arch
+    """
+    with BuildSketch(mode=Mode.PRIVATE) as wall:
+        Rectangle(width=config.sidewall_width, height=1-inset*2,
+            align=(Align.CENTER, Align.MAX))
+    with BuildSketch() as side:
+        Circle(radius=config.wheel_radius-inset)
+        Rectangle(width=config.wheel_diameter-inset*2, height=config.frame_base_depth,
+                align=(Align.CENTER, Align.MAX))
+        add(wall.sketch.move(Location((0,-config.frame_base_depth-inset))))
+    return side.sketch.move(Location((0,config.frame_base_depth)))
 
 def frame_arched_sidewall_cut(thickness=config.wall_thickness) -> Part:
     """
@@ -123,8 +132,5 @@ def frame_arched_sidewall_cut(thickness=config.wall_thickness) -> Part:
     return part
 
 if __name__ == '__main__':
-    # show(side_line(), reset_camera=Camera.KEEP)
     show(sidewall_shape(), sidewall_shape(inset=9), sidewall_shape(inset=5),
-         lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=True),
          reset_camera=Camera.KEEP)
-    # show(frame_arched_sidewall_cut(thickness=config.wall_thickness), reset_camera=Camera.KEEP)

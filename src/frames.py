@@ -3,12 +3,13 @@ Generates the part for the frames connecting the walls and holding the
 filament brackets in place
 """
 from build123d import (BuildPart, BuildSketch, Part, Cylinder, extrude,
-                       Mode, add, Location, loft, fillet, Axis, Box,
-                       Align, GridLocations, Plane, Sphere, Circle,
-                       Locations, export_stl, PolarLocations)
+                        Mode, add, Location, loft, fillet, Axis, Box,
+                        Align, GridLocations, Plane, Sphere, Circle,
+                        Locations, export_stl, PolarLocations)
 from ocp_vscode import show, Camera
 from bank_config import BankConfig, LockStyle
-from basic_shapes import rounded_cylinder,frame_arched_sidewall_cut,frame_flat_sidewall_cut, lock_pin
+from basic_shapes import (rounded_cylinder,frame_arched_sidewall_cut,
+                        frame_flat_sidewall_cut, lock_pin)
 from wall_cut_template import wall_cut_template
 from filament_bracket import bottom_bracket_block, bracket_clip, bracket_clip_rail_block
 

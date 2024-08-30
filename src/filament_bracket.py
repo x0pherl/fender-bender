@@ -56,15 +56,6 @@ def cut_spokes() -> Part:
     returns the wheel spokes cut down to the correct size
     """
     with BuildPart() as spokes:
-        #design A
-        # with PolarLocations(config.wheel_radius/2+config.bearing_shelf_radius,2):
-        #     Cylinder(radius=config.wheel_radius/2+config.bearing_shelf_diameter,
-        #         height=config.wheel_radius*.8,
-        #         align=(Align.CENTER, Align.CENTER, Align.MIN))
-        #     Cylinder(radius=config.wheel_radius/2, height=config.wheel_radius*.8,
-        #         align=(Align.CENTER, Align.CENTER, Align.MIN),
-        #         mode=Mode.SUBTRACT)
-        #design B
         with PolarLocations(0,3,start_angle=45):
             add(bracket_spoke())
         with BuildPart(mode=Mode.INTERSECT):
@@ -247,7 +238,8 @@ def bottom_bracket_block() -> Part:
                             (-90,0,0)), mode=Mode.SUBTRACT):
                 add(bracket_clip(inset=-config.tolerance/2))
         if LockStyle.PIN in config.frame_lock_style:
-            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,
+                            config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
                 add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
 
@@ -312,7 +304,8 @@ def bottom_bracket(draft:bool = False) -> Part:
                             (-90,0,0)), mode=Mode.SUBTRACT):
                 add(bracket_clip(inset=-config.tolerance/2))
         if LockStyle.PIN in config.frame_lock_style:
-            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,config.bracket_depth+config.minimum_structural_thickness/2,0),
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,
+                            config.bracket_depth+config.minimum_structural_thickness/2,0),
                             (-90,0,0)), mode=Mode.SUBTRACT):
                 add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
         if not draft:

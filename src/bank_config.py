@@ -93,6 +93,14 @@ class BankConfig:
         return self.frame_clip_inset/sqrt(2)*2
 
     @property
+    def frame_clip_width(self) -> float:
+        """
+        the overall width of the clip that locks the filament bracket into the frame
+        """
+        return self.bracket_depth + \
+            self.minimum_thickness/2 + self.wall_thickness * 2 / 3
+
+    @property
     def frame_base_depth(self) -> float:
         """
         the appropriate height for the bottom frame

@@ -118,7 +118,7 @@ def sidewall(length:float=config.sidewall_section_depth, reinforce=False, flippe
             with BuildPart():
                 with BuildSketch():
                     add(sidewall_shape(inset=config.wall_thickness/2, length=length,
-                                       straignt_inset=config.minimum_structural_thickness+config.tolerance))
+                            straignt_inset=config.minimum_structural_thickness+config.tolerance))
                     with BuildSketch(mode=Mode.SUBTRACT):
                         add(sidewall_shape(inset=config.wall_thickness/2 + \
                             config.minimum_structural_thickness, length=length,
@@ -177,7 +177,8 @@ def guide_wall(length:float,flipped=False) -> Part:
         with GridLocations(config.frame_exterior_width - \
                             config.minimum_structural_thickness + config.tolerance,0,2, 1):
             add(guide_side(base_length))
-        fillet((wall.faces().sort_by(Axis.X)[0] + wall.faces().sort_by(Axis.X)[-1]).edges().filter_by(Axis.Y), config.wall_thickness/4)
+        fillet((wall.faces().sort_by(Axis.X)[0] + wall.faces().sort_by(Axis.X)[-1]).edges(). \
+               filter_by(Axis.Y), config.wall_thickness/4)
 
     part = wall.part
     return part

@@ -5,7 +5,7 @@ useful for documentation and debugging
 
 from build123d import (BuildPart, Part, add, Location, Axis, Mode, Align, Box, export_stl)
 from ocp_vscode import show, Camera
-from frames import top_frame, bottom_frame, connector_frame
+from frames import top_frame, bottom_frame, connector_frame, lock_pin
 from walls import guide_wall, sidewall
 from bank_config import BankConfig
 from filament_bracket import bottom_bracket, spoke_assembly, wheel_guide
@@ -51,20 +51,24 @@ swall = sidewall(length=config.sidewall_section_depth, reinforce=True) \
 topframe = top_frame()
 
 def clip_test():
+    """
+    generates a useful part for testing the clip and pin mechanisms;
+    the the egress side of the frame and bracket
+    """
     with BuildPart() as testblock:
         add(top_frame())
         with BuildPart(Location((config.frame_exterior_length/4,0,0)),
                        mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_width, config.wheel_diameter,
                 align=(Align.MAX,Align.CENTER,Align.MIN))
-        with BuildPart(Location((0,0,config.wheel_radius/2+config.frame_base_depth)),
+        with BuildPart(Location((0,0,config.wheel_radius/2+config.frame_base_depth+config.minimum_structural_thickness)),
                        mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_width,
             config.wheel_diameter,
                 align=(Align.CENTER,Align.CENTER,Align.MIN))
         with BuildPart(Location((config.frame_exterior_length/4+3,0,0))):
             Box(config.minimum_structural_thickness, config.frame_exterior_width,
-                config.wheel_radius/2+config.frame_base_depth,
+                config.wheel_radius/2+config.frame_base_depth+config.minimum_structural_thickness,
                 align=(Align.MAX,Align.CENTER,Align.MIN))
             Box(config.minimum_structural_thickness, config.frame_exterior_width,
                 config.frame_base_depth,
@@ -81,7 +85,7 @@ def clip_test():
             Box(config.frame_exterior_length, config.frame_exterior_width,
                 config.wheel_diameter,
                 align=(Align.MAX,Align.MIN,Align.MIN))
-        with BuildPart(Location((0,config.wheel_radius/2,0)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((0,config.wheel_radius/2+config.minimum_structural_thickness,0)), mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_width,
                 config.wheel_diameter,
                 align=(Align.CENTER,Align.MIN,Align.MIN))
@@ -105,5 +109,11 @@ cframe = connector_frame().move(
 
 bkt = bracket().move(Location((0,0,config.frame_base_depth)))
 
-# show(topframe, bkt, bwall, cframe, fwall, swall, bframe, reset_camera=Camera.KEEP)
+lockpin = lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=True).move(Location(
+            (config.wheel_radius+config.bracket_depth/2,config.frame_exterior_width/2,
+            config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth + \
+            config.frame_lock_pin_tolerance/2)))
+
+
+show(topframe, bkt, bwall, cframe, fwall, swall, lockpin, bframe, reset_camera=Camera.KEEP)
 clip_test()
