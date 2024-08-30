@@ -1,11 +1,10 @@
 """
 utility for creating a bar with a zig-zag shape
 """
-from build123d import (BuildPart, BuildSketch, BuildLine, Polyline, extrude, make_face,
-                       fillet, Axis, Circle, add, Plane, Cylinder, Part, loft, Sketch,
-                       Align, Rectangle, Location, Mode, offset, Kind, Box, chamfer)
+from build123d import (BuildPart, BuildSketch, fillet, Axis, Circle, add,
+                       Plane, Cylinder, Part, loft, Sketch,
+                       Align, Rectangle, Location, Mode, Box, chamfer)
 from ocp_vscode import show, Camera
-from geometry_utils import find_angle_intersection
 from bank_config import BankConfig
 
 config = BankConfig()
@@ -68,15 +67,15 @@ def sidewall_shape(inset=0, length=config.sidewall_section_depth, straignt_inset
     return side.sketch.move(Location((0,config.frame_base_depth)))
 
 #todo is this just a duplicate of the sidewall sketch? should it really be a separate thing?
-def frame_cut_sketch(offset=0) -> Sketch:
+def frame_cut_sketch(inset=0) -> Sketch:
     with BuildSketch(mode=Mode.PRIVATE) as wall:
-        Rectangle(width=config.sidewall_width, height=1+offset*2,
+        Rectangle(width=config.sidewall_width, height=1-inset*2,
             align=(Align.CENTER, Align.MAX))
     with BuildSketch() as side:
-        Circle(radius=config.wheel_radius+offset)
-        Rectangle(width=config.wheel_diameter+offset*2, height=config.frame_base_depth,
+        Circle(radius=config.wheel_radius-inset)
+        Rectangle(width=config.wheel_diameter-inset*2, height=config.frame_base_depth,
                 align=(Align.CENTER, Align.MAX))
-        add(wall.sketch.move(Location((0,-config.frame_base_depth+offset))))
+        add(wall.sketch.move(Location((0,-config.frame_base_depth-inset))))
     return side.sketch.move(Location((0,config.frame_base_depth)))
 
 def frame_flat_sidewall_cut(thickness=config.wall_thickness) -> Part:
@@ -113,11 +112,11 @@ def frame_arched_sidewall_cut(thickness=config.wall_thickness) -> Part:
     with BuildPart() as side:
         with BuildPart():
             with BuildSketch(Plane.XY.offset(-thickness/4)):
-                add(frame_cut_sketch(offset=0))
+                add(frame_cut_sketch(inset=0))
             with BuildSketch():
-                add(frame_cut_sketch(offset=mid_adjustor))
-            with BuildSketch(Plane.XY.offset(thickness/4)):
-                add(frame_cut_sketch(offset=0))
+                add(frame_cut_sketch(inset=-mid_adjustor))
+            with BuildSketch(Plane.XY.offset(mid_adjustor)):
+                add(frame_cut_sketch(inset=0))
             loft(ruled=True)
     part = side.part.rotate(Axis.X, 90)
     part.label = "Frame Side"
@@ -125,6 +124,7 @@ def frame_arched_sidewall_cut(thickness=config.wall_thickness) -> Part:
 
 if __name__ == '__main__':
     # show(side_line(), reset_camera=Camera.KEEP)
-    show(sidewall_shape(), sidewall_shape(inset=9), sidewall_shape(inset=5), reset_camera=Camera.KEEP)
+    show(sidewall_shape(), sidewall_shape(inset=9), sidewall_shape(inset=5),
+         lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=True),
+         reset_camera=Camera.KEEP)
     # show(frame_arched_sidewall_cut(thickness=config.wall_thickness), reset_camera=Camera.KEEP)
-    show(lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=True), reset_camera=Camera.KEEP)

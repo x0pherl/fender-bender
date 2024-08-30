@@ -30,6 +30,9 @@ def bracket() -> Part:
     return part
 
 def half_top() -> Part:
+    """
+    returns half of the top frame
+    """
     with BuildPart() as half:
         add(top_frame())
         Box(1000,1000,1000, align=(Align.CENTER,Align.MIN, Align.CENTER), mode=Mode.SUBTRACT)
@@ -68,7 +71,6 @@ def clip_test():
                 align=(Align.MIN,Align.CENTER,Align.MIN))
 
     with BuildPart() as testbracket:
-        from filament_bracket import bottom_bracket
         add(bottom_bracket())
         with BuildPart(mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_length,
@@ -84,7 +86,9 @@ def clip_test():
                 config.wheel_diameter,
                 align=(Align.CENTER,Align.MIN,Align.MIN))
 
-    show(testblock.part, testbracket.part.move(Location((0,0,-config.bracket_depth/2))).rotate(Axis.X,90).move(Location((0,0,config.frame_base_depth))), reset_camera=Camera.KEEP)
+    show(testblock.part, testbracket.part.move(Location(
+        (0,0,-config.bracket_depth/2))).rotate(Axis.X,90).move(Location(
+        (0,0,config.frame_base_depth))), reset_camera=Camera.KEEP)
     export_stl(testblock.part, '../stl/test-frame.stl')
     export_stl(testbracket.part, '../stl/test-bracket.stl')
 

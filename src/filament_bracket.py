@@ -340,14 +340,6 @@ def top_bracket(tolerance:float=0) -> Part:
     return part
 
 
-# with BuildPart() as testbracket:
-#     Box(10,10,10)
-#     with BuildPart(mode=Mode.SUBTRACT):
-#         add(lock_pin(tolerance=-config.frame_lock_pin_tolerance, tie_loop=False).move(Location((0,0,-config.minimum_structural_thickness/2))))
-
-# show(testbracket.part, reset_camera=Camera.KEEP)
-# export_stl(testbracket.part, '../stl/test.stl')
-
 if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)
     top = top_bracket()

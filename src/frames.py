@@ -95,7 +95,7 @@ def connector_frame() -> Part:
                 config.connector_depth,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
         fillet(cframe.edges(), config.fillet_radius)
-        with BuildPart(mode=Mode.SUBTRACT):
+        with BuildPart(Location((config.frame_hanger_offset,0,0)),mode=Mode.SUBTRACT):
             with Locations(cframe.faces().sort_by(Axis.Z)[-1],
                            cframe.faces().sort_by(Axis.Z)[0]):
                 add(straight_wall_grooves())
@@ -152,28 +152,28 @@ def bottom_frame() -> Part:
                 config.frame_exterior_width,
                 config.frame_base_depth,
                 align=(Align.CENTER, Align.CENTER, Align.MIN))
-        with BuildPart(Location((0,0,config.frame_base_depth))):
+        with BuildPart(Location((config.frame_hanger_offset,0,config.frame_base_depth))):
             Cylinder(radius=config.frame_bracket_exterior_radius,
                  height=config.frame_exterior_width,
                  rotation=(90,0,0), arc_size=180,
                  align=(Align.CENTER,Align.MIN,Align.CENTER))
         edge_set=bframe.edges()-bframe.edges().filter_by_position(Axis.X,
-                minimum=config.frame_bracket_exterior_radius-1,
-                maximum=config.frame_bracket_exterior_radius+1) - \
+                minimum=config.frame_bracket_exterior_radius+config.frame_hanger_offset-1,
+                maximum=config.frame_bracket_exterior_radius+config.frame_hanger_offset+1) - \
                 bframe.edges().filter_by_position(Axis.X,
-                minimum=-config.frame_bracket_exterior_radius-1,
-                maximum=-config.frame_bracket_exterior_radius+1)
+                minimum=-config.frame_bracket_exterior_radius+config.frame_hanger_offset-1,
+                maximum=-config.frame_bracket_exterior_radius+config.frame_hanger_offset+1)
         fillet(edge_set,config.fillet_radius)
         if not config.frame_wall_bracket:
             add(bottom_frame_stand())
-        with BuildPart(mode=Mode.SUBTRACT):
+        with BuildPart(Location((config.frame_hanger_offset,0,0)),mode=Mode.SUBTRACT):
             with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count):
                 add(chamber_cut())
             with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count+1):
                 add(frame_arched_sidewall_cut())
-            with BuildPart(Location((0,0,config.frame_base_depth))):
+            with BuildPart(Location((config.frame_hanger_offset,0,config.frame_base_depth))):
                 Cylinder(radius=config.wheel_radius,
                         height=config.frame_exterior_width,
                         rotation=(90,0,0))
@@ -198,16 +198,16 @@ def top_frame() -> Part:
                 config.frame_exterior_width,
                 config.bracket_height,
                 align=(Align.MAX, Align.CENTER, Align.MIN))
-        with BuildPart(Location((0,0,config.frame_base_depth))):
+        with BuildPart(Location((config.frame_hanger_offset,0,config.frame_base_depth))):
             Cylinder(radius=config.frame_bracket_exterior_radius,
                  height=config.frame_exterior_width,
                  rotation=(90,0,0), arc_size=180,
                  align=(Align.CENTER,Align.MIN,Align.CENTER))
         edge_set=tframe.edges()-tframe.edges().filter_by_position(Axis.X,
-                minimum=config.frame_bracket_exterior_radius-1,
-                maximum=config.frame_bracket_exterior_radius+1)
+                minimum=config.frame_bracket_exterior_radius+config.frame_hanger_offset-1,
+                maximum=config.frame_bracket_exterior_radius+config.frame_hanger_offset+1)
         fillet(edge_set,config.fillet_radius)
-        with BuildPart(mode=Mode.SUBTRACT):
+        with BuildPart(Location((config.frame_hanger_offset,0,0)), mode=Mode.SUBTRACT):
             with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count):
                 add(bracket_cutblock())
@@ -215,7 +215,7 @@ def top_frame() -> Part:
             with GridLocations(0,config.frame_bracket_spacing,1,
                                config.filament_count+1):
                 add(frame_arched_sidewall_cut())
-            with BuildPart(Location((0,0,config.frame_base_depth))):
+            with BuildPart(Location((config.frame_hanger_offset,0,config.frame_base_depth))):
                 Cylinder(radius=config.wheel_radius,
                         height=config.frame_exterior_width,
                         rotation=(90,0,0))
@@ -243,7 +243,7 @@ def top_frame() -> Part:
                     Sphere(config.frame_click_sphere_radius*.75)
 
         if config.frame_wall_bracket:
-            with BuildPart(Location((-config.frame_exterior_length/2-config.minimum_structural_thickness,0,0)),
+            with BuildPart(Location((-config.frame_exterior_length/2,0,0)),
                                      mode=Mode.SUBTRACT):
                 add(wall_cut_template(config.minimum_structural_thickness*1.5,
                         config.frame_exterior_width,config.bracket_height,bottom=False,
@@ -251,13 +251,15 @@ def top_frame() -> Part:
                         tolerance=config.frame_bracket_tolerance))
 
         if LockStyle.PIN in config.frame_lock_style:
-            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth),
-                            (0,0,0)), mode=Mode.SUBTRACT):
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth)),
+                                 mode=Mode.SUBTRACT):
                 add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
-            with BuildPart(Location((config.frame_exterior_length/2-config.minimum_thickness-config.minimum_structural_thickness,0,0)), mode=Mode.SUBTRACT):
-                Cylinder(radius=config.minimum_structural_thickness-config.minimum_thickness, height=config.frame_base_depth,
-                         align=(Align.CENTER, Align.CENTER, Align.MIN))
-
+            with BuildPart(Location((config.frame_exterior_length/2-config.fillet_radius-config.minimum_thickness/2,0,0)), mode=Mode.SUBTRACT) as stringcut:
+                # Cylinder(radius=config.minimum_structural_thickness-config.minimum_thickness, height=config.frame_base_depth,
+                #          align=(Align.CENTER, Align.CENTER, Align.MIN))
+                Box(config.minimum_thickness, config.minimum_structural_thickness, config.frame_base_depth,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN))
+                fillet(stringcut.edges().filter_by(Axis.Z), config.minimum_thickness/2.1)
     part = tframe.part
     part.label = "Top Frame"
     return part
@@ -300,26 +302,27 @@ def screw_head() -> Part:
         loft(ruled=True)
     return head.part
 
+
 if __name__ == '__main__':
-    bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2).move(Location(
-            (0,config.bracket_depth/2,0)))
+    bracketclip = bracket_clip(inset=config.frame_bracket_tolerance/2).move(Location((config.bracket_depth,0,config.frame_clip_point.y-config.minimum_structural_thickness/2)))
     topframe = top_frame()
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
     wallbracket = wall_bracket()
     lockpin = lock_pin(tolerance=config.frame_lock_pin_tolerance/2, tie_loop=True)
-    export_stl(lockpin, '../stl/lock_pin.stl')
     export_stl(topframe, '../stl/frame-top.stl')
     export_stl(bottomframe, '../stl/frame-bottom.stl')
     export_stl(connectorframe, '../stl/frame-connector.stl')
     export_stl(wallbracket, '../stl/frame-wall-bracket.stl')
+    if LockStyle.PIN in config.frame_lock_style:
+        export_stl(lockpin, '../stl/frame-lock-pin.stl')
+
     show(topframe,
         bottom_bracket_block().move(Location(
                 (0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location(
                 (0,0,config.frame_base_depth))),
-        bracketclip.move(Location(
-                (0,config.bracket_depth,0))) if LockStyle.CLIP in config.frame_lock_style else None,
-        lockpin.move(Location((config.wheel_radius+config.bracket_depth/2,0,
+        bracketclip if LockStyle.CLIP in config.frame_lock_style else None,
+        lockpin.move(Location((config.wheel_radius+config.bracket_depth/2,config.frame_exterior_width/2,
                 config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth + \
                 config.frame_lock_pin_tolerance/2))) if LockStyle.PIN in config.frame_lock_style else None,
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,

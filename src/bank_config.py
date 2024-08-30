@@ -4,8 +4,8 @@ module for all of the configuration required to build a filament bank
 from dataclasses import dataclass
 from math import sqrt
 from shapely.geometry import Point
-from geometry_utils import distance_to_circle_edge, point_distance, y_point_to_angle
-from enum import Enum, auto, Flag
+from geometry_utils import distance_to_circle_edge, point_distance
+from enum import auto, Flag
 
 
 class LockStyle(Flag):
@@ -57,7 +57,7 @@ class BankConfig:
     wall_thickness = 3
     frame_tongue_depth = 4
     frame_bracket_tolerance = 0.2
-    frame_lock_pin_tolerance = 0.6
+    frame_lock_pin_tolerance = 0.3
     frame_lock_style = LockStyle.BOTH
 
     frame_clip_depth = 10
@@ -188,8 +188,17 @@ class BankConfig:
         """
         the overall interior length of the top frame
         """
-        return self.frame_bracket_exterior_diameter + \
-            self.wall_thickness * 2 + self.minimum_structural_thickness * 2.5
+        length= self.frame_bracket_exterior_diameter + \
+            self.wall_thickness * 2 + self.minimum_structural_thickness * 2.5 + \
+            self.frame_hanger_offset * 2
+        return length
+
+    @property
+    def frame_hanger_offset(self) -> float:
+        """
+        the offset to adjust for a wall bracket if enabled
+        """
+        return self.minimum_structural_thickness/2 if self.frame_wall_bracket else 0
 
     @property
     def frame_exterior_width(self) -> float:
@@ -292,6 +301,9 @@ class BankConfig:
 
     @property
     def chamber_cut_length(self) -> float:
+        """
+        the length to cut for each chamber in the frames
+        """
         return self.sidewall_width-self.wall_thickness*2
 
     @property
