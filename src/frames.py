@@ -10,7 +10,7 @@ from ocp_vscode import show, Camera
 from bank_config import BankConfig, LockStyle
 from basic_shapes import (rounded_cylinder,frame_arched_sidewall_cut,
                         frame_flat_sidewall_cut, lock_pin)
-from wall_cut_template import wall_cut_template
+from wall_hanger_cut_template import wall_hanger_cut_template
 from filament_bracket import bottom_bracket_block, bracket_clip, bracket_clip_rail_block
 
 config = BankConfig()
@@ -246,19 +246,20 @@ def top_frame() -> Part:
         if config.frame_hanger:
             with BuildPart(Location((-config.frame_exterior_length/2,0,0)),
                                      mode=Mode.SUBTRACT):
-                add(wall_cut_template(config.minimum_structural_thickness*1.5,
+                add(wall_hanger_cut_template(config.minimum_structural_thickness*1.5,
                         config.frame_exterior_width,config.bracket_height,bottom=False,
                         post_count=config.wall_bracket_post_count,
                         tolerance=config.tolerance))
 
         if LockStyle.PIN in config.frame_lock_style:
-            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth)),
-                                 mode=Mode.SUBTRACT):
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,
+                            config.bracket_depth+config.minimum_structural_thickness/2 + \
+                            config.frame_base_depth)), mode=Mode.SUBTRACT):
                 add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
-            with BuildPart(Location((config.frame_exterior_length/2-config.fillet_radius-config.minimum_thickness/2,0,0)), mode=Mode.SUBTRACT) as stringcut:
-                # Cylinder(radius=config.minimum_structural_thickness-config.minimum_thickness, height=config.frame_base_depth,
-                #          align=(Align.CENTER, Align.CENTER, Align.MIN))
-                Box(config.minimum_thickness, config.minimum_structural_thickness, config.frame_base_depth,
+            with BuildPart(Location((config.frame_exterior_length/2-config.fillet_radius -\
+                                config.minimum_thickness/2,0,0)), mode=Mode.SUBTRACT) as stringcut:
+                Box(config.minimum_thickness, config.minimum_structural_thickness,
+                    config.frame_base_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
                 fillet(stringcut.edges().filter_by(Axis.Z), config.minimum_thickness/2.1)
     part = tframe.part
@@ -275,7 +276,7 @@ def wall_bracket() -> Part:
             align=(Align.MIN, Align.CENTER, Align.MIN))
         fillet(bracket.edges(), config.minimum_structural_thickness/config.fillet_ratio)
         with BuildPart(mode=Mode.INTERSECT):
-            add(wall_cut_template(config.minimum_structural_thickness*1.5,
+            add(wall_hanger_cut_template(config.minimum_structural_thickness*1.5,
                                 config.frame_exterior_width,config.bracket_height,bottom=True,
                                 post_count=config.wall_bracket_post_count,
                                 tolerance=config.tolerance))
@@ -305,7 +306,8 @@ def screw_head() -> Part:
 
 
 if __name__ == '__main__':
-    bracketclip = bracket_clip(inset=config.tolerance/2).move(Location((config.bracket_depth,0,config.frame_clip_point.y-config.minimum_structural_thickness/2)))
+    bracketclip = bracket_clip(inset=config.tolerance/2).move(Location(
+        (config.bracket_depth,0,config.frame_clip_point.y-config.minimum_structural_thickness/2)))
     topframe = top_frame()
     bottomframe = bottom_frame()
     connectorframe = connector_frame()
@@ -323,9 +325,11 @@ if __name__ == '__main__':
                 (0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location(
                 (0,0,config.frame_base_depth))),
         bracketclip if LockStyle.CLIP in config.frame_lock_style else None,
-        lockpin.move(Location((config.wheel_radius+config.bracket_depth/2,config.frame_exterior_width/2,
-                config.bracket_depth+config.minimum_structural_thickness/2+config.frame_base_depth + \
-                config.frame_lock_pin_tolerance/2))) if LockStyle.PIN in config.frame_lock_style else None,
+        lockpin.move(Location((config.wheel_radius+config.bracket_depth/2,
+                config.frame_exterior_width/2, config.bracket_depth +\
+                config.minimum_structural_thickness/2+config.frame_base_depth + \
+                config.frame_lock_pin_tolerance/2))) \
+                if LockStyle.PIN in config.frame_lock_style else None,
         bottomframe.rotate(axis=Axis.X,angle=180).move(Location((0,0,
             -config.frame_base_depth*3))),
         connectorframe.move(Location((0,0,-config.frame_base_depth*2))),

@@ -61,8 +61,10 @@ def clip_test():
                        mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_width, config.wheel_diameter,
                 align=(Align.MAX,Align.CENTER,Align.MIN))
-        with BuildPart(Location((0,0,config.wheel_radius/2+config.frame_base_depth+config.minimum_structural_thickness)),
-                       mode=Mode.SUBTRACT):
+        with BuildPart(Location((0,0,
+                        config.wheel_radius/2+config.frame_base_depth + \
+                        config.minimum_structural_thickness)),
+                        mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_width,
             config.wheel_diameter,
                 align=(Align.CENTER,Align.CENTER,Align.MIN))
@@ -85,7 +87,8 @@ def clip_test():
             Box(config.frame_exterior_length, config.frame_exterior_width,
                 config.wheel_diameter,
                 align=(Align.MAX,Align.MIN,Align.MIN))
-        with BuildPart(Location((0,config.wheel_radius/2+config.minimum_structural_thickness,0)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((0,config.wheel_radius/2+config.minimum_structural_thickness,
+                                 0)), mode=Mode.SUBTRACT):
             Box(config.frame_exterior_length, config.frame_exterior_width,
                 config.wheel_diameter,
                 align=(Align.CENTER,Align.MIN,Align.MIN))

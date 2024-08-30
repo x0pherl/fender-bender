@@ -68,7 +68,8 @@ def sidewall_shape(inset=0, length=config.sidewall_section_depth, straignt_inset
     with BuildSketch() as side:
         Circle(radius=config.wheel_radius-inset)
         with BuildSketch(mode=Mode.SUBTRACT):
-            Rectangle(config.wheel_diameter*2,config.wheel_diameter*2, align=(Align.CENTER,Align.MAX))
+            Rectangle(config.wheel_diameter*2,config.wheel_diameter*2,
+                      align=(Align.CENTER,Align.MAX))
         Rectangle(width=config.wheel_diameter-inset*2, height=config.frame_base_depth,
                 align=(Align.CENTER, Align.MAX))
         add(wall.sketch.move(Location((0,-config.frame_base_depth-inset))))
