@@ -41,19 +41,19 @@ def wall_hanger_cut_template(length, width, height:float, bottom:bool=True,
             chamfer(back_edge.faces().sort_by(Axis.Z)[-1].edges().sort_by(Axis.X)[0], cut_unit)
         with BuildPart(back_edge.faces().sort_by(Axis.X)[-1]):
             with GridLocations(0,width/post_count,1,post_count):
-                add(wall_slot(width/(post_count+3), height-cut_unit*4,
+                add(wall_slot(width/(post_count+3-effective_tolerance*2), height-cut_unit*4,
                               cut_unit+effective_tolerance))
     return cut.part
 
 with BuildPart() as hanger:
     Box(9,80,40, align=(Align.MIN, Align.CENTER, Align.MIN))
     with BuildPart(mode=Mode.INTERSECT):
-        add(wall_hanger_cut_template(9,80,40,bottom=True, post_count=3, tolerance=.2))
+        add(wall_hanger_cut_template(6.0, 59.0, 43.2, bottom=True, post_count=3, tolerance=.2))
 
 with BuildPart() as hung:
     Box(9,80,40, align=(Align.MIN, Align.CENTER, Align.MIN))
     with BuildPart(mode=Mode.SUBTRACT):
-        add(wall_hanger_cut_template(9,80,40,bottom=False, post_count=3,tolerance=.2))
+        add(wall_hanger_cut_template(6.0, 59.0, 43.2,bottom=False, post_count=3,tolerance=.2))
 
 if __name__ == '__main__':
     show(
