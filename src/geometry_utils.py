@@ -2,7 +2,8 @@
 Useful geometry utilities for design
 """
 
-from math import sqrt, radians, cos, sin, atan2, degrees, tan
+from math import atan2, cos, degrees, radians, sin, sqrt, tan
+
 from shapely.geometry import Point
 
 

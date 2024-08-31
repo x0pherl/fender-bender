@@ -3,25 +3,26 @@ utility for creating a bar with a zig-zag shape
 """
 
 from build123d import (
+    Align,
+    Axis,
+    Box,
     BuildPart,
     BuildSketch,
-    fillet,
-    Axis,
     Circle,
-    add,
-    Plane,
     Cylinder,
-    Part,
-    loft,
-    Sketch,
-    Align,
-    Rectangle,
     Location,
     Mode,
-    Box,
+    Part,
+    Plane,
+    Rectangle,
+    Sketch,
+    add,
     chamfer,
+    fillet,
+    loft,
 )
-from ocp_vscode import show, Camera
+from ocp_vscode import Camera, show
+
 from bank_config import BankConfig
 
 config = BankConfig()

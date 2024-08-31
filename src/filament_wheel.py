@@ -3,26 +3,27 @@ Generates the part for the filament wheel of our filament bank design
 """
 
 from build123d import (
+    BuildLine,
     BuildPart,
     BuildSketch,
-    Part,
-    Sketch,
-    Circle,
     CenterArc,
-    extrude,
-    Mode,
+    Circle,
     JernArc,
-    BuildLine,
     Line,
-    make_face,
-    add,
+    Location,
+    Mode,
+    Part,
     PolarLocations,
     RegularPolygon,
-    sweep,
-    Location,
+    Sketch,
+    add,
     export_stl,
+    extrude,
+    make_face,
+    sweep,
 )
-from ocp_vscode import show, Camera
+from ocp_vscode import Camera, show
+
 from bank_config import BankConfig
 
 config = BankConfig()

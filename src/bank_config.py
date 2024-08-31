@@ -3,9 +3,11 @@ module for all of the configuration required to build a filament bank
 """
 
 from dataclasses import dataclass
+from enum import Flag, auto
 from math import sqrt
-from enum import auto, Flag
+
 from shapely.geometry import Point
+
 from geometry_utils import distance_to_circle_edge, point_distance
 
 

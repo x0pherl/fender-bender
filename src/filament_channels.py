@@ -3,31 +3,33 @@ Generates filament ingress and egress shapes
 """
 
 from math import sqrt
+
+from bd_warehouse.thread import TrapezoidalThread
 from build123d import (
-    BuildPart,
-    BuildSketch,
-    Part,
-    Circle,
-    Mode,
-    BuildLine,
-    Line,
-    add,
-    Location,
-    Plane,
-    loft,
-    fillet,
+    Align,
     Axis,
     Box,
-    Align,
-    Cylinder,
-    Rectangle,
-    sweep,
+    BuildLine,
+    BuildPart,
+    BuildSketch,
     CenterArc,
+    Circle,
     Compound,
+    Cylinder,
+    Line,
+    Location,
+    Mode,
+    Part,
+    Plane,
+    Rectangle,
+    add,
     extrude,
+    fillet,
+    loft,
+    sweep,
 )
-from ocp_vscode import show, Camera
-from bd_warehouse.thread import TrapezoidalThread
+from ocp_vscode import Camera, show
+
 from bank_config import BankConfig
 
 config = BankConfig()

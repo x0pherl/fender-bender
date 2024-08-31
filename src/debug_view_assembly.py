@@ -4,21 +4,22 @@ useful for documentation and debugging
 """
 
 from build123d import (
+    Align,
+    Axis,
+    Box,
     BuildPart,
+    Location,
+    Mode,
     Part,
     add,
-    Location,
-    Axis,
-    Mode,
-    Align,
-    Box,
     export_stl,
 )
-from ocp_vscode import show, Camera
-from frames import top_frame, bottom_frame, connector_frame, lock_pin
-from walls import guide_wall, sidewall
+from ocp_vscode import Camera, show
+
 from bank_config import BankConfig
 from filament_bracket import bottom_bracket, spoke_assembly, wheel_guide
+from frames import bottom_frame, connector_frame, lock_pin, top_frame
+from walls import guide_wall, sidewall
 
 config = BankConfig()
 

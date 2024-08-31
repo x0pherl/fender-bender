@@ -3,45 +3,46 @@ Generates the part for the filament bracket of our filament bank design
 """
 
 from build123d import (
+    Align,
+    Axis,
+    Box,
+    BuildLine,
     BuildPart,
     BuildSketch,
-    Part,
-    Circle,
     CenterArc,
-    extrude,
-    Mode,
-    BuildLine,
-    Line,
-    make_face,
-    add,
-    Location,
-    Plane,
-    loft,
-    fillet,
-    Align,
+    Circle,
     Cylinder,
     GeomType,
-    Axis,
-    offset,
+    GridLocations,
+    Line,
+    Location,
+    Locations,
+    Mode,
+    Part,
+    Plane,
+    PolarLocations,
     Rectangle,
     Sketch,
-    GridLocations,
-    PolarLocations,
-    export_stl,
     Sphere,
-    Locations,
-    Box,
+    add,
+    export_stl,
+    extrude,
+    fillet,
+    loft,
+    make_face,
+    offset,
 )
-from ocp_vscode import show, Camera
+from ocp_vscode import Camera, show
+
 from bank_config import BankConfig, LockStyle
-from basic_shapes import rounded_cylinder, lock_pin
+from basic_shapes import lock_pin, rounded_cylinder
 from filament_channels import (
-    curved_filament_path_solid,
-    straight_filament_path_solid,
-    straight_filament_connector_threads,
     curved_filament_connector_threads,
     curved_filament_path,
+    curved_filament_path_solid,
+    straight_filament_connector_threads,
     straight_filament_path,
+    straight_filament_path_solid,
 )
 
 config = BankConfig()

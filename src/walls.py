@@ -3,26 +3,27 @@ Generates the part for the chamber walls of the filament bank
 """
 
 from build123d import (
-    BuildPart,
-    BuildSketch,
-    Part,
-    Cylinder,
-    extrude,
-    Mode,
-    add,
-    Location,
-    loft,
-    fillet,
+    Align,
     Axis,
     Box,
-    Align,
+    BuildPart,
+    BuildSketch,
+    Cylinder,
     GridLocations,
+    Location,
+    Mode,
+    Part,
     Plane,
     Rectangle,
     Sphere,
+    add,
     export_stl,
+    extrude,
+    fillet,
+    loft,
 )
-from ocp_vscode import show, Camera
+from ocp_vscode import Camera, show
+
 from bank_config import BankConfig
 from basic_shapes import sidewall_shape
 from hexwall import HexWall

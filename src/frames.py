@@ -4,41 +4,42 @@ filament brackets in place
 """
 
 from build123d import (
-    BuildPart,
-    BuildSketch,
-    Part,
-    Cylinder,
-    extrude,
-    Mode,
-    add,
-    Location,
-    loft,
-    fillet,
+    Align,
     Axis,
     Box,
-    Align,
-    GridLocations,
-    Plane,
-    Sphere,
+    BuildPart,
+    BuildSketch,
     Circle,
+    Cylinder,
+    GridLocations,
+    Location,
     Locations,
-    export_stl,
+    Mode,
+    Part,
+    Plane,
     PolarLocations,
+    Sphere,
+    add,
+    export_stl,
+    extrude,
+    fillet,
+    loft,
 )
-from ocp_vscode import show, Camera
+from ocp_vscode import Camera, show
+
 from bank_config import BankConfig, LockStyle
 from basic_shapes import (
-    rounded_cylinder,
     frame_arched_sidewall_cut,
     frame_flat_sidewall_cut,
     lock_pin,
+    rounded_cylinder,
 )
-from wall_hanger_cut_template import wall_hanger_cut_template
 from filament_bracket import (
     bottom_bracket_block,
     bracket_clip,
     bracket_clip_rail_block,
 )
+from wall_hanger_cut_template import wall_hanger_cut_template
 
 config = BankConfig()
 

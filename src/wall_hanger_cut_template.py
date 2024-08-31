@@ -4,22 +4,22 @@ that slide together, allowing for a part to be hung on a wall
 """
 
 from build123d import (
-    BuildPart,
-    BuildSketch,
-    Part,
-    add,
-    Location,
-    loft,
+    Align,
     Axis,
     Box,
-    Align,
+    BuildPart,
+    BuildSketch,
     GridLocations,
-    Plane,
-    chamfer,
-    Rectangle,
+    Location,
     Mode,
+    Part,
+    Plane,
+    Rectangle,
+    add,
+    chamfer,
+    loft,
 )
-from ocp_vscode import show, Camera
+from ocp_vscode import Camera, show
 
 
 def wall_slot(width, height, depth) -> Part:

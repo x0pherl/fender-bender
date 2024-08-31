@@ -2,6 +2,7 @@
 pre-commit
 black
 flake8
+isort
 build123d
 ocp_vscode
 dataclasses

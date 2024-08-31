@@ -10,19 +10,20 @@ desc:
     in a grid of hexagons.
 """
 
-from typing import Union
 from math import sqrt
+from typing import Union
+
 from build123d import (
+    Align,
+    Axis,
     Box,
     BuildPart,
     BuildSketch,
     HexLocations,
-    RegularPolygon,
-    Align,
-    extrude,
     Mode,
     Part,
-    Axis,
+    RegularPolygon,
+    extrude,
 )
 
 
