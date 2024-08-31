@@ -13,7 +13,7 @@ def wall_slot(width, height, depth) -> Part:
     creates the basic interlocking shape for connecting the two parts
     """
     with BuildPart() as slot:
-        with BuildSketch() as sk_base:
+        with BuildSketch():
             Rectangle(height,width)
         with BuildSketch(Plane.XY.offset(depth)):
             Rectangle(height,width+depth*2)
