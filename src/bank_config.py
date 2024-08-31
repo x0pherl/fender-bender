@@ -20,6 +20,14 @@ class LockStyle(Flag):
     NONE = auto()
 
 
+class FrameStyle(Flag):
+    """What sort of frame to have"""
+
+    HANGING = auto()
+    STANDING = auto()
+    HYBRID = HANGING | STANDING
+
+
 @dataclass
 class BankConfig:
     """
@@ -65,7 +73,7 @@ class BankConfig:
 
     frame_clip_depth_offset = 10
 
-    frame_hanger = True
+    frame_style = FrameStyle.HYBRID
     wall_bracket_screw_radius = 2.25
     wall_bracket_screw_head_radius = 4.5
     wall_bracket_screw_head_sink = 1.4
@@ -220,7 +228,9 @@ class BankConfig:
         the offset to adjust for a wall bracket if enabled
         """
         return (
-            self.minimum_structural_thickness / 2 if self.frame_hanger else 0
+            self.minimum_structural_thickness / 2
+            if FrameStyle.HANGING in self.frame_style
+            else 0
         )
 
     @property

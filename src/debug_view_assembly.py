@@ -16,7 +16,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig
+from bank_config import BankConfig, FrameStyle
 from filament_bracket import bottom_bracket, spoke_assembly, wheel_guide
 from frames import bottom_frame, connector_frame, lock_pin, top_frame
 from walls import guide_wall, sidewall
@@ -204,13 +204,13 @@ def clip_test():
     export_stl(testbracket.part, "../stl/test-bracket.stl")
 
 
-ROTATION_VALUE = 180 if config.frame_hanger else 0
+ROTATION_VALUE = 180 if FrameStyle.HANGING in config.frame_style else 0
 DEPTH_SHIFT_VALUE = (
-    0
-    if config.frame_hanger
-    else -config.sidewall_straight_depth
+    -config.sidewall_straight_depth
     - config.connector_depth
     - config.sidewall_straight_depth
+    if FrameStyle.STANDING in config.frame_style
+    else 0
 )
 bframe = (
     bottom_frame()

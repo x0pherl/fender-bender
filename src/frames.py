@@ -27,7 +27,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig, LockStyle
+from bank_config import BankConfig, FrameStyle, LockStyle
 from basic_shapes import (
     frame_arched_sidewall_cut,
     frame_flat_sidewall_cut,
@@ -196,7 +196,8 @@ def bottom_frame_stand() -> Part:
             align=(Align.CENTER, Align.CENTER, Align.MIN),
         )
         with BuildPart(
-            Location((0, 0, config.frame_base_depth)), mode=Mode.SUBTRACT
+            Location((config.frame_hanger_offset, 0, config.frame_base_depth)),
+            mode=Mode.SUBTRACT,
         ):
             Box(
                 config.frame_bracket_exterior_diameter
@@ -259,7 +260,7 @@ def bottom_frame() -> Part:
             )
         )
         fillet(edge_set, config.fillet_radius)
-        if not config.frame_hanger:
+        if FrameStyle.STANDING in config.frame_style:
             add(bottom_frame_stand())
         with BuildPart(
             Location((config.frame_hanger_offset, 0, 0)), mode=Mode.SUBTRACT
@@ -404,7 +405,7 @@ def top_frame() -> Part:
                 ):
                     Sphere(config.frame_click_sphere_radius * 0.75)
 
-        if config.frame_hanger:
+        if FrameStyle.HANGING in config.frame_style:
             with BuildPart(
                 Location((-config.frame_exterior_length / 2, 0, 0)),
                 mode=Mode.SUBTRACT,
