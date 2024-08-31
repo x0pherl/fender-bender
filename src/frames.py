@@ -252,7 +252,7 @@ def top_frame() -> Part:
                         tolerance=config.tolerance))
 
         if LockStyle.PIN in config.frame_lock_style:
-            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2,0,
+            with BuildPart(Location((config.wheel_radius+config.bracket_depth/2+config.frame_hanger_offset,0,
                             config.bracket_depth+config.minimum_structural_thickness/2 + \
                             config.frame_base_depth)), mode=Mode.SUBTRACT):
                 add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
@@ -323,9 +323,9 @@ if __name__ == '__main__':
     show(topframe,
         bottom_bracket_block().move(Location(
                 (0,0,-config.bracket_depth/2))).rotate(Axis.X, 90).move(Location(
-                (0,0,config.frame_base_depth))),
+                (config.frame_hanger_offset+config.tolerance,0,config.frame_base_depth))),
         bracketclip if LockStyle.CLIP in config.frame_lock_style else None,
-        lockpin.move(Location((config.wheel_radius+config.bracket_depth/2,
+        lockpin.move(Location((config.wheel_radius+config.bracket_depth/2+config.frame_hanger_offset,
                 config.frame_exterior_width/2, config.bracket_depth +\
                 config.minimum_structural_thickness/2+config.frame_base_depth + \
                 config.frame_lock_pin_tolerance/2))) \
