@@ -200,13 +200,18 @@ def bracket_clip(inset=0, frame_depth=config.frame_clip_point.y) -> Part:
         add(base_cylinder)
         offset(amount=-config.wall_thickness+inset)
     with BuildPart() as clip:
-        add(bracket_clip_rail_block(inset=inset,frame_depth=frame_depth))
+        add(bracket_clip_rail_block(inset=inset, frame_depth=frame_depth))
         add(base_cylinder, mode=Mode.INTERSECT)
         add(inset_cylinder, mode=Mode.SUBTRACT)
 
         extrude(clip.faces().sort_by(Axis.X)[-1],amount=config.bracket_depth,dir=(1,0,0))
         edge_set = clip.faces().sort_by(Axis.X)[-1].edges().filter_by(GeomType.CIRCLE)
         fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
+        with BuildPart(Location((config.frame_clip_point.x + config.bracket_depth/2,0,
+                    config.frame_clip_point.y)), mode=Mode.SUBTRACT):
+            Cylinder(radius=(config.frame_clip_width-config.fillet_radius*2)/3.5,
+                     height=config.bracket_depth,
+                     align=(Align.CENTER,Align.CENTER,Align.CENTER))
     part = clip.part
     part.label = "Bracket Clip"
     return part
@@ -331,7 +336,6 @@ def top_bracket(tolerance:float=0) -> Part:
     part = frame.part
     part.label = "top bracket"
     return part
-
 
 if __name__ == '__main__':
     bottom = bottom_bracket(draft=False)
