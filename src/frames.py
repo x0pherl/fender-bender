@@ -256,12 +256,11 @@ def top_frame() -> Part:
                             config.bracket_depth+config.minimum_structural_thickness/2 + \
                             config.frame_base_depth)), mode=Mode.SUBTRACT):
                 add(lock_pin(tolerance=-config.frame_lock_pin_tolerance/2, tie_loop=False))
-            with BuildPart(Location((config.frame_exterior_length/2-config.fillet_radius -\
-                                config.minimum_thickness/2,0,0)), mode=Mode.SUBTRACT) as stringcut:
-                Box(config.minimum_thickness, config.minimum_structural_thickness,
+            with BuildPart(Location((config.frame_exterior_length/2-config.fillet_radius,0,0)), mode=Mode.SUBTRACT) as stringcut:
+                Box(config.minimum_thickness*2, config.minimum_structural_thickness*2,
                     config.frame_base_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN))
-                fillet(stringcut.edges().filter_by(Axis.Z), config.minimum_thickness/2.1)
+                fillet(stringcut.edges().filter_by(Axis.Z), config.minimum_thickness*.9)
     part = tframe.part
     part.label = "Top Frame"
     return part
