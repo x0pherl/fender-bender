@@ -1,0 +1,10 @@
+
+pre-commit
+black
+flake8
+build123d
+ocp_vscode
+dataclasses
+math
+enum
+shapely

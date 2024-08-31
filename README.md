@@ -21,7 +21,7 @@ You'll need to purchase Tube Fittings, and potentially tubing. Here are some sou
 ## Recommended Print Settings
 layer height: .15mm or lower (lower layer heights reduce friction if the filament is rubbing against the funnel feed)
 
-## Modifying the Source 
+## Modifying the Source
 
 The included source file relies on the build123d library. I recommend following the [build123d installation instructions](https://build123d.readthedocs.io/en/latest/installation.html).
 
