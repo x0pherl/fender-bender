@@ -178,7 +178,7 @@ def curved_filament_line() -> Compound:
     and the connector
     """
     straight_distance = (
-        config.connector_depth / 2 + config.minimum_structural_thickness
+        config.connector_length / 2 + config.minimum_structural_thickness
     ) / sqrt(2)
 
     with BuildLine(mode=Mode.PRIVATE):

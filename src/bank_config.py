@@ -60,8 +60,7 @@ class BankConfig:
     tolerance = 0.2
     filament_count = 3
 
-    # sidewall_section_depth = 240
-    sidewall_section_depth = 70
+    frame_chamber_depth = 170 #240
     solid_walls = False
     wall_window_apothem = 8
     wall_window_bar_thickness = 1.5
@@ -101,6 +100,15 @@ class BankConfig:
         return distance_to_circle_edge(
             self.frame_bracket_exterior_radius, (0, y_value), 0
         )
+
+    @property
+    def sidewall_section_depth(self) -> float:
+        """
+        returns the length of the sidewall based on the overall chamber
+        depth and allowing for the frame elements that contribute to the height
+        """
+        return (self.frame_chamber_depth - self.frame_connector_depth - self.frame_base_depth - \
+             (self.frame_bracket_exterior_radius-self.wheel_radius))/2
 
     @property
     def frame_clip_inset(self) -> float:
@@ -149,7 +157,7 @@ class BankConfig:
         )
 
     @property
-    def connector_depth(self) -> float:
+    def frame_connector_depth(self) -> float:
         """
         the depth of the connector frame
         """

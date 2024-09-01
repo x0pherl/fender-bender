@@ -144,7 +144,7 @@ def connector_frame() -> Part:
             Box(
                 config.frame_exterior_length,
                 config.frame_exterior_width,
-                config.connector_depth,
+                config.frame_connector_depth,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
         fillet(cframe.edges(), config.fillet_radius)

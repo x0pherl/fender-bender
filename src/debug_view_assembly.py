@@ -207,7 +207,7 @@ def clip_test():
 ROTATION_VALUE = 180 if FrameStyle.HANGING in config.frame_style else 0
 DEPTH_SHIFT_VALUE = (
     -config.sidewall_straight_depth
-    - config.connector_depth
+    - config.frame_connector_depth
     - config.sidewall_straight_depth
     if FrameStyle.STANDING in config.frame_style
     else 0
@@ -221,7 +221,7 @@ bframe = (
                 0,
                 0,
                 -config.sidewall_straight_depth * 2
-                - config.connector_depth
+                - config.frame_connector_depth
                 + DEPTH_SHIFT_VALUE,
             )
         )
@@ -231,7 +231,7 @@ bframe = (
 cframe = (
     connector_frame().move(
         Location(
-            (0, 0, -config.sidewall_straight_depth - config.connector_depth)
+            (0, 0, -config.sidewall_straight_depth - config.frame_connector_depth)
         )
     ),
 )
