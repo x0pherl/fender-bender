@@ -89,10 +89,10 @@ def straight_wall_tongue() -> Part:
             taper=44,
         )
         with BuildPart(tongue.faces().sort_by(Axis.X)[-1], mode=Mode.ADD):
-            with GridLocations(0, config.top_frame_interior_width / 1.5, 1, 2):
+            with GridLocations(0, config.top_frame_interior_width-config.bracket_depth, 1, 2):
                 Sphere(radius=config.frame_click_sphere_radius * 0.75)
         with BuildPart(tongue.faces().sort_by(Axis.X)[0], mode=Mode.SUBTRACT):
-            with GridLocations(0, config.top_frame_interior_width / 1.5, 1, 2):
+            with GridLocations(0, config.top_frame_interior_width-config.bracket_depth, 1, 2):
                 Sphere(radius=config.frame_click_sphere_radius)
 
         # this center cut guides the alignment when assembling,
