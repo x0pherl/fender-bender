@@ -390,7 +390,7 @@ def top_frame() -> Part:
         with BuildPart(
             Location(
                 (
-                    config.frame_click_sphere_point.x,
+                    config.frame_click_sphere_point.x + config.frame_hanger_offset,
                     0,
                     config.frame_click_sphere_point.y
                     + config.frame_base_depth,

@@ -203,66 +203,76 @@ def clip_test():
     export_stl(testblock.part, "../stl/test-frame.stl")
     export_stl(testbracket.part, "../stl/test-bracket.stl")
 
+def cut_frame_test():
+    """
+    a view with the placement of the bracket easily visible
+    """
+    with BuildPart() as cutframetest:
+        add(top_frame())
+        with BuildPart(Location((0,-config.frame_exterior_width/2+config.wall_thickness+config.minimum_structural_thickness+config.bracket_depth/2,0)), mode=Mode.SUBTRACT):
+            Box(1000, 1000, 1000, align=(Align.CENTER, Align.MAX, Align.CENTER))
+    show(cutframetest.part, bkt.move(Location((config.frame_hanger_offset,-config.frame_bracket_spacing,0))), reset_camera=Camera.KEEP)
 
-ROTATION_VALUE = 180 if FrameStyle.HANGING in config.frame_style else 0
-DEPTH_SHIFT_VALUE = (
-    -config.sidewall_straight_depth
-    - config.frame_connector_depth
-    - config.sidewall_straight_depth
-    if FrameStyle.STANDING in config.frame_style
-    else 0
-)
-bframe = (
-    bottom_frame()
-    .rotate(Axis.X, ROTATION_VALUE)
-    .move(
-        Location(
-            (
-                0,
-                0,
-                -config.sidewall_straight_depth * 2
-                - config.frame_connector_depth
-                + DEPTH_SHIFT_VALUE,
+
+if __name__ == "__main__":
+
+    ROTATION_VALUE = 180 if FrameStyle.HANGING in config.frame_style else 0
+    DEPTH_SHIFT_VALUE = (
+        -config.sidewall_straight_depth
+        - config.frame_connector_depth
+        - config.sidewall_straight_depth
+        if FrameStyle.STANDING in config.frame_style
+        else 0
+    )
+    bframe = (
+        bottom_frame()
+        .rotate(Axis.X, ROTATION_VALUE)
+        .move(
+            Location(
+                (
+                    0,
+                    0,
+                    -config.sidewall_straight_depth * 2
+                    - config.frame_connector_depth
+                    + DEPTH_SHIFT_VALUE,
+                )
             )
         )
     )
-)
 
-cframe = (
-    connector_frame().move(
+    cframe = (
+        connector_frame().move(
+            Location(
+                (0, 0, -config.sidewall_straight_depth - config.frame_connector_depth)
+            )
+        ),
+    )
+
+    bkt = bracket().move(Location((0, 0, config.frame_base_depth)))
+
+    lockpin = lock_pin(
+        tolerance=config.frame_lock_pin_tolerance / 2, tie_loop=True
+    ).move(
         Location(
-            (0, 0, -config.sidewall_straight_depth - config.frame_connector_depth)
-        )
-    ),
-)
-
-bkt = bracket().move(Location((0, 0, config.frame_base_depth)))
-
-lockpin = lock_pin(
-    tolerance=config.frame_lock_pin_tolerance / 2, tie_loop=True
-).move(
-    Location(
-        (
-            config.wheel_radius + config.bracket_depth / 2,
-            config.frame_exterior_width / 2,
-            config.bracket_depth
-            + config.minimum_structural_thickness / 2
-            + config.frame_base_depth
-            + config.frame_lock_pin_tolerance / 2,
+            (
+                config.wheel_radius + config.bracket_depth / 2,
+                config.frame_exterior_width / 2,
+                config.bracket_depth
+                + config.minimum_structural_thickness / 2
+                + config.frame_base_depth
+                + config.frame_lock_pin_tolerance / 2,
+            )
         )
     )
-)
 
-
-show(
-    topframe,
-    bkt,
-    bwall,
-    cframe,
-    fwall,
-    swall,
-    lockpin,
-    bframe,
-    reset_camera=Camera.KEEP,
-)
-clip_test()
+    show(
+        topframe,
+        bkt,
+        bwall,
+        cframe,
+        fwall,
+        swall,
+        lockpin,
+        bframe,
+        reset_camera=Camera.KEEP,
+    )
