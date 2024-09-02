@@ -413,7 +413,7 @@ def top_frame() -> Part:
                 add(
                     wall_hanger_cut_template(
                         config.minimum_structural_thickness * 1.5,
-                        config.frame_exterior_width,
+                        config.frame_exterior_width-config.minimum_structural_thickness*2,
                         config.bracket_height,
                         bottom=False,
                         post_count=config.wall_bracket_post_count,
@@ -475,7 +475,7 @@ def wall_bracket() -> Part:
     with BuildPart() as bracket:
         Box(
             config.minimum_structural_thickness * 3,
-            config.frame_exterior_width,
+            config.frame_exterior_width -config.minimum_structural_thickness - config.tolerance*2,
             config.bracket_height,
             align=(Align.MIN, Align.CENTER, Align.MIN),
         )
@@ -487,7 +487,7 @@ def wall_bracket() -> Part:
             add(
                 wall_hanger_cut_template(
                     config.minimum_structural_thickness * 1.5,
-                    config.frame_exterior_width,
+                    config.frame_exterior_width-config.minimum_structural_thickness*2,
                     config.bracket_height,
                     bottom=True,
                     post_count=config.wall_bracket_post_count,
