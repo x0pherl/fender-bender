@@ -41,7 +41,7 @@ from filament_bracket import (
 )
 from wall_hanger_cut_template import wall_hanger_cut_template
 
-config = BankConfig()
+config = BankConfig('default.conf')
 
 
 def straight_wall_grooves() -> Part:

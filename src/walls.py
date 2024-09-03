@@ -28,8 +28,7 @@ from bank_config import BankConfig
 from basic_shapes import sidewall_shape
 from hexwall import HexWall
 
-config = BankConfig()
-
+config = BankConfig('default.conf')
 
 def wall_channel(length: float) -> Part:
     """

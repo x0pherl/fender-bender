@@ -45,7 +45,7 @@ from filament_channels import (
     straight_filament_path_solid,
 )
 
-config = BankConfig()
+config = BankConfig('default.conf')
 
 
 def wheel_guide_cut() -> Part:

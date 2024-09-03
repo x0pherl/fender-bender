@@ -26,7 +26,7 @@ from ocp_vscode import Camera, show
 
 from bank_config import BankConfig
 
-config = BankConfig()
+config = BankConfig('default.conf')
 
 
 def spoke() -> Sketch:

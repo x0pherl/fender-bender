@@ -21,7 +21,7 @@ from filament_bracket import bottom_bracket, spoke_assembly, wheel_guide
 from frames import bottom_frame, connector_frame, lock_pin, top_frame
 from walls import guide_wall, sidewall
 
-config = BankConfig()
+config = BankConfig('default.conf')
 
 
 def bracket() -> Part:
