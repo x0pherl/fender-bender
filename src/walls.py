@@ -308,9 +308,9 @@ if __name__ == "__main__":
                 (
                     -config.frame_exterior_width / 2
                     - config.sidewall_width / 2
-                    - 1,
+                    -1,
                     0,
-                    4,
+                    0,
                 )
             )
         ),
