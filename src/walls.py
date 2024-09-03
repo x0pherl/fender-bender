@@ -165,11 +165,11 @@ def sidewall(
     """
     with BuildPart() as wall:
         with BuildSketch(Plane.XY):
-            add(sidewall_shape(inset=config.wall_thickness / 2))
+            add(sidewall_shape(inset=config.wall_thickness / 2, length=length))
         with BuildSketch(Plane.XY.offset(config.wall_thickness / 2)):
-            add(sidewall_shape())
+            add(sidewall_shape(length=length))
         with BuildSketch(Plane.XY.offset(config.wall_thickness)):
-            add(sidewall_shape(inset=config.wall_thickness / 2))
+            add(sidewall_shape(inset=config.wall_thickness / 2, length=length))
         loft(ruled=True)
         if reinforce:
             with BuildPart():
@@ -235,7 +235,7 @@ def guide_wall(length: float, flipped=False) -> Part:
     """
     builds a wall with guides for each sidewall
     """
-    base_length = length - config.wall_thickness
+    base_length = length - config.wall_thickness / 2
     with BuildPart() as wall:
         with BuildPart():
             Box(
@@ -310,7 +310,7 @@ if __name__ == "__main__":
                     - config.sidewall_width / 2
                     - 1,
                     0,
-                    0,
+                    4,
                 )
             )
         ),
