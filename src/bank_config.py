@@ -36,6 +36,8 @@ class BankConfig:
     A dataclass for configuration values for our filament bank
     """
 
+    stl_folder:str = "../stl/default"
+
     bearing_diameter: float = 12.1
     bearing_inner_diameter:float = 6.1
     bearing_shelf_diameter:float = 8.5
@@ -60,9 +62,9 @@ class BankConfig:
 
     fillet_ratio:float = 4
     tolerance:float = 0.2
-    filament_count:int = 3
+    filament_count:int = 5
 
-    frame_chamber_depth:float = 170 #240
+    frame_chamber_depth:float = 240
     solid_walls:bool = False
     wall_window_apothem:float = 8
     wall_window_bar_thickness:float = 1.5
@@ -447,8 +449,7 @@ class BankConfig:
             setattr(self, key, value)
 
 if __name__ == '__main__':
-    test = BankConfig("C:\\Users\\xopher\\code\\3d-print\\filament-bank\\src\\default.conf")
-    # test = BankConfig('default.conf')
+    test = BankConfig('../build-configs/default.conf')
     print(test.frame_hanger_offset)
     print(test.filament_count)
     print(test.sidewall_straight_depth)

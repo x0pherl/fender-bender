@@ -21,7 +21,7 @@ from filament_bracket import bottom_bracket, spoke_assembly, wheel_guide
 from frames import bottom_frame, connector_frame, lock_pin, top_frame
 from walls import guide_wall, sidewall
 
-config = BankConfig('default.conf')
+_config = BankConfig('../build-configs/default.conf')
 
 
 def bracket() -> Part:
@@ -33,17 +33,17 @@ def bracket() -> Part:
         add(
             bottom_bracket(draft=True)
             .rotate(axis=Axis.X, angle=90)
-            .move(Location((0, config.bracket_depth / 2, 0)))
+            .move(Location((0, _config.bracket_depth / 2, 0)))
         )
         add(
             spoke_assembly()
             .rotate(axis=Axis.X, angle=90)
-            .move(Location((0, config.bracket_depth / 2, 0)))
+            .move(Location((0, _config.bracket_depth / 2, 0)))
         )
         add(
             wheel_guide()
             .rotate(axis=Axis.X, angle=90)
-            .move(Location((0, config.bracket_depth / 2, 0)))
+            .move(Location((0, _config.bracket_depth / 2, 0)))
         )
     part = fil_bracket.part
     part.label = "bracket"
@@ -67,37 +67,37 @@ def half_top() -> Part:
 
 
 bwall = (
-    guide_wall(config.sidewall_straight_depth)
+    guide_wall(_config.sidewall_straight_depth)
     .rotate(Axis.Z, 90)
     .rotate(Axis.Y, 90)
     .move(
         Location(
             (
-                -config.sidewall_width / 2 - config.wall_thickness,
+                -_config.sidewall_width / 2 - _config.wall_thickness,
                 0,
-                -config.sidewall_straight_depth / 2,
+                -_config.sidewall_straight_depth / 2,
             )
         )
     )
 )
 fwall = (
-    guide_wall(config.sidewall_straight_depth)
+    guide_wall(_config.sidewall_straight_depth)
     .rotate(Axis.Z, 90)
     .rotate(Axis.Y, -90)
     .move(
         Location(
             (
-                config.sidewall_width / 2 + config.wall_thickness,
+                _config.sidewall_width / 2 + _config.wall_thickness,
                 0,
-                -config.sidewall_straight_depth / 2,
+                -_config.sidewall_straight_depth / 2,
             )
         )
     )
 )
 swall = (
-    sidewall(length=config.sidewall_section_depth, reinforce=True)
+    sidewall(length=_config.sidewall_section_depth, reinforce=True)
     .rotate(Axis.X, 90)
-    .move(Location((0, -config.top_frame_interior_width / 2, 0)))
+    .move(Location((0, -_config.top_frame_interior_width / 2, 0)))
 )
 
 topframe = top_frame()
@@ -111,13 +111,13 @@ def clip_test():
     with BuildPart() as testblock:
         add(top_frame())
         with BuildPart(
-            Location((config.frame_exterior_length / 4, 0, 0)),
+            Location((_config.frame_exterior_length / 4, 0, 0)),
             mode=Mode.SUBTRACT,
         ):
             Box(
-                config.frame_exterior_length,
-                config.frame_exterior_width,
-                config.wheel_diameter,
+                _config.frame_exterior_length,
+                _config.frame_exterior_width,
+                _config.wheel_diameter,
                 align=(Align.MAX, Align.CENTER, Align.MIN),
             )
         with BuildPart(
@@ -125,32 +125,32 @@ def clip_test():
                 (
                     0,
                     0,
-                    config.wheel_radius / 2
-                    + config.frame_base_depth
-                    + config.minimum_structural_thickness,
+                    _config.wheel_radius / 2
+                    + _config.frame_base_depth
+                    + _config.minimum_structural_thickness,
                 )
             ),
             mode=Mode.SUBTRACT,
         ):
             Box(
-                config.frame_exterior_length,
-                config.frame_exterior_width,
-                config.wheel_diameter,
+                _config.frame_exterior_length,
+                _config.frame_exterior_width,
+                _config.wheel_diameter,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
-        with BuildPart(Location((config.frame_exterior_length / 4 + 3, 0, 0))):
+        with BuildPart(Location((_config.frame_exterior_length / 4 + 3, 0, 0))):
             Box(
-                config.minimum_structural_thickness,
-                config.frame_exterior_width,
-                config.wheel_radius / 2
-                + config.frame_base_depth
-                + config.minimum_structural_thickness,
+                _config.minimum_structural_thickness,
+                _config.frame_exterior_width,
+                _config.wheel_radius / 2
+                + _config.frame_base_depth
+                + _config.minimum_structural_thickness,
                 align=(Align.MAX, Align.CENTER, Align.MIN),
             )
             Box(
-                config.minimum_structural_thickness,
-                config.frame_exterior_width,
-                config.frame_base_depth,
+                _config.minimum_structural_thickness,
+                _config.frame_exterior_width,
+                _config.frame_base_depth,
                 align=(Align.MIN, Align.CENTER, Align.MIN),
             )
 
@@ -158,46 +158,46 @@ def clip_test():
         add(bottom_bracket())
         with BuildPart(mode=Mode.SUBTRACT):
             Box(
-                config.frame_exterior_length,
-                config.frame_exterior_length,
-                config.frame_exterior_length,
+                _config.frame_exterior_length,
+                _config.frame_exterior_length,
+                _config.frame_exterior_length,
                 align=(Align.CENTER, Align.MAX, Align.CENTER),
             )
         with BuildPart(
             Location(
-                (config.frame_exterior_length / 4 + 3 + config.tolerance, 0, 0)
+                (_config.frame_exterior_length / 4 + 3 + _config.tolerance, 0, 0)
             ),
             mode=Mode.SUBTRACT,
         ):
             Box(
-                config.frame_exterior_length,
-                config.frame_exterior_width,
-                config.wheel_diameter,
+                _config.frame_exterior_length,
+                _config.frame_exterior_width,
+                _config.wheel_diameter,
                 align=(Align.MAX, Align.MIN, Align.MIN),
             )
         with BuildPart(
             Location(
                 (
                     0,
-                    config.wheel_radius / 2
-                    + config.minimum_structural_thickness,
+                    _config.wheel_radius / 2
+                    + _config.minimum_structural_thickness,
                     0,
                 )
             ),
             mode=Mode.SUBTRACT,
         ):
             Box(
-                config.frame_exterior_length,
-                config.frame_exterior_width,
-                config.wheel_diameter,
+                _config.frame_exterior_length,
+                _config.frame_exterior_width,
+                _config.wheel_diameter,
                 align=(Align.CENTER, Align.MIN, Align.MIN),
             )
 
     show(
         testblock.part,
-        testbracket.part.move(Location((0, 0, -config.bracket_depth / 2)))
+        testbracket.part.move(Location((0, 0, -_config.bracket_depth / 2)))
         .rotate(Axis.X, 90)
-        .move(Location((0, 0, config.frame_base_depth))),
+        .move(Location((0, 0, _config.frame_base_depth))),
         reset_camera=Camera.KEEP,
     )
     export_stl(testblock.part, "../stl/test-frame.stl")
@@ -209,19 +209,19 @@ def cut_frame_test():
     """
     with BuildPart() as cutframetest:
         add(top_frame())
-        with BuildPart(Location((0,-config.frame_exterior_width/2+config.wall_thickness+config.minimum_structural_thickness+config.bracket_depth/2,0)), mode=Mode.SUBTRACT):
+        with BuildPart(Location((0,-_config.frame_exterior_width/2+_config.wall_thickness+_config.minimum_structural_thickness+_config.bracket_depth/2,0)), mode=Mode.SUBTRACT):
             Box(1000, 1000, 1000, align=(Align.CENTER, Align.MAX, Align.CENTER))
-    show(cutframetest.part, bkt.move(Location((config.frame_hanger_offset,-config.frame_bracket_spacing,0))), reset_camera=Camera.KEEP)
+    show(cutframetest.part, bkt.move(Location((_config.frame_hanger_offset,-_config.frame_bracket_spacing,0))), reset_camera=Camera.KEEP)
 
 
 if __name__ == "__main__":
 
-    ROTATION_VALUE = 180 if FrameStyle.HANGING in config.frame_style else 0
+    ROTATION_VALUE = 180 if FrameStyle.HANGING in _config.frame_style else 0
     DEPTH_SHIFT_VALUE = (
-        -config.sidewall_straight_depth
-        - config.frame_connector_depth
-        - config.sidewall_straight_depth
-        if FrameStyle.STANDING in config.frame_style
+        -_config.sidewall_straight_depth
+        - _config.frame_connector_depth
+        - _config.sidewall_straight_depth
+        if FrameStyle.STANDING in _config.frame_style
         else 0
     )
     bframe = (
@@ -232,8 +232,8 @@ if __name__ == "__main__":
                 (
                     0,
                     0,
-                    -config.sidewall_straight_depth * 2
-                    - config.frame_connector_depth
+                    -_config.sidewall_straight_depth * 2
+                    - _config.frame_connector_depth
                     + DEPTH_SHIFT_VALUE,
                 )
             )
@@ -243,24 +243,24 @@ if __name__ == "__main__":
     cframe = (
         connector_frame().move(
             Location(
-                (0, 0, -config.sidewall_straight_depth - config.frame_connector_depth)
+                (0, 0, -_config.sidewall_straight_depth - _config.frame_connector_depth)
             )
         ),
     )
 
-    bkt = bracket().move(Location((0, 0, config.frame_base_depth)))
+    bkt = bracket().move(Location((0, 0, _config.frame_base_depth)))
 
     lockpin = lock_pin(
-        tolerance=config.frame_lock_pin_tolerance / 2, tie_loop=True
+        tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=True
     ).move(
         Location(
             (
-                config.wheel_radius + config.bracket_depth / 2,
-                config.frame_exterior_width / 2,
-                config.bracket_depth
-                + config.minimum_structural_thickness / 2
-                + config.frame_base_depth
-                + config.frame_lock_pin_tolerance / 2,
+                _config.wheel_radius + _config.bracket_depth / 2,
+                _config.frame_exterior_width / 2,
+                _config.bracket_depth
+                + _config.minimum_structural_thickness / 2
+                + _config.frame_base_depth
+                + _config.frame_lock_pin_tolerance / 2,
             )
         )
     )
