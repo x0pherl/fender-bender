@@ -64,7 +64,7 @@ class BankConfig:
     tolerance:float = 0.2
     filament_count:int = 5
 
-    frame_chamber_depth:float = 240
+    frame_chamber_depth:float = 340
     solid_walls:bool = False
     wall_window_apothem:float = 8
     wall_window_bar_thickness:float = 1.5
