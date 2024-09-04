@@ -17,12 +17,16 @@ from build123d import (
 from ocp_vscode import Camera, show
 
 from bank_config import BankConfig, FrameStyle
-from filament_bracket import bottom_bracket, spoke_assembly, wheel_guide
-from frames import bottom_frame, connector_frame, lock_pin, top_frame
-from walls import guide_wall, sidewall
+from filament_bracket import FilamentBracket
+from frames import FrameSet
+from walls import Walls
+from basic_shapes import lock_pin
 
-_config = BankConfig('../build-configs/default.conf')
-
+_config_file = '../build-configs/default.conf'
+_config = BankConfig(_config_file)
+filamentbracket = FilamentBracket(_config_file)
+frameset = FrameSet(_config_file)
+walls = Walls(_config_file)
 
 def bracket() -> Part:
     """
@@ -31,17 +35,17 @@ def bracket() -> Part:
     """
     with BuildPart() as fil_bracket:
         add(
-            bottom_bracket(draft=True)
+            filamentbracket.bottom_bracket(draft=True)
             .rotate(axis=Axis.X, angle=90)
             .move(Location((0, _config.bracket_depth / 2, 0)))
         )
         add(
-            spoke_assembly()
+            filamentbracket.spoke_assembly()
             .rotate(axis=Axis.X, angle=90)
             .move(Location((0, _config.bracket_depth / 2, 0)))
         )
         add(
-            wheel_guide()
+            filamentbracket.wheel_guide()
             .rotate(axis=Axis.X, angle=90)
             .move(Location((0, _config.bracket_depth / 2, 0)))
         )
@@ -55,7 +59,7 @@ def half_top() -> Part:
     returns half of the top frame
     """
     with BuildPart() as half:
-        add(top_frame())
+        add(frameset.top_frame())
         Box(
             1000,
             1000,
@@ -67,7 +71,7 @@ def half_top() -> Part:
 
 
 bwall = (
-    guide_wall(_config.sidewall_straight_depth)
+    walls.guide_wall(_config.sidewall_straight_depth)
     .rotate(Axis.Z, 90)
     .rotate(Axis.Y, 90)
     .move(
@@ -81,7 +85,7 @@ bwall = (
     )
 )
 fwall = (
-    guide_wall(_config.sidewall_straight_depth)
+    walls.guide_wall(_config.sidewall_straight_depth)
     .rotate(Axis.Z, 90)
     .rotate(Axis.Y, -90)
     .move(
@@ -95,12 +99,12 @@ fwall = (
     )
 )
 swall = (
-    sidewall(length=_config.sidewall_section_depth, reinforce=True)
+    walls.side_wall(length=_config.sidewall_section_depth, reinforce=True)
     .rotate(Axis.X, 90)
     .move(Location((0, -_config.top_frame_interior_width / 2, 0)))
 )
 
-topframe = top_frame()
+topframe = frameset.top_frame()
 
 
 def clip_test():
@@ -109,7 +113,7 @@ def clip_test():
     the the egress side of the frame and bracket
     """
     with BuildPart() as testblock:
-        add(top_frame())
+        add(topframe)
         with BuildPart(
             Location((_config.frame_exterior_length / 4, 0, 0)),
             mode=Mode.SUBTRACT,
@@ -155,7 +159,7 @@ def clip_test():
             )
 
     with BuildPart() as testbracket:
-        add(bottom_bracket())
+        add(filamentbracket.bottom_bracket())
         with BuildPart(mode=Mode.SUBTRACT):
             Box(
                 _config.frame_exterior_length,
@@ -208,10 +212,10 @@ def cut_frame_test():
     a view with the placement of the bracket easily visible
     """
     with BuildPart() as cutframetest:
-        add(top_frame())
+        add(frameset.top_frame())
         with BuildPart(Location((0,-_config.frame_exterior_width/2+_config.wall_thickness+_config.minimum_structural_thickness+_config.bracket_depth/2,0)), mode=Mode.SUBTRACT):
             Box(1000, 1000, 1000, align=(Align.CENTER, Align.MAX, Align.CENTER))
-    show(cutframetest.part, bkt.move(Location((_config.frame_hanger_offset,-_config.frame_bracket_spacing,0))), reset_camera=Camera.KEEP)
+    show(cutframetest.part, filamentbracket.bottom_bracket().move(Location((_config.frame_hanger_offset,-_config.frame_bracket_spacing,0))), reset_camera=Camera.KEEP)
 
 
 if __name__ == "__main__":
@@ -225,30 +229,28 @@ if __name__ == "__main__":
         else 0
     )
     bframe = (
-        bottom_frame()
+        frameset.bottom_frame()
         .rotate(Axis.X, ROTATION_VALUE)
         .move(
             Location(
                 (
                     0,
                     0,
-                    -_config.sidewall_straight_depth * 2
-                    - _config.frame_connector_depth
-                    + DEPTH_SHIFT_VALUE,
+                    DEPTH_SHIFT_VALUE,
                 )
             )
         )
     )
 
     cframe = (
-        connector_frame().move(
+        frameset.connector_frame().move(
             Location(
                 (0, 0, -_config.sidewall_straight_depth - _config.frame_connector_depth)
             )
         ),
     )
 
-    bkt = bracket().move(Location((0, 0, _config.frame_base_depth)))
+    bkt = filamentbracket.bottom_bracket().rotate(Axis.X, 90).move(Location((0, _config.bracket_depth/2, _config.frame_base_depth)))
 
     lockpin = lock_pin(
         tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=True
