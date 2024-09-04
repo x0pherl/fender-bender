@@ -37,7 +37,7 @@ class Partomatic(Part, ABC):
         """method to render the part to a png file"""
 
     def partomate(self):
-        """automates the part generation, display, and export"""
+        """automates the part generation, render a 2d snapshot, and export"""
         self.compile()
         self.render_2d()
         self.export_stls()
