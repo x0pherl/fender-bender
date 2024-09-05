@@ -70,42 +70,6 @@ def half_top() -> Part:
     return half.part
 
 
-bwall = (
-    walls.guide_wall(_config.sidewall_straight_depth)
-    .rotate(Axis.Z, 90)
-    .rotate(Axis.Y, 90)
-    .move(
-        Location(
-            (
-                -_config.sidewall_width / 2 - _config.wall_thickness,
-                0,
-                -_config.sidewall_straight_depth / 2,
-            )
-        )
-    )
-)
-fwall = (
-    walls.guide_wall(_config.sidewall_straight_depth)
-    .rotate(Axis.Z, 90)
-    .rotate(Axis.Y, -90)
-    .move(
-        Location(
-            (
-                _config.sidewall_width / 2 + _config.wall_thickness,
-                0,
-                -_config.sidewall_straight_depth / 2,
-            )
-        )
-    )
-)
-swall = (
-    walls.side_wall(length=_config.sidewall_section_depth, reinforce=True)
-    .rotate(Axis.X, 90)
-    .move(Location((0, -_config.top_frame_interior_width / 2, 0)))
-)
-
-topframe = frameset.top_frame()
-
 
 def clip_test():
     """
@@ -218,7 +182,52 @@ def cut_frame_test():
     show(cutframetest.part, filamentbracket.bottom_bracket().move(Location((_config.frame_hanger_offset,-_config.frame_bracket_spacing,0))), reset_camera=Camera.KEEP)
 
 
+def tongue_groove_test():
+    walls = Walls('../build-configs/debug.conf')
+    frameset = FrameSet('../build-configs/debug.conf')
+    with BuildPart() as tongue:
+        add(walls.straight_wall_tongue().move(Location((-_config.sidewall_width / 2 - _config.wall_thickness / 2, 0, 0))))
+    with BuildPart() as groove:
+        add(frameset.straight_wall_grooves().mirror())
+    show(tongue.part, groove.part, reset_camera=Camera.KEEP)
+
 if __name__ == "__main__":
+
+    bwall = (
+        walls.guide_wall(_config.sidewall_straight_depth)
+        .rotate(Axis.Z, 90)
+        .rotate(Axis.Y, 90)
+        .move(
+            Location(
+                (
+                    -_config.sidewall_width / 2 - _config.wall_thickness+_config.frame_hanger_offset,
+                    0,
+                    -_config.sidewall_straight_depth / 2,
+                )
+            )
+        )
+    )
+    fwall = (
+        walls.guide_wall(_config.sidewall_straight_depth)
+        .rotate(Axis.Z, 90)
+        .rotate(Axis.Y, -90)
+        .move(
+            Location(
+                (
+                    _config.sidewall_width / 2 + _config.wall_thickness+_config.frame_hanger_offset,
+                    0,
+                    -_config.sidewall_straight_depth / 2,
+                )
+            )
+        )
+    )
+    swall = (
+        walls.side_wall(length=_config.sidewall_section_depth, reinforce=True)
+        .rotate(Axis.X, 90)
+        .move(Location((_config.frame_hanger_offset, -_config.top_frame_interior_width / 2-_config.minimum_structural_thickness-_config.wall_thickness/2, 00)))
+    )
+
+    topframe = frameset.top_frame()
 
     ROTATION_VALUE = 180 if FrameStyle.HANGING in _config.frame_style else 0
     DEPTH_SHIFT_VALUE = (
