@@ -50,6 +50,7 @@ class BankConfig:
 
     minimum_structural_thickness:float = 4
     minimum_thickness:float = 1
+    minimum_bracket_depth = -1
 
     connector_diameter: float = 10.3
     connector_length: float = 6.7
@@ -384,6 +385,7 @@ class BankConfig:
         returns the depth of the bracket
         """
         return max(
+            self.minimum_bracket_depth,
             self.bearing_depth
             + self.wheel_lateral_tolerance
             + self.minimum_structural_thickness * 2,
@@ -453,3 +455,10 @@ if __name__ == '__main__':
     print(test.frame_hanger_offset)
     print(test.filament_count)
     print(test.sidewall_straight_depth)
+    print(test.bracket_depth)
+    print(            test.bearing_depth
+            + test.wheel_lateral_tolerance
+            + test.minimum_structural_thickness * 2,
+            test.connector_diameter + test.minimum_thickness * 2,
+            test.tube_outer_diameter + test.minimum_thickness * 2,
+)
