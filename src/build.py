@@ -9,6 +9,8 @@ start_time = time()
 build_configs_dir = (Path(__file__).parent / '../build-configs').resolve()
 ##handle kwargs???
 for conf_file in [conf_file.resolve() for conf_file in build_configs_dir.glob('*.conf')]:
+    if conf_file.name == "debug.conf":
+        continue
     print(f"Generating parts for {conf_file.name}")
     iteration_start_time = time()
     wheel = FilamentWheel(conf_file)

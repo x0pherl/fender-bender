@@ -22,7 +22,7 @@ from frames import FrameSet
 from walls import Walls
 from basic_shapes import lock_pin
 
-_config_file = '../build-configs/default.conf'
+_config_file = '../build-configs/debug.conf'
 _config = BankConfig(_config_file)
 filamentbracket = FilamentBracket(_config_file)
 frameset = FrameSet(_config_file)

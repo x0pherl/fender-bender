@@ -2,6 +2,7 @@
 Generates the part for the filament wheel of our filament bank design
 """
 
+from pathlib import Path
 from build123d import (
     BuildLine,
     BuildPart,
@@ -23,7 +24,6 @@ from build123d import (
     sweep,
 )
 from ocp_vscode import Camera, show
-from pathlib import Path
 from partomatic import Partomatic
 from bank_config import BankConfig
 
@@ -107,7 +107,7 @@ class FilamentWheel(Partomatic):
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str='../build-configs/default.conf'):
+    def __init__(self, configuration_file:str):
         super(Partomatic, self).__init__()
         self.load_config(configuration_file)
 
@@ -119,6 +119,8 @@ class FilamentWheel(Partomatic):
         show(self.wheel, Camera.KEEP)
 
     def export_stls(self):
+        if self._config.stl_folder == "NONE":
+            return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         export_stl(self.wheel, str(output_directory / "filament_wheel.stl"))
@@ -127,7 +129,7 @@ class FilamentWheel(Partomatic):
         pass
 
 if __name__ == "__main__":
-    wheel = FilamentWheel(Path(__file__).parent / "../build-configs/default.conf")
+    wheel = FilamentWheel(Path(__file__).parent / "../build-configs/debug.conf")
     wheel.compile()
     wheel.display()
     wheel.export_stls()

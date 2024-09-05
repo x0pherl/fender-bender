@@ -542,7 +542,7 @@ class FrameSet(Partomatic):
         self._config.load_config(configuration_path)
         self.bracket = FilamentBracket(configuration_path)
 
-    def __init__(self, configuration_file:str='../build-configs/default.conf'):
+    def __init__(self, configuration_file:str):
         super(Partomatic, self).__init__()
         self.load_config(configuration_file)
 
@@ -617,6 +617,8 @@ class FrameSet(Partomatic):
         )
 
     def export_stls(self):
+        if self._config.stl_folder == "NONE":
+            return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         export_stl(self.topframe, str(output_directory / "frame-top.stl"))
@@ -630,7 +632,7 @@ class FrameSet(Partomatic):
         pass
 
 if __name__ == "__main__":
-    frameset = FrameSet(Path(__file__).parent / "../build-configs/default.conf")
+    frameset = FrameSet(Path(__file__).parent / "../build-configs/debug.conf")
     frameset.compile()
     frameset.display()
     frameset.export_stls()

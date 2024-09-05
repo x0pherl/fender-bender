@@ -32,7 +32,7 @@ from ocp_vscode import Camera, show
 
 from bank_config import BankConfig
 
-_config = BankConfig('../build-configs/default.conf')
+_config = BankConfig()
 
 ingress_connector_location = Location(
     (-_config.wheel_radius, _config.bracket_height, _config.bracket_depth / 2),

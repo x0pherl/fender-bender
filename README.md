@@ -1,4 +1,4 @@
-# ptfe-fittings
+# FENDER BENDER FILAMENT BUFFER
 
 ptfe-fittings builds a set of 3d-printable twist-lock connectors for joining PTFE tubes, and potentially stepping down tube sizes. This can be useful for multi-material systems such as the MMU3 and the ERCF.
 

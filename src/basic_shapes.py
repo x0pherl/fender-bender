@@ -25,7 +25,7 @@ from ocp_vscode import Camera, show
 
 from bank_config import BankConfig
 
-_config = BankConfig('../build-configs/default.conf')
+_config = BankConfig('../build-configs/debug.conf')
 
 
 def lock_pin(tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=False):

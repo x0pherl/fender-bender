@@ -449,7 +449,7 @@ class BankConfig:
             setattr(self, key, value)
 
 if __name__ == '__main__':
-    test = BankConfig('../build-configs/default.conf')
+    test = BankConfig('../build-configs/debug.conf')
     print(test.frame_hanger_offset)
     print(test.filament_count)
     print(test.sidewall_straight_depth)

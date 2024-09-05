@@ -2,6 +2,7 @@
 Generates the part for the chamber walls of the filament bank
 """
 
+from pathlib import Path
 from build123d import (
     Align,
     Axis,
@@ -24,13 +25,13 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 from partomatic import Partomatic
-from pathlib import Path
 from bank_config import BankConfig
 from basic_shapes import sidewall_shape
 from hexwall import HexWall
 
 class Walls(Partomatic):
-    _config = BankConfig('../build-configs/default.conf')
+    """partomatic for the chamber walls of the filament bank"""
+    _config = BankConfig()
 
     gwall:Part
     sidewall: Part
@@ -301,7 +302,7 @@ class Walls(Partomatic):
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str='../build-configs/default.conf'):
+    def __init__(self, configuration_file:str='../build-config/reference.conf'):
         super(Partomatic, self).__init__()
         self.load_config(configuration_file)
 
@@ -341,6 +342,8 @@ class Walls(Partomatic):
         )
 
     def export_stls(self):
+        if self._config.stl_folder == "NONE":
+            return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         export_stl(self.sidewall, str(output_directory / "wall-side.stl"))
@@ -351,7 +354,7 @@ class Walls(Partomatic):
         pass
 
 if __name__ == "__main__":
-    walls = Walls(Path(__file__).parent / "../build-configs/default.conf")
+    walls = Walls(Path(__file__).parent / "../build-configs/debug.conf")
     walls.compile()
     walls.display()
     walls.export_stls()

@@ -5,6 +5,7 @@ when feeding into the printer, and redirecting the filament downwards into
 the frame when the filament backs out of the MMU.
 """
 
+from pathlib import Path
 from build123d import (
     Align,
     Axis,
@@ -37,7 +38,6 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 from partomatic import Partomatic
-from pathlib import Path
 from bank_config import BankConfig, LockStyle
 from basic_shapes import lock_pin, rounded_cylinder
 from filament_channels import (
@@ -51,7 +51,7 @@ from filament_channels import (
 
 class FilamentBracket(Partomatic):
     """The partomatic for the filament bracket of the filament bank"""
-    _config = BankConfig('../build-configs/default.conf')
+    _config = BankConfig()
 
     bottom:Part
     top:Part
@@ -560,7 +560,7 @@ class FilamentBracket(Partomatic):
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str='../build-configs/default.conf'):
+    def __init__(self, configuration_file:str):
         super(Partomatic, self).__init__()
         self.load_config(configuration_file)
 
@@ -590,6 +590,8 @@ class FilamentBracket(Partomatic):
         ), Camera.KEEP)
 
     def export_stls(self):
+        if self._config.stl_folder == "NONE":
+            return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         if LockStyle.CLIP in self._config.frame_lock_style:
@@ -602,7 +604,7 @@ class FilamentBracket(Partomatic):
 
 
 if __name__ == "__main__":
-    bracket = FilamentBracket(Path(__file__).parent / "../build-configs/default.conf")
+    bracket = FilamentBracket(Path(__file__).parent / "../build-configs/debug.conf")
     bracket.compile()
     bracket.display()
     bracket.export_stls()
