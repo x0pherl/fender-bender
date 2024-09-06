@@ -20,6 +20,7 @@ from build123d import (
     PolarLocations,
     Sphere,
     add,
+    chamfer,
     export_stl,
     extrude,
     fillet,
@@ -29,10 +30,10 @@ from ocp_vscode import Camera, show
 from pathlib import Path
 from partomatic import Partomatic
 from bank_config import BankConfig, FrameStyle, LockStyle
+from lock_pin import LockPin
 from basic_shapes import (
     frame_arched_sidewall_cut,
     frame_flat_sidewall_cut,
-    lock_pin,
     rounded_cylinder,
 )
 from filament_bracket import FilamentBracket
@@ -45,9 +46,9 @@ class FrameSet(Partomatic):
     bottomframe: Part
     connectorframe: Part
     wallbracket: Part
-    lockpin: Part
     bracketclip: Part
-    bracket: FilamentBracket
+    _bracket = FilamentBracket(None)
+    _lockpin = LockPin(None)
 
     def straight_wall_grooves(self) -> Part:
         """
@@ -117,7 +118,7 @@ class FrameSet(Partomatic):
                 fillet(top_block.edges(), self._config.fillet_radius)
             add(self.chamber_cut(height=self._config.frame_base_depth * 2))
             if LockStyle.CLIP in self._config.frame_lock_style:
-                add(self.bracket.bracket_clip_rail_block(inset=-self._config.tolerance / 2))
+                add(self._bracket.bracket_clip_rail_block(inset=-self._config.tolerance / 2))
 
         part = cutblock.part.move(Location((0, 0, self._config.frame_base_depth)))
         part.label = "cut block"
@@ -442,7 +443,7 @@ class FrameSet(Partomatic):
                     mode=Mode.SUBTRACT,
                 ):
                     add(
-                        lock_pin(
+                        self._lockpin.lock_pin(
                             tolerance=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
@@ -471,7 +472,6 @@ class FrameSet(Partomatic):
         part = tframe.part
         part.label = "Top Frame"
         return part
-
 
     def wall_bracket(self) -> Part:
         """
@@ -540,14 +540,15 @@ class FrameSet(Partomatic):
 
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
-        self.bracket = FilamentBracket(configuration_path)
+        self._bracket.load_config(configuration_path)
+        self._lockpin.load_config(configuration_path)
 
     def __init__(self, configuration_file:str):
         super(Partomatic, self).__init__()
         self.load_config(configuration_file)
 
     def compile(self):
-        self.bracketclip = self.bracket.bracket_clip(inset=self._config.tolerance / 2).move(
+        self.bracketclip = self._bracket.bracket_clip(inset=self._config.tolerance / 2).move(
             Location(
                 (
                     self._config.bracket_depth,
@@ -561,58 +562,37 @@ class FrameSet(Partomatic):
         self.bottomframe = self.bottom_frame()
         self.connectorframe = self.connector_frame()
         self.wallbracket = self.wall_bracket()
-        self.lockpin = lock_pin(
-            tolerance=self._config.frame_lock_pin_tolerance / 2, tie_loop=True
-        )
 
     def display(self):
         show(
             self.topframe,
-            # self.bracket.bottom_bracket_block()
-            # .move(Location((0, 0, -self._config.bracket_depth / 2)))
-            # .rotate(Axis.X, 90)
-            # .move(
-            #     Location(
-            #         (
-            #             self._config.frame_hanger_offset + self._config.tolerance,
-            #             0,
-            #             self._config.frame_base_depth,
-            #         )
-            #     )
-            # ),
-            # self.bracketclip if LockStyle.CLIP in self._config.frame_lock_style else None,
-            # (
-            #     self.lockpin.move(
-            #         Location(
-            #             (
-            #                 self._config.wheel_radius
-            #                 + self._config.bracket_depth / 2
-            #                 + self._config.frame_hanger_offset,
-            #                 self._config.frame_exterior_width / 2,
-            #                 self._config.bracket_depth
-            #                 + self._config.minimum_structural_thickness / 2
-            #                 + self._config.frame_base_depth
-            #                 + self._config.frame_lock_pin_tolerance / 2,
-            #             )
-            #         )
-            #     )
-            #     if LockStyle.PIN in self._config.frame_lock_style
-            #     else None
-            # ),
-            # self.bottomframe.rotate(axis=Axis.X, angle=180).move(
-            #     Location((0, 0, -self._config.frame_base_depth * 3))
-            # ),
-            # self.connectorframe.move(Location((0, 0, -self._config.frame_base_depth * 2))),
-            # self.wallbracket.move(
-            #     Location(
-            #         (
-            #             -self._config.frame_exterior_length / 2
-            #             - self._config.minimum_structural_thickness * 3,
-            #             0,
-            #             0,
-            #         )
-            #     )
-            # ),
+            self._bracket.bottom_bracket_block()
+            .move(Location((0, 0, -self._config.bracket_depth / 2)))
+            .rotate(Axis.X, 90)
+            .move(
+                Location(
+                    (
+                        self._config.frame_hanger_offset + self._config.tolerance,
+                        0,
+                        self._config.frame_base_depth,
+                    )
+                )
+            ),
+            self.bracketclip if LockStyle.CLIP in self._config.frame_lock_style else None,
+            self.bottomframe.rotate(axis=Axis.X, angle=180).move(
+                Location((0, 0, -self._config.frame_base_depth * 3))
+            ),
+            self.connectorframe.move(Location((0, 0, -self._config.frame_base_depth * 2))),
+            self.wallbracket.move(
+                Location(
+                    (
+                        -self._config.frame_exterior_length / 2
+                        - self._config.minimum_structural_thickness * 3,
+                        0,
+                        0,
+                    )
+                )
+            ),
             reset_camera=Camera.KEEP,
         )
 
@@ -625,8 +605,6 @@ class FrameSet(Partomatic):
         export_stl(self.bottomframe, str(output_directory / "frame-bottom.stl"))
         export_stl(self.connectorframe, str(output_directory / "frame-connector.stl"))
         export_stl(self.wallbracket, str(output_directory / "frame-wall-bracket.stl"))
-        if LockStyle.PIN in self._config.frame_lock_style:
-            export_stl(self.lockpin, str(output_directory / "frame-lock-pin.stl"))
 
     def render_2d(self):
         pass

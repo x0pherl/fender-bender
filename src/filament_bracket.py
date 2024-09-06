@@ -39,13 +39,15 @@ from build123d import (
 from ocp_vscode import Camera, show
 from partomatic import Partomatic
 from bank_config import BankConfig, LockStyle
-from basic_shapes import lock_pin, rounded_cylinder
+from lock_pin import LockPin
+from basic_shapes import rounded_cylinder
 from filament_channels import FilamentChannels
 
 class FilamentBracket(Partomatic):
     """The partomatic for the filament bracket of the filament bank"""
     _config = BankConfig()
     _filamentchannels = FilamentChannels(None)
+    _lockpin = LockPin(None)
 
     bottom:Part
     top:Part
@@ -401,7 +403,7 @@ class FilamentBracket(Partomatic):
                     mode=Mode.SUBTRACT,
                 ):
                     add(
-                        lock_pin(
+                        self._lockpin.lock_pin(
                             tolerance=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
@@ -512,7 +514,7 @@ class FilamentBracket(Partomatic):
                     mode=Mode.SUBTRACT,
                 ):
                     add(
-                        lock_pin(
+                        self._lockpin.lock_pin(
                             tolerance=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
@@ -554,6 +556,7 @@ class FilamentBracket(Partomatic):
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
         self._filamentchannels.load_config(configuration_path)
+        self._lockpin.load_config(configuration_path)
 
     def __init__(self, configuration_path:str):
         super(Partomatic, self).__init__()
