@@ -42,44 +42,6 @@ def rounded_cylinder(
     return cylinder.part
 
 
-def sidewall_shape(
-    inset=0, length=_config.sidewall_section_depth, straignt_inset=0
-) -> Sketch:
-    """
-    the shape of the sidewall at the defined length
-    """
-    with BuildSketch(mode=Mode.PRIVATE) as wall:
-        Rectangle(
-            width=_config.sidewall_width - inset * 2 - straignt_inset * 2,
-            height=length
-            - _config.wheel_radius
-            - _config.frame_base_depth
-            - inset * 2,
-            align=(Align.CENTER, Align.MAX),
-        )
-        if inset > 0:
-            Rectangle(
-                width=_config.wheel_diameter - inset * 2,
-                height=-inset,
-                align=(Align.CENTER, Align.MIN),
-            )
-    with BuildSketch() as side:
-        Circle(radius=_config.wheel_radius - inset)
-        with BuildSketch(mode=Mode.SUBTRACT):
-            Rectangle(
-                _config.wheel_diameter * 2,
-                _config.wheel_diameter * 2,
-                align=(Align.CENTER, Align.MAX),
-            )
-        Rectangle(
-            width=_config.wheel_diameter - inset * 2,
-            height=_config.frame_base_depth,
-            align=(Align.CENTER, Align.MAX),
-        )
-        add(wall.sketch.move(Location((0, -_config.frame_base_depth - inset))))
-    return side.sketch.move(Location((0, _config.frame_base_depth)))
-
-
 def frame_flat_sidewall_cut(thickness=_config.wall_thickness) -> Part:
     """
     builds a side of the frame
@@ -154,12 +116,3 @@ def frame_arched_sidewall_cut(thickness=_config.wall_thickness) -> Part:
     part = side.part.rotate(Axis.X, 90)
     part.label = "Frame Side"
     return part
-
-
-if __name__ == "__main__":
-    show(
-        sidewall_shape(),
-        sidewall_shape(inset=9),
-        sidewall_shape(inset=5),
-        reset_camera=Camera.KEEP,
-    )

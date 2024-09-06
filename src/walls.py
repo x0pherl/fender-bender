@@ -9,6 +9,7 @@ from build123d import (
     Box,
     BuildPart,
     BuildSketch,
+    Circle,
     Cylinder,
     GridLocations,
     Location,
@@ -17,6 +18,7 @@ from build123d import (
     Plane,
     Rectangle,
     Sphere,
+    Sketch,
     add,
     export_stl,
     extrude,
@@ -26,7 +28,6 @@ from build123d import (
 from ocp_vscode import Camera, show
 from partomatic import Partomatic
 from bank_config import BankConfig
-from basic_shapes import sidewall_shape
 from hexwall import HexWall
 
 class Walls(Partomatic):
@@ -36,6 +37,44 @@ class Walls(Partomatic):
     gwall:Part
     sidewall: Part
     reinforcedsidewall:Part
+
+    def _sidewall_shape(self,
+        inset=0, length=_config.sidewall_section_depth, straignt_inset=0
+    ) -> Sketch:
+        """
+        the shape of the sidewall at the defined length
+        """
+        with BuildSketch(mode=Mode.PRIVATE) as wall:
+            Rectangle(
+                width=self._config.sidewall_width - inset * 2 - straignt_inset * 2,
+                height=length
+                - self._config.wheel_radius
+                - self._config.frame_base_depth
+                - inset * 2,
+                align=(Align.CENTER, Align.MAX),
+            )
+            if inset > 0:
+                Rectangle(
+                    width=self._config.wheel_diameter - inset * 2,
+                    height=-inset,
+                    align=(Align.CENTER, Align.MIN),
+                )
+        with BuildSketch() as side:
+            Circle(radius=self._config.wheel_radius - inset)
+            with BuildSketch(mode=Mode.SUBTRACT):
+                Rectangle(
+                    self._config.wheel_diameter * 2,
+                    self._config.wheel_diameter * 2,
+                    align=(Align.CENTER, Align.MAX),
+                )
+            Rectangle(
+                width=self._config.wheel_diameter - inset * 2,
+                height=self._config.frame_base_depth,
+                align=(Align.CENTER, Align.MAX),
+            )
+            add(wall.sketch.move(Location((0, -self._config.frame_base_depth - inset))))
+        return side.sketch.move(Location((0, self._config.frame_base_depth)))
+
 
 
     def wall_channel(self, length: float) -> Part:
@@ -174,17 +213,17 @@ class Walls(Partomatic):
         """
         with BuildPart() as wall:
             with BuildSketch(Plane.XY):
-                add(sidewall_shape(inset=self._config.wall_thickness / 2, length=length))
+                add(self._sidewall_shape(inset=self._config.wall_thickness / 2, length=length))
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness / 2)):
-                add(sidewall_shape(length=length))
+                add(self._sidewall_shape(length=length))
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness)):
-                add(sidewall_shape(inset=self._config.wall_thickness / 2, length=length))
+                add(self._sidewall_shape(inset=self._config.wall_thickness / 2, length=length))
             loft(ruled=True)
             if reinforce:
                 with BuildPart():
                     with BuildSketch():
                         add(
-                            sidewall_shape(
+                            self._sidewall_shape(
                                 inset=self._config.wall_thickness / 2,
                                 length=length,
                                 straignt_inset=self._config.minimum_structural_thickness
@@ -192,7 +231,7 @@ class Walls(Partomatic):
                             )
                         )
                         add(
-                            sidewall_shape(
+                            self._sidewall_shape(
                                 inset=self._config.wall_thickness / 2
                                 + self._config.minimum_structural_thickness,
                                 length=length,
@@ -209,7 +248,7 @@ class Walls(Partomatic):
                 with BuildPart(mode=Mode.SUBTRACT):
                     with BuildSketch():
                         add(
-                            sidewall_shape(
+                            self._sidewall_shape(
                                 inset=self._config.wall_thickness / 2
                                 + self._config.minimum_structural_thickness,
                                 length=length,
