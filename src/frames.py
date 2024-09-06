@@ -3,6 +3,7 @@ Generates the part for the frames connecting the walls and holding the
 filament brackets in place
 """
 
+from pathlib import Path
 from build123d import (
     Align,
     Axis,
@@ -18,6 +19,8 @@ from build123d import (
     Part,
     Plane,
     PolarLocations,
+    Rectangle,
+    Sketch,
     Sphere,
     add,
     export_stl,
@@ -26,15 +29,10 @@ from build123d import (
     loft,
 )
 from ocp_vscode import Camera, show
-from pathlib import Path
 from partomatic import Partomatic
 from bank_config import BankConfig, FrameStyle, LockStyle
 from lock_pin import LockPin
-from basic_shapes import (
-    frame_arched_sidewall_cut,
-    frame_flat_sidewall_cut,
-    rounded_cylinder,
-)
+from basic_shapes import rounded_cylinder
 from filament_bracket import FilamentBracket
 from wall_hanger_cut_template import wall_hanger_cut_template
 
@@ -48,6 +46,80 @@ class FrameSet(Partomatic):
     bracketclip: Part
     _bracket = FilamentBracket(None)
     _lockpin = LockPin(None)
+
+    def _frame_flat_sidewall_cut(self, thickness=_config.wall_thickness) -> Part:
+        """
+        builds a side of the frame
+        arguments:
+        thickness: determines the depth of the wall
+        """
+        mid_adjustor = thickness / 2
+        with BuildPart() as side:
+            with BuildPart():
+                with BuildSketch(Plane.XY.offset(-thickness / 4)):
+                    Rectangle(
+                        width=self._config.sidewall_width,
+                        height=1,
+                        align=(Align.CENTER, Align.MAX),
+                    )
+                with BuildSketch():
+                    Rectangle(
+                        width=self._config.sidewall_width,
+                        height=1 + mid_adjustor,
+                        align=(Align.CENTER, Align.MAX),
+                    )
+                with BuildSketch(Plane.XY.offset(thickness / 4)):
+                    Rectangle(
+                        width=self._config.sidewall_width,
+                        height=1,
+                        align=(Align.CENTER, Align.MAX),
+                    )
+                loft(ruled=True)
+        part = side.part.rotate(Axis.X, 90)
+        part.label = "Frame Side"
+        return part
+
+    def _frame_cut_sketch(self,inset=0) -> Sketch:
+        """
+        the overall shape of the sidewall with the arch
+        """
+        with BuildSketch(mode=Mode.PRIVATE) as wall:
+            Rectangle(
+                width=self._config.sidewall_width,
+                height=1 - inset * 2,
+                align=(Align.CENTER, Align.MAX),
+            )
+        with BuildSketch() as side:
+            Circle(radius=self._config.wheel_radius - inset)
+            Rectangle(
+                width=self._config.wheel_diameter - inset * 2,
+                height=self._config.frame_base_depth,
+                align=(Align.CENTER, Align.MAX),
+            )
+            add(wall.sketch.move(Location((0, -self._config.frame_base_depth - inset))))
+        return side.sketch.move(Location((0, self._config.frame_base_depth)))
+
+
+    def _frame_arched_sidewall_cut(self,thickness=_config.wall_thickness) -> Part:
+        """
+        a template to subtract in order to create the groove
+        for fitting the side wall
+        arguments:
+            - thickness: determines the depth of the wall
+        """
+        mid_adjustor = thickness / 4
+        with BuildPart() as side:
+            with BuildPart():
+                with BuildSketch(Plane.XY.offset(-thickness / 4)):
+                    add(self._frame_cut_sketch(inset=0))
+                with BuildSketch():
+                    add(self._frame_cut_sketch(inset=-mid_adjustor))
+                with BuildSketch(Plane.XY.offset(mid_adjustor)):
+                    add(self._frame_cut_sketch(inset=0))
+                loft(ruled=True)
+        part = side.part.rotate(Axis.X, 90)
+        part.label = "Frame Side"
+        return part
 
     def straight_wall_grooves(self) -> Part:
         """
@@ -167,7 +239,7 @@ class FrameSet(Partomatic):
                         1,
                         self._config.filament_count + 1,
                     ):
-                        add(frame_flat_sidewall_cut())
+                        add(self._frame_flat_sidewall_cut())
                 with GridLocations(
                     0, self._config.frame_bracket_spacing, 1, self._config.filament_count
                 ):
@@ -277,7 +349,7 @@ class FrameSet(Partomatic):
                 with GridLocations(
                     0, self._config.frame_bracket_spacing, 1, self._config.filament_count + 1
                 ):
-                    add(frame_arched_sidewall_cut())
+                    add(self._frame_arched_sidewall_cut())
                 with BuildPart(
                     Location(
                         (self._config.frame_hanger_offset, 0, self._config.frame_base_depth)
@@ -349,7 +421,7 @@ class FrameSet(Partomatic):
                 with GridLocations(
                     0, self._config.frame_bracket_spacing, 1, self._config.filament_count + 1
                 ):
-                    add(frame_arched_sidewall_cut())
+                    add(self._frame_arched_sidewall_cut())
                 with BuildPart(
                     Location(
                         (self._config.frame_hanger_offset, 0, self._config.frame_base_depth)
