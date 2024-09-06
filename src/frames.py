@@ -568,51 +568,51 @@ class FrameSet(Partomatic):
     def display(self):
         show(
             self.topframe,
-            self.bracket.bottom_bracket_block()
-            .move(Location((0, 0, -self._config.bracket_depth / 2)))
-            .rotate(Axis.X, 90)
-            .move(
-                Location(
-                    (
-                        self._config.frame_hanger_offset + self._config.tolerance,
-                        0,
-                        self._config.frame_base_depth,
-                    )
-                )
-            ),
-            self.bracketclip if LockStyle.CLIP in self._config.frame_lock_style else None,
-            (
-                self.lockpin.move(
-                    Location(
-                        (
-                            self._config.wheel_radius
-                            + self._config.bracket_depth / 2
-                            + self._config.frame_hanger_offset,
-                            self._config.frame_exterior_width / 2,
-                            self._config.bracket_depth
-                            + self._config.minimum_structural_thickness / 2
-                            + self._config.frame_base_depth
-                            + self._config.frame_lock_pin_tolerance / 2,
-                        )
-                    )
-                )
-                if LockStyle.PIN in self._config.frame_lock_style
-                else None
-            ),
-            self.bottomframe.rotate(axis=Axis.X, angle=180).move(
-                Location((0, 0, -self._config.frame_base_depth * 3))
-            ),
-            self.connectorframe.move(Location((0, 0, -self._config.frame_base_depth * 2))),
-            self.wallbracket.move(
-                Location(
-                    (
-                        -self._config.frame_exterior_length / 2
-                        - self._config.minimum_structural_thickness * 3,
-                        0,
-                        0,
-                    )
-                )
-            ),
+            # self.bracket.bottom_bracket_block()
+            # .move(Location((0, 0, -self._config.bracket_depth / 2)))
+            # .rotate(Axis.X, 90)
+            # .move(
+            #     Location(
+            #         (
+            #             self._config.frame_hanger_offset + self._config.tolerance,
+            #             0,
+            #             self._config.frame_base_depth,
+            #         )
+            #     )
+            # ),
+            # self.bracketclip if LockStyle.CLIP in self._config.frame_lock_style else None,
+            # (
+            #     self.lockpin.move(
+            #         Location(
+            #             (
+            #                 self._config.wheel_radius
+            #                 + self._config.bracket_depth / 2
+            #                 + self._config.frame_hanger_offset,
+            #                 self._config.frame_exterior_width / 2,
+            #                 self._config.bracket_depth
+            #                 + self._config.minimum_structural_thickness / 2
+            #                 + self._config.frame_base_depth
+            #                 + self._config.frame_lock_pin_tolerance / 2,
+            #             )
+            #         )
+            #     )
+            #     if LockStyle.PIN in self._config.frame_lock_style
+            #     else None
+            # ),
+            # self.bottomframe.rotate(axis=Axis.X, angle=180).move(
+            #     Location((0, 0, -self._config.frame_base_depth * 3))
+            # ),
+            # self.connectorframe.move(Location((0, 0, -self._config.frame_base_depth * 2))),
+            # self.wallbracket.move(
+            #     Location(
+            #         (
+            #             -self._config.frame_exterior_length / 2
+            #             - self._config.minimum_structural_thickness * 3,
+            #             0,
+            #             0,
+            #         )
+            #     )
+            # ),
             reset_camera=Camera.KEEP,
         )
 
