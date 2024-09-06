@@ -381,11 +381,11 @@ class FilamentChannels(Partomatic):
             self.load_config(configuration_file)
 
     def compile(self):
-        self.straightfilamentpath = self.straight_filament_path(draft=False).move(Location((-self._config.wheel_radius, 0, 0)))
-        self.curvedfilamentpath = self.curved_filament_path(top_exit_fillet=True, draft=False).move(Location((self._config.wheel_radius, 0, 0)))
+        self._straightfilamentpath = self.straight_filament_path(draft=False).move(Location((-self._config.wheel_radius, 0, 0)))
+        self._curvedfilamentpath = self.curved_filament_path(top_exit_fillet=True, draft=False).move(Location((self._config.wheel_radius, 0, 0)))
 
     def display(self):
-        show(self.curvedfilamentpath, self.straightfilamentpath, Camera.KEEP)
+        show(self._curvedfilamentpath, self._straightfilamentpath, Camera.KEEP)
 
     def export_stls(self):
         pass

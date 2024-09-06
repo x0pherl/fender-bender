@@ -1,4 +1,5 @@
 """a part for locking the filament brackets into the frame"""
+from pathlib import Path
 from build123d import (
     BuildPart,
     chamfer,
@@ -14,21 +15,20 @@ from build123d import (
     fillet,
 )
 from ocp_vscode import Camera, show
-from pathlib import Path
 from partomatic import Partomatic
 from bank_config import BankConfig
 
 class LockPin(Partomatic):
     """a partomatic of the lock pin"""
     _config = BankConfig()
-    pin: Part
+    _lockpin: Part
 
     def lock_pin(self, tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=False):
         """
         The pin shape for locking in the filament brackets if LockStyle.PIN is used
         """
         rail_height = self._config.minimum_structural_thickness - tolerance
-        with BuildPart() as pin:
+        with BuildPart() as lpin:
             with BuildPart() as lower:
                 Box(
                     self._config.minimum_structural_thickness - tolerance,
@@ -87,7 +87,7 @@ class LockPin(Partomatic):
                         height=rail_height,
                         align=(Align.CENTER, Align.CENTER, Align.MIN),
                     )
-        return pin.part
+        return lpin.part
 
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
@@ -98,18 +98,18 @@ class LockPin(Partomatic):
             self.load_config(configuration_file)
 
     def compile(self):
-        self.pin = self.lock_pin()
-        self.pin.label = "filament wheel"
+        self._lockpin = self.lock_pin()
+        self._lockpin.label = "filament wheel"
 
     def display(self):
-        show(self.pin, Camera.KEEP)
+        show(self._lockpin, Camera.KEEP)
 
     def export_stls(self):
         if self._config.stl_folder == "NONE":
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
-        export_stl(self.pin, str(output_directory / "lock-pin.stl"))
+        export_stl(self._lockpin, str(output_directory / "lock-pin.stl"))
 
     def render_2d(self):
         pass

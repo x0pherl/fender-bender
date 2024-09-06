@@ -5,7 +5,6 @@ utility for creating a bar with a zig-zag shape
 from build123d import (
     Align,
     Axis,
-    Box,
     BuildPart,
     BuildSketch,
     Circle,
@@ -17,7 +16,6 @@ from build123d import (
     Rectangle,
     Sketch,
     add,
-    chamfer,
     fillet,
     loft,
 )

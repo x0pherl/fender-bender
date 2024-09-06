@@ -20,7 +20,6 @@ from build123d import (
     PolarLocations,
     Sphere,
     add,
-    chamfer,
     export_stl,
     extrude,
     fillet,
