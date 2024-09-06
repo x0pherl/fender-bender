@@ -1,29 +1,36 @@
 """a part for locking the filament brackets into the frame"""
+
 from pathlib import Path
+
 from build123d import (
-    BuildPart,
-    chamfer,
-    Plane,
-    Box,
     Align,
-    Cylinder,
-    Part,
     Axis,
+    Box,
+    BuildPart,
+    Cylinder,
     Location,
-    export_stl,
     Mode,
+    Part,
+    Plane,
+    chamfer,
+    export_stl,
     fillet,
 )
 from ocp_vscode import Camera, show
-from partomatic import Partomatic
+
 from bank_config import BankConfig
+from partomatic import Partomatic
+
 
 class LockPin(Partomatic):
     """a partomatic of the lock pin"""
+
     _config = BankConfig()
     _lockpin: Part
 
-    def lock_pin(self, tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=False):
+    def lock_pin(
+        self, tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=False
+    ):
         """
         The pin shape for locking in the filament brackets if LockStyle.PIN is used
         """
@@ -37,7 +44,10 @@ class LockPin(Partomatic):
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
                 chamfer(
-                    lower.faces().sort_by(Axis.Z)[-1].edges().filter_by(Axis.Y),
+                    lower.faces()
+                    .sort_by(Axis.Z)[-1]
+                    .edges()
+                    .filter_by(Axis.Y),
                     length=rail_height / 2 - abs(tolerance / 2),
                     length2=self._config.minimum_thickness,
                 )
@@ -68,7 +78,8 @@ class LockPin(Partomatic):
                         .sort_by(Axis.Y)[-1]
                         .edges()
                         .filter_by(Axis.Z),
-                        self._config.minimum_structural_thickness - (abs(tolerance)),
+                        self._config.minimum_structural_thickness
+                        - (abs(tolerance)),
                     )
                 with BuildPart(
                     Location(
@@ -92,7 +103,7 @@ class LockPin(Partomatic):
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str):
+    def __init__(self, configuration_file: str):
         super(Partomatic, self).__init__()
         if configuration_file is not None:
             self.load_config(configuration_file)
@@ -113,6 +124,7 @@ class LockPin(Partomatic):
 
     def render_2d(self):
         pass
+
 
 if __name__ == "__main__":
     pin = LockPin(Path(__file__).parent / "../build-configs/debug.conf")

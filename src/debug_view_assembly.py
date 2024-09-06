@@ -17,16 +17,17 @@ from build123d import (
 from ocp_vscode import Camera, show
 
 from bank_config import BankConfig, FrameStyle
+from basic_shapes import lock_pin
 from filament_bracket import FilamentBracket
 from frames import FrameSet
 from walls import Walls
-from basic_shapes import lock_pin
 
-_config_file = '../build-configs/debug.conf'
+_config_file = "../build-configs/debug.conf"
 _config = BankConfig(_config_file)
 filamentbracket = FilamentBracket(_config_file)
 frameset = FrameSet(_config_file)
 walls = Walls(_config_file)
+
 
 def bracket() -> Part:
     """
@@ -70,7 +71,6 @@ def half_top() -> Part:
     return half.part
 
 
-
 def clip_test():
     """
     generates a useful part for testing the clip and pin mechanisms;
@@ -106,7 +106,9 @@ def clip_test():
                 _config.wheel_diameter,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
-        with BuildPart(Location((_config.frame_exterior_length / 4 + 3, 0, 0))):
+        with BuildPart(
+            Location((_config.frame_exterior_length / 4 + 3, 0, 0))
+        ):
             Box(
                 _config.minimum_structural_thickness,
                 _config.frame_exterior_width,
@@ -133,7 +135,11 @@ def clip_test():
             )
         with BuildPart(
             Location(
-                (_config.frame_exterior_length / 4 + 3 + _config.tolerance, 0, 0)
+                (
+                    _config.frame_exterior_length / 4 + 3 + _config.tolerance,
+                    0,
+                    0,
+                )
             ),
             mode=Mode.SUBTRACT,
         ):
@@ -171,25 +177,64 @@ def clip_test():
     export_stl(testblock.part, "../stl/test-frame.stl")
     export_stl(testbracket.part, "../stl/test-bracket.stl")
 
+
 def cut_frame_test():
     """
     a view with the placement of the bracket easily visible
     """
     with BuildPart() as cutframetest:
         add(frameset.top_frame())
-        with BuildPart(Location((0,-_config.frame_exterior_width/2+_config.wall_thickness+_config.minimum_structural_thickness+_config.bracket_depth/2,0)), mode=Mode.SUBTRACT):
-            Box(1000, 1000, 1000, align=(Align.CENTER, Align.MAX, Align.CENTER))
-    show(cutframetest.part, filamentbracket.bottom_bracket().move(Location((_config.frame_hanger_offset,-_config.frame_bracket_spacing,0))), reset_camera=Camera.KEEP)
+        with BuildPart(
+            Location(
+                (
+                    0,
+                    -_config.frame_exterior_width / 2
+                    + _config.wall_thickness
+                    + _config.minimum_structural_thickness
+                    + _config.bracket_depth / 2,
+                    0,
+                )
+            ),
+            mode=Mode.SUBTRACT,
+        ):
+            Box(
+                1000, 1000, 1000, align=(Align.CENTER, Align.MAX, Align.CENTER)
+            )
+    show(
+        cutframetest.part,
+        filamentbracket.bottom_bracket().move(
+            Location(
+                (
+                    _config.frame_hanger_offset,
+                    -_config.frame_bracket_spacing,
+                    0,
+                )
+            )
+        ),
+        reset_camera=Camera.KEEP,
+    )
 
 
 def tongue_groove_test():
-    walls = Walls('../build-configs/debug.conf')
-    frameset = FrameSet('../build-configs/debug.conf')
+    walls = Walls("../build-configs/debug.conf")
+    frameset = FrameSet("../build-configs/debug.conf")
     with BuildPart() as tongue:
-        add(walls.straight_wall_tongue().move(Location((-_config.sidewall_width / 2 - _config.wall_thickness / 2, 0, 0))))
+        add(
+            walls.straight_wall_tongue().move(
+                Location(
+                    (
+                        -_config.sidewall_width / 2
+                        - _config.wall_thickness / 2,
+                        0,
+                        0,
+                    )
+                )
+            )
+        )
     with BuildPart() as groove:
         add(frameset.straight_wall_grooves().mirror())
     show(tongue.part, groove.part, reset_camera=Camera.KEEP)
+
 
 if __name__ == "__main__":
 
@@ -200,7 +245,9 @@ if __name__ == "__main__":
         .move(
             Location(
                 (
-                    -_config.sidewall_width / 2 - _config.wall_thickness+_config.frame_hanger_offset,
+                    -_config.sidewall_width / 2
+                    - _config.wall_thickness
+                    + _config.frame_hanger_offset,
                     0,
                     -_config.sidewall_straight_depth / 2,
                 )
@@ -214,7 +261,9 @@ if __name__ == "__main__":
         .move(
             Location(
                 (
-                    _config.sidewall_width / 2 + _config.wall_thickness+_config.frame_hanger_offset,
+                    _config.sidewall_width / 2
+                    + _config.wall_thickness
+                    + _config.frame_hanger_offset,
                     0,
                     -_config.sidewall_straight_depth / 2,
                 )
@@ -224,7 +273,17 @@ if __name__ == "__main__":
     swall = (
         walls.side_wall(length=_config.sidewall_section_depth, reinforce=True)
         .rotate(Axis.X, 90)
-        .move(Location((_config.frame_hanger_offset, -_config.top_frame_interior_width / 2-_config.minimum_structural_thickness-_config.wall_thickness/2, 00)))
+        .move(
+            Location(
+                (
+                    _config.frame_hanger_offset,
+                    -_config.top_frame_interior_width / 2
+                    - _config.minimum_structural_thickness
+                    - _config.wall_thickness / 2,
+                    00,
+                )
+            )
+        )
     )
 
     topframe = frameset.top_frame()
@@ -254,12 +313,23 @@ if __name__ == "__main__":
     cframe = (
         frameset.connector_frame().move(
             Location(
-                (0, 0, -_config.sidewall_straight_depth - _config.frame_connector_depth)
+                (
+                    0,
+                    0,
+                    -_config.sidewall_straight_depth
+                    - _config.frame_connector_depth,
+                )
             )
         ),
     )
 
-    bkt = filamentbracket.bottom_bracket().rotate(Axis.X, 90).move(Location((0, _config.bracket_depth/2, _config.frame_base_depth)))
+    bkt = (
+        filamentbracket.bottom_bracket()
+        .rotate(Axis.X, 90)
+        .move(
+            Location((0, _config.bracket_depth / 2, _config.frame_base_depth))
+        )
+    )
 
     lockpin = lock_pin(
         tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=True

@@ -22,7 +22,7 @@ from build123d import (
 
 from bank_config import BankConfig
 
-_config = BankConfig('../build-configs/debug.conf')
+_config = BankConfig("../build-configs/debug.conf")
 
 
 def rounded_cylinder(

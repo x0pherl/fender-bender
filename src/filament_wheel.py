@@ -3,6 +3,7 @@ Generates the part for the filament wheel of our filament bank design
 """
 
 from pathlib import Path
+
 from build123d import (
     BuildLine,
     BuildPart,
@@ -24,8 +25,10 @@ from build123d import (
     sweep,
 )
 from ocp_vscode import Camera, show
-from partomatic import Partomatic
+
 from bank_config import BankConfig
+from partomatic import Partomatic
+
 
 def diamond_torus(major_radius: float, minor_radius: float) -> Part:
     """
@@ -44,21 +47,26 @@ def diamond_torus(major_radius: float, minor_radius: float) -> Part:
         sweep()
     return torus.part
 
+
 class FilamentWheel(Partomatic):
     """A partomatic for the filament wheel of the filament bank"""
 
     _config = BankConfig()
-    wheel : Part
+    wheel: Part
 
     def spoke(self) -> Sketch:
         """
         returns the spoke Sketch for the filament wheel
         """
         spoke_outer_radius = (
-            self._config.wheel_radius + self._config.bearing_radius + self._config.rim_thickness
+            self._config.wheel_radius
+            + self._config.bearing_radius
+            + self._config.rim_thickness
         ) / 2
         spoke_shift = (
-            self._config.wheel_radius - self._config.bearing_radius - self._config.rim_thickness
+            self._config.wheel_radius
+            - self._config.bearing_radius
+            - self._config.rim_thickness
         ) / 2
         with BuildSketch() as sketch:
             with BuildLine():
@@ -87,19 +95,23 @@ class FilamentWheel(Partomatic):
             with BuildSketch():
                 Circle(radius=self._config.wheel_radius)
                 Circle(
-                    radius=self._config.wheel_radius - self._config.rim_thickness,
+                    radius=self._config.wheel_radius
+                    - self._config.rim_thickness,
                     mode=Mode.SUBTRACT,
                 )
             with BuildSketch():
-                Circle(radius=self._config.bearing_radius + self._config.rim_thickness)
+                Circle(
+                    radius=self._config.bearing_radius
+                    + self._config.rim_thickness
+                )
                 Circle(radius=self._config.bearing_radius, mode=Mode.SUBTRACT)
             with PolarLocations(0, self._config.wheel_spoke_count):
                 add(self.spoke())
             extrude(amount=self._config.bearing_depth)
             add(
-                diamond_torus(self._config.wheel_radius, self._config.bearing_depth / 2).move(
-                    Location((0, 0, self._config.bearing_depth / 2))
-                ),
+                diamond_torus(
+                    self._config.wheel_radius, self._config.bearing_depth / 2
+                ).move(Location((0, 0, self._config.bearing_depth / 2))),
                 mode=Mode.SUBTRACT,
             )
         return fwheel.part
@@ -107,7 +119,7 @@ class FilamentWheel(Partomatic):
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str):
+    def __init__(self, configuration_file: str):
         super(Partomatic, self).__init__()
         self.load_config(configuration_file)
 
@@ -128,8 +140,11 @@ class FilamentWheel(Partomatic):
     def render_2d(self):
         pass
 
+
 if __name__ == "__main__":
-    wheel = FilamentWheel(Path(__file__).parent / "../build-configs/debug.conf")
+    wheel = FilamentWheel(
+        Path(__file__).parent / "../build-configs/debug.conf"
+    )
     wheel.compile()
     wheel.display()
     wheel.export_stls()

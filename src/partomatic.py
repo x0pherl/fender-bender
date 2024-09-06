@@ -1,6 +1,9 @@
 """Part extended for CI/CD automation"""
+
 from abc import ABC, abstractmethod
+
 from build123d import Part
+
 
 class Partomatic(Part, ABC):
     """

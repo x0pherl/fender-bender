@@ -4,6 +4,7 @@ Generates filament ingress and egress shapes
 
 from math import sqrt
 from pathlib import Path
+
 from bd_warehouse.thread import TrapezoidalThread
 from build123d import (
     Align,
@@ -29,21 +30,26 @@ from build123d import (
     sweep,
 )
 from ocp_vscode import Camera, show
-from partomatic import Partomatic
+
 from bank_config import BankConfig
+from partomatic import Partomatic
 
 
 class FilamentChannels(Partomatic):
     """a partomatic for the filament ingress and egress channels"""
+
     _config = BankConfig()
     _curvedfilamentpath: Part
     _straightfilamentpath: Part
 
     ingress_connector_location = Location(
-        (-_config.wheel_radius, _config.bracket_height, _config.bracket_depth / 2),
+        (
+            -_config.wheel_radius,
+            _config.bracket_height,
+            _config.bracket_depth / 2,
+        ),
         (90, 0, 0),
     )
-
 
     def connector_threads(self) -> Part:
         """
@@ -53,7 +59,8 @@ class FilamentChannels(Partomatic):
             TrapezoidalThread(
                 diameter=self._config.connector_diameter,
                 pitch=self._config.connector_thread_pitch,
-                length=self._config.connector_length - self._config.minimum_thickness / 2,
+                length=self._config.connector_length
+                - self._config.minimum_thickness / 2,
                 thread_angle=self._config.connector_thread_angle,
                 external=False,
                 interference=self._config.connector_thread_interference,
@@ -63,7 +70,6 @@ class FilamentChannels(Partomatic):
         part = threads.part
         part.label = "connector threads"
         return part
-
 
     def straight_filament_path_cut(self):
         """
@@ -80,7 +86,9 @@ class FilamentChannels(Partomatic):
                         + self._config.wheel_lateral_tolerance,
                         mode=Mode.INTERSECT,
                     )
-                with BuildSketch(Plane.XY.offset(self._config.filament_funnel_height)):
+                with BuildSketch(
+                    Plane.XY.offset(self._config.filament_funnel_height)
+                ):
                     Circle(radius=self._config.tube_inner_radius)
                 loft()
             with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
@@ -99,13 +107,15 @@ class FilamentChannels(Partomatic):
                 )
             with BuildSketch(
                 Plane.XY.offset(
-                    self._config.bracket_height - self._config.minimum_thickness / 2
+                    self._config.bracket_height
+                    - self._config.minimum_thickness / 2
                 )
             ):
                 Circle(radius=self._config.connector_radius)
             with BuildSketch(Plane.XY.offset(self._config.bracket_height)):
                 Circle(
-                    radius=self._config.connector_radius + self._config.minimum_thickness / 2
+                    radius=self._config.connector_radius
+                    + self._config.minimum_thickness / 2
                 )
             loft()
 
@@ -120,7 +130,6 @@ class FilamentChannels(Partomatic):
         part = cut.part
         part.label = "tube cut"
         return part
-
 
     def straight_filament_path_solid(self) -> Part:
         """
@@ -140,7 +149,6 @@ class FilamentChannels(Partomatic):
             )
         return ingress.part
 
-
     def straight_filament_connector_threads(self) -> Part:
         """
         the threads for the ingress connector
@@ -149,7 +157,8 @@ class FilamentChannels(Partomatic):
             Location(
                 (
                     0,
-                    self._config.bracket_height - self._config.minimum_thickness / 2,
+                    self._config.bracket_height
+                    - self._config.minimum_thickness / 2,
                     self._config.bracket_depth / 2,
                 ),
                 (90, 0, 0),
@@ -159,7 +168,6 @@ class FilamentChannels(Partomatic):
         part = threads.part
         part.label = "connector threads"
         return part
-
 
     def straight_filament_path(self, draft=True) -> Part:
         """
@@ -175,7 +183,6 @@ class FilamentChannels(Partomatic):
         part.label = "filament path"
         return part
 
-
     def curved_filament_line(self) -> Compound:
         """
         returns a compund with three line segments representing the
@@ -183,7 +190,8 @@ class FilamentChannels(Partomatic):
         and the connector
         """
         straight_distance = (
-            self._config.connector_length / 2 + self._config.minimum_structural_thickness
+            self._config.connector_length / 2
+            + self._config.minimum_structural_thickness
         ) / sqrt(2)
 
         with BuildLine(mode=Mode.PRIVATE):
@@ -227,17 +235,24 @@ class FilamentChannels(Partomatic):
         with BuildPart() as inlet:
             with BuildLine() as intake:
                 add(path.children[0])
-            with BuildSketch(Plane(origin=intake.line @ 0, z_dir=intake.line % 0)):
+            with BuildSketch(
+                Plane(origin=intake.line @ 0, z_dir=intake.line % 0)
+            ):
                 Circle(radius=self._config.tube_outer_diameter * 0.75)
                 Rectangle(
                     height=self._config.tube_outer_diameter * 2,
-                    width=self._config.bearing_depth + self._config.wheel_lateral_tolerance,
+                    width=self._config.bearing_depth
+                    + self._config.wheel_lateral_tolerance,
                     mode=Mode.INTERSECT,
                 )
-            with BuildSketch(Plane(origin=intake.line @ 1, z_dir=intake.line % 1)):
+            with BuildSketch(
+                Plane(origin=intake.line @ 1, z_dir=intake.line % 1)
+            ):
                 Circle(self._config.tube_inner_radius)
             loft()
-            extrude(inlet.faces().sort_by(Axis.Y)[0], self._config.bracket_depth)
+            extrude(
+                inlet.faces().sort_by(Axis.Y)[0], self._config.bracket_depth
+            )
         with BuildPart() as tube:
             with BuildLine() as tube_path:
                 add(path.children[1])
@@ -259,7 +274,8 @@ class FilamentChannels(Partomatic):
                 add(path.children[3])
             with BuildSketch(
                 Plane(
-                    origin=connector_path.line @ 0, z_dir=connector_path.line % 0
+                    origin=connector_path.line @ 0,
+                    z_dir=connector_path.line % 0,
                 )
             ):
                 Circle(self._config.connector_radius)
@@ -267,19 +283,25 @@ class FilamentChannels(Partomatic):
         with BuildPart() as connector_chamfer:
             with BuildSketch(
                 Plane(
-                    origin=connector_path.line @ 1, z_dir=connector_path.line % 1
+                    origin=connector_path.line @ 1,
+                    z_dir=connector_path.line % 1,
                 )
             ):
-                Circle(self._config.connector_radius + self._config.minimum_thickness / 2)
+                Circle(
+                    self._config.connector_radius
+                    + self._config.minimum_thickness / 2
+                )
             with BuildSketch(
                 Plane(
-                    origin=connector_path.line @ 1, z_dir=connector_path.line % 1
+                    origin=connector_path.line @ 1,
+                    z_dir=connector_path.line % 1,
                 ).offset(-self._config.minimum_thickness / 2)
             ):
                 Circle(self._config.connector_radius)
             loft()
             extrude(
-                connector_chamfer.faces().sort_by(Axis.X)[-1], self._config.bracket_depth
+                connector_chamfer.faces().sort_by(Axis.X)[-1],
+                self._config.bracket_depth,
             )
         complete = Compound(
             label="curved filament path cut",
@@ -292,7 +314,6 @@ class FilamentChannels(Partomatic):
             ),
         ).move(Location((0, 0, self._config.bracket_depth / 2)))
         return complete
-
 
     def curved_filament_path_solid(self, top_exit_fillet=True) -> Part:
         """ "
@@ -309,7 +330,9 @@ class FilamentChannels(Partomatic):
             with BuildSketch(
                 Plane(origin=curve.line @ 0, z_dir=curve.line % 0)
             ) as path_face:
-                Rectangle(self._config.bracket_depth, self._config.bracket_depth)
+                Rectangle(
+                    self._config.bracket_depth, self._config.bracket_depth
+                )
                 fillet(path_face.vertices(), self._config.fillet_radius)
             sweep()
             if not top_exit_fillet:
@@ -326,13 +349,17 @@ class FilamentChannels(Partomatic):
                     )
                 sweep()
             fillet(
-                solid_path.faces().sort_by(Axis.Y)[0].edges().filter_by(Axis.X),
+                solid_path.faces()
+                .sort_by(Axis.Y)[0]
+                .edges()
+                .filter_by(Axis.X),
                 self._config.fillet_radius,
             )
-        part = solid_path.part.move(Location((0, 0, self._config.bracket_depth / 2)))
+        part = solid_path.part.move(
+            Location((0, 0, self._config.bracket_depth / 2))
+        )
         part.label = "curved filament path"
         return part
-
 
     def curved_filament_connector_threads(self) -> Part:
         """
@@ -356,8 +383,7 @@ class FilamentChannels(Partomatic):
         part.label = "connector threads"
         return part
 
-
-    def curved_filament_path(self,top_exit_fillet=False, draft=True) -> Part:
+    def curved_filament_path(self, top_exit_fillet=False, draft=True) -> Part:
         """
         builds a straight filaement channel with the cut in place
         """
@@ -371,18 +397,21 @@ class FilamentChannels(Partomatic):
         part.label = "filament path"
         return part
 
-
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str):
+    def __init__(self, configuration_file: str):
         super(Partomatic, self).__init__()
         if configuration_file is not None:
             self.load_config(configuration_file)
 
     def compile(self):
-        self._straightfilamentpath = self.straight_filament_path(draft=False).move(Location((-self._config.wheel_radius, 0, 0)))
-        self._curvedfilamentpath = self.curved_filament_path(top_exit_fillet=True, draft=False).move(Location((self._config.wheel_radius, 0, 0)))
+        self._straightfilamentpath = self.straight_filament_path(
+            draft=False
+        ).move(Location((-self._config.wheel_radius, 0, 0)))
+        self._curvedfilamentpath = self.curved_filament_path(
+            top_exit_fillet=True, draft=False
+        ).move(Location((self._config.wheel_radius, 0, 0)))
 
     def display(self):
         show(self._curvedfilamentpath, self._straightfilamentpath, Camera.KEEP)
@@ -393,7 +422,10 @@ class FilamentChannels(Partomatic):
     def render_2d(self):
         pass
 
+
 if __name__ == "__main__":
-    channels = FilamentChannels(Path(__file__).parent / "../build-configs/debug.conf")
+    channels = FilamentChannels(
+        Path(__file__).parent / "../build-configs/debug.conf"
+    )
     channels.compile()
     channels.display()

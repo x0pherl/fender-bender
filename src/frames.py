@@ -4,6 +4,7 @@ filament brackets in place
 """
 
 from pathlib import Path
+
 from build123d import (
     Align,
     Axis,
@@ -29,16 +30,19 @@ from build123d import (
     loft,
 )
 from ocp_vscode import Camera, show
-from partomatic import Partomatic
+
 from bank_config import BankConfig, FrameStyle, LockStyle
-from lock_pin import LockPin
 from basic_shapes import rounded_cylinder
 from filament_bracket import FilamentBracket
+from lock_pin import LockPin
+from partomatic import Partomatic
 from wall_hanger_cut_template import wall_hanger_cut_template
+
 
 class FrameSet(Partomatic):
     """The complete set of frames"""
-    _config:BankConfig = BankConfig()
+
+    _config: BankConfig = BankConfig()
     topframe: Part
     bottomframe: Part
     connectorframe: Part
@@ -47,7 +51,9 @@ class FrameSet(Partomatic):
     _bracket = FilamentBracket(None)
     _lockpin = LockPin(None)
 
-    def _frame_flat_sidewall_cut(self, thickness=_config.wall_thickness) -> Part:
+    def _frame_flat_sidewall_cut(
+        self, thickness=_config.wall_thickness
+    ) -> Part:
         """
         builds a side of the frame
         arguments:
@@ -79,7 +85,7 @@ class FrameSet(Partomatic):
         part.label = "Frame Side"
         return part
 
-    def _frame_cut_sketch(self,inset=0) -> Sketch:
+    def _frame_cut_sketch(self, inset=0) -> Sketch:
         """
         the overall shape of the sidewall with the arch
         """
@@ -96,11 +102,16 @@ class FrameSet(Partomatic):
                 height=self._config.frame_base_depth,
                 align=(Align.CENTER, Align.MAX),
             )
-            add(wall.sketch.move(Location((0, -self._config.frame_base_depth - inset))))
+            add(
+                wall.sketch.move(
+                    Location((0, -self._config.frame_base_depth - inset))
+                )
+            )
         return side.sketch.move(Location((0, self._config.frame_base_depth)))
 
-
-    def _frame_arched_sidewall_cut(self,thickness=_config.wall_thickness) -> Part:
+    def _frame_arched_sidewall_cut(
+        self, thickness=_config.wall_thickness
+    ) -> Part:
         """
         a template to subtract in order to create the groove
         for fitting the side wall
@@ -140,11 +151,27 @@ class FrameSet(Partomatic):
                 taper=44,
             )
             with BuildPart(groove.faces().sort_by(Axis.X)[-1], mode=Mode.ADD):
-                with GridLocations(0, self._config.top_frame_interior_width-self._config.bracket_depth, 1, 2):
+                with GridLocations(
+                    0,
+                    self._config.top_frame_interior_width
+                    - self._config.bracket_depth,
+                    1,
+                    2,
+                ):
                     Sphere(radius=self._config.frame_click_sphere_radius)
-            with BuildPart(groove.faces().sort_by(Axis.X)[0], mode=Mode.SUBTRACT):
-                with GridLocations(0, self._config.top_frame_interior_width-self._config.bracket_depth, 1, 2):
-                    Sphere(radius=self._config.frame_click_sphere_radius * 0.75)
+            with BuildPart(
+                groove.faces().sort_by(Axis.X)[0], mode=Mode.SUBTRACT
+            ):
+                with GridLocations(
+                    0,
+                    self._config.top_frame_interior_width
+                    - self._config.bracket_depth,
+                    1,
+                    2,
+                ):
+                    Sphere(
+                        radius=self._config.frame_click_sphere_radius * 0.75
+                    )
             with BuildPart(mode=Mode.SUBTRACT):
                 Box(
                     self._config.wall_thickness + self._config.tolerance,
@@ -152,16 +179,19 @@ class FrameSet(Partomatic):
                     self._config.frame_tongue_depth + self._config.tolerance,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
-                with BuildPart(Location((0, 0, self._config.wall_thickness * 0.75))):
+                with BuildPart(
+                    Location((0, 0, self._config.wall_thickness * 0.75))
+                ):
                     Sphere(radius=self._config.wall_thickness * 0.5)
 
         with BuildPart() as grooves:
             with PolarLocations(
-                -self._config.sidewall_width / 2 - self._config.wall_thickness / 2, 2
+                -self._config.sidewall_width / 2
+                - self._config.wall_thickness / 2,
+                2,
             ):
                 add(groove.part.mirror())
         return grooves.part
-
 
     def bracket_cutblock(self) -> Part:
         """
@@ -171,14 +201,22 @@ class FrameSet(Partomatic):
             with BuildPart(Location((0, 0, 0))) as curve:
                 Cylinder(
                     radius=self._config.frame_bracket_exterior_radius,
-                    height=self._config.bracket_depth + self._config.tolerance * 2,
+                    height=self._config.bracket_depth
+                    + self._config.tolerance * 2,
                     arc_size=180,
                     align=(Align.CENTER, Align.MIN, Align.CENTER),
                     rotation=(90, 0, 0),
                 )
                 fillet(curve.edges(), self._config.fillet_radius)
             with BuildPart(
-                Location((-self._config.wheel_radius - self._config.bracket_depth / 2, 0, 0))
+                Location(
+                    (
+                        -self._config.wheel_radius
+                        - self._config.bracket_depth / 2,
+                        0,
+                        0,
+                    )
+                )
             ) as top_block:
                 Box(
                     self._config.frame_bracket_exterior_diameter,
@@ -189,12 +227,17 @@ class FrameSet(Partomatic):
                 fillet(top_block.edges(), self._config.fillet_radius)
             add(self.chamber_cut(height=self._config.frame_base_depth * 2))
             if LockStyle.CLIP in self._config.frame_lock_style:
-                add(self._bracket.bracket_clip_rail_block(inset=-self._config.tolerance / 2))
+                add(
+                    self._bracket.bracket_clip_rail_block(
+                        inset=-self._config.tolerance / 2
+                    )
+                )
 
-        part = cutblock.part.move(Location((0, 0, self._config.frame_base_depth)))
+        part = cutblock.part.move(
+            Location((0, 0, self._config.frame_base_depth))
+        )
         part.label = "cut block"
         return part
-
 
     def chamber_cut(self, height=_config.bracket_height * 3) -> Part:
         """
@@ -207,11 +250,15 @@ class FrameSet(Partomatic):
                 height,
                 align=(Align.CENTER, Align.CENTER, Align.CENTER),
             )
-            fillet(cut.edges().filter_by(Axis.Z), radius=self._config.fillet_radius)
+            fillet(
+                cut.edges().filter_by(Axis.Z),
+                radius=self._config.fillet_radius,
+            )
         return cut.part
 
-
-    def connector_frame(self, ) -> Part:
+    def connector_frame(
+        self,
+    ) -> Part:
         """
         the connecting frame for supporting the walls of the top and extension
         sections
@@ -226,7 +273,8 @@ class FrameSet(Partomatic):
                 )
             fillet(cframe.edges(), self._config.fillet_radius)
             with BuildPart(
-                Location((self._config.frame_hanger_offset, 0, 0)), mode=Mode.SUBTRACT
+                Location((self._config.frame_hanger_offset, 0, 0)),
+                mode=Mode.SUBTRACT,
             ):
                 with Locations(
                     cframe.faces().sort_by(Axis.Z)[-1],
@@ -241,11 +289,13 @@ class FrameSet(Partomatic):
                     ):
                         add(self._frame_flat_sidewall_cut())
                 with GridLocations(
-                    0, self._config.frame_bracket_spacing, 1, self._config.filament_count
+                    0,
+                    self._config.frame_bracket_spacing,
+                    1,
+                    self._config.filament_count,
                 ):
                     add(self.chamber_cut())
         return cframe.part
-
 
     def bottom_frame_stand(self) -> Part:
         """
@@ -258,7 +308,8 @@ class FrameSet(Partomatic):
             Box(
                 self._config.frame_bracket_exterior_diameter * 2,
                 self._config.bracket_depth,
-                self._config.frame_bracket_exterior_radius - self._config.fillet_radius,
+                self._config.frame_bracket_exterior_radius
+                - self._config.fillet_radius,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
             fillet(sectioncut.edges(), radius=self._config.fillet_radius)
@@ -273,24 +324,33 @@ class FrameSet(Partomatic):
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
             with BuildPart(
-                Location((self._config.frame_hanger_offset, 0, self._config.frame_base_depth)),
+                Location(
+                    (
+                        self._config.frame_hanger_offset,
+                        0,
+                        self._config.frame_base_depth,
+                    )
+                ),
                 mode=Mode.SUBTRACT,
             ):
                 Box(
                     self._config.frame_bracket_exterior_diameter
                     - self._config.minimum_structural_thickness * 2,
                     self._config.frame_exterior_width,
-                    self._config.frame_bracket_exterior_radius - self._config.fillet_radius,
+                    self._config.frame_bracket_exterior_radius
+                    - self._config.fillet_radius,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             fillet(stand.edges(), self._config.fillet_radius)
             with GridLocations(
-                0, self._config.frame_bracket_spacing, 1, self._config.filament_count
+                0,
+                self._config.frame_bracket_spacing,
+                1,
+                self._config.filament_count,
             ):
                 add(sectioncut, mode=Mode.SUBTRACT)
 
         return stand.part
-
 
     def bottom_frame(self) -> Part:
         """
@@ -306,7 +366,13 @@ class FrameSet(Partomatic):
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             with BuildPart(
-                Location((self._config.frame_hanger_offset, 0, self._config.frame_base_depth))
+                Location(
+                    (
+                        self._config.frame_hanger_offset,
+                        0,
+                        self._config.frame_base_depth,
+                    )
+                )
             ):
                 Cylinder(
                     radius=self._config.frame_bracket_exterior_radius,
@@ -340,19 +406,30 @@ class FrameSet(Partomatic):
             if FrameStyle.STANDING in self._config.frame_style:
                 add(self.bottom_frame_stand())
             with BuildPart(
-                Location((self._config.frame_hanger_offset, 0, 0)), mode=Mode.SUBTRACT
+                Location((self._config.frame_hanger_offset, 0, 0)),
+                mode=Mode.SUBTRACT,
             ):
                 with GridLocations(
-                    0, self._config.frame_bracket_spacing, 1, self._config.filament_count
+                    0,
+                    self._config.frame_bracket_spacing,
+                    1,
+                    self._config.filament_count,
                 ):
                     add(self.chamber_cut())
                 with GridLocations(
-                    0, self._config.frame_bracket_spacing, 1, self._config.filament_count + 1
+                    0,
+                    self._config.frame_bracket_spacing,
+                    1,
+                    self._config.filament_count + 1,
                 ):
                     add(self._frame_arched_sidewall_cut())
                 with BuildPart(
                     Location(
-                        (self._config.frame_hanger_offset, 0, self._config.frame_base_depth)
+                        (
+                            self._config.frame_hanger_offset,
+                            0,
+                            self._config.frame_base_depth,
+                        )
                     )
                 ):
                     Cylinder(
@@ -370,7 +447,6 @@ class FrameSet(Partomatic):
         part = bframe.part
         part.label = "bottom stand with frame"
         return part
-
 
     def top_frame(self) -> Part:
         """
@@ -391,7 +467,13 @@ class FrameSet(Partomatic):
                     align=(Align.MAX, Align.CENTER, Align.MIN),
                 )
             with BuildPart(
-                Location((self._config.frame_hanger_offset, 0, self._config.frame_base_depth))
+                Location(
+                    (
+                        self._config.frame_hanger_offset,
+                        0,
+                        self._config.frame_base_depth,
+                    )
+                )
             ):
                 Cylinder(
                     radius=self._config.frame_bracket_exterior_radius,
@@ -411,20 +493,31 @@ class FrameSet(Partomatic):
             )
             fillet(edge_set, self._config.fillet_radius)
             with BuildPart(
-                Location((self._config.frame_hanger_offset, 0, 0)), mode=Mode.SUBTRACT
+                Location((self._config.frame_hanger_offset, 0, 0)),
+                mode=Mode.SUBTRACT,
             ):
                 with GridLocations(
-                    0, self._config.frame_bracket_spacing, 1, self._config.filament_count
+                    0,
+                    self._config.frame_bracket_spacing,
+                    1,
+                    self._config.filament_count,
                 ):
                     add(self.bracket_cutblock())
 
                 with GridLocations(
-                    0, self._config.frame_bracket_spacing, 1, self._config.filament_count + 1
+                    0,
+                    self._config.frame_bracket_spacing,
+                    1,
+                    self._config.filament_count + 1,
                 ):
                     add(self._frame_arched_sidewall_cut())
                 with BuildPart(
                     Location(
-                        (self._config.frame_hanger_offset, 0, self._config.frame_base_depth)
+                        (
+                            self._config.frame_hanger_offset,
+                            0,
+                            self._config.frame_base_depth,
+                        )
                     )
                 ):
                     Cylinder(
@@ -445,20 +538,29 @@ class FrameSet(Partomatic):
                     (
                         -self._config.frame_bracket_exterior_radius,
                         0,
-                        self._config.bracket_depth + self._config.frame_base_depth,
+                        self._config.bracket_depth
+                        + self._config.frame_base_depth,
                     ),
                     (0, 90, 0),
                 )
             ):
                 with GridLocations(
-                    0, self._config.frame_bracket_spacing, 1, self._config.filament_count
+                    0,
+                    self._config.frame_bracket_spacing,
+                    1,
+                    self._config.filament_count,
                 ):
                     with GridLocations(
-                        0, self._config.bracket_depth + self._config.tolerance * 2, 1, 2
+                        0,
+                        self._config.bracket_depth
+                        + self._config.tolerance * 2,
+                        1,
+                        2,
                     ):
                         add(
                             rounded_cylinder(
-                                radius=self._config.wall_thickness - self._config.tolerance,
+                                radius=self._config.wall_thickness
+                                - self._config.tolerance,
                                 height=self._config.bracket_depth,
                                 align=(Align.CENTER, Align.CENTER, Align.MIN),
                             )
@@ -467,7 +569,8 @@ class FrameSet(Partomatic):
             with BuildPart(
                 Location(
                     (
-                        self._config.frame_click_sphere_point.x + self._config.frame_hanger_offset,
+                        self._config.frame_click_sphere_point.x
+                        + self._config.frame_hanger_offset,
                         0,
                         self._config.frame_click_sphere_point.y
                         + self._config.frame_base_depth,
@@ -475,10 +578,17 @@ class FrameSet(Partomatic):
                 )
             ):
                 with GridLocations(
-                    0, self._config.frame_bracket_spacing, 1, self._config.filament_count
+                    0,
+                    self._config.frame_bracket_spacing,
+                    1,
+                    self._config.filament_count,
                 ):
                     with GridLocations(
-                        0, self._config.bracket_depth + self._config.tolerance * 2, 1, 2
+                        0,
+                        self._config.bracket_depth
+                        + self._config.tolerance * 2,
+                        1,
+                        2,
                     ):
                         Sphere(self._config.frame_click_sphere_radius * 0.75)
 
@@ -490,7 +600,8 @@ class FrameSet(Partomatic):
                     add(
                         wall_hanger_cut_template(
                             self._config.minimum_structural_thickness * 1.5,
-                            self._config.frame_exterior_width-self._config.minimum_structural_thickness*2,
+                            self._config.frame_exterior_width
+                            - self._config.minimum_structural_thickness * 2,
                             self._config.bracket_height,
                             bottom=False,
                             post_count=self._config.wall_bracket_post_count,
@@ -515,7 +626,8 @@ class FrameSet(Partomatic):
                 ):
                     add(
                         self._lockpin.lock_pin(
-                            tolerance=-self._config.frame_lock_pin_tolerance / 2,
+                            tolerance=-self._config.frame_lock_pin_tolerance
+                            / 2,
                             tie_loop=False,
                         )
                     )
@@ -551,19 +663,23 @@ class FrameSet(Partomatic):
         with BuildPart() as bracket:
             Box(
                 self._config.minimum_structural_thickness * 3,
-                self._config.frame_exterior_width -self._config.minimum_structural_thickness - self._config.tolerance*2,
+                self._config.frame_exterior_width
+                - self._config.minimum_structural_thickness
+                - self._config.tolerance * 2,
                 self._config.bracket_height,
                 align=(Align.MIN, Align.CENTER, Align.MIN),
             )
             fillet(
                 bracket.edges(),
-                self._config.minimum_structural_thickness / self._config.fillet_ratio,
+                self._config.minimum_structural_thickness
+                / self._config.fillet_ratio,
             )
             with BuildPart(mode=Mode.INTERSECT):
                 add(
                     wall_hanger_cut_template(
                         self._config.minimum_structural_thickness * 1.5,
-                        self._config.frame_exterior_width-self._config.minimum_structural_thickness*2,
+                        self._config.frame_exterior_width
+                        - self._config.minimum_structural_thickness * 2,
                         self._config.bracket_height,
                         bottom=True,
                         post_count=self._config.wall_bracket_post_count,
@@ -584,7 +700,6 @@ class FrameSet(Partomatic):
                 add(self.screw_head())
         return bracket.part
 
-
     def screw_head(self) -> Part:
         """
         template for the cutout for a screwhead
@@ -592,7 +707,9 @@ class FrameSet(Partomatic):
         with BuildPart() as head:
             with BuildSketch():
                 Circle(self._config.wall_bracket_screw_head_radius)
-            with BuildSketch(Plane.XY.offset(self._config.wall_bracket_screw_head_sink)):
+            with BuildSketch(
+                Plane.XY.offset(self._config.wall_bracket_screw_head_sink)
+            ):
                 Circle(self._config.wall_bracket_screw_head_radius)
             with BuildSketch(
                 Plane.XY.offset(
@@ -614,12 +731,14 @@ class FrameSet(Partomatic):
         self._bracket.load_config(configuration_path)
         self._lockpin.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str):
+    def __init__(self, configuration_file: str):
         super(Partomatic, self).__init__()
         self.load_config(configuration_file)
 
     def compile(self):
-        self.bracketclip = self._bracket.bracket_clip(inset=self._config.tolerance / 2).move(
+        self.bracketclip = self._bracket.bracket_clip(
+            inset=self._config.tolerance / 2
+        ).move(
             Location(
                 (
                     self._config.bracket_depth,
@@ -643,17 +762,24 @@ class FrameSet(Partomatic):
             .move(
                 Location(
                     (
-                        self._config.frame_hanger_offset + self._config.tolerance,
+                        self._config.frame_hanger_offset
+                        + self._config.tolerance,
                         0,
                         self._config.frame_base_depth,
                     )
                 )
             ),
-            self.bracketclip if LockStyle.CLIP in self._config.frame_lock_style else None,
+            (
+                self.bracketclip
+                if LockStyle.CLIP in self._config.frame_lock_style
+                else None
+            ),
             self.bottomframe.rotate(axis=Axis.X, angle=180).move(
                 Location((0, 0, -self._config.frame_base_depth * 3))
             ),
-            self.connectorframe.move(Location((0, 0, -self._config.frame_base_depth * 2))),
+            self.connectorframe.move(
+                Location((0, 0, -self._config.frame_base_depth * 2))
+            ),
             self.wallbracket.move(
                 Location(
                     (
@@ -673,12 +799,19 @@ class FrameSet(Partomatic):
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         export_stl(self.topframe, str(output_directory / "frame-top.stl"))
-        export_stl(self.bottomframe, str(output_directory / "frame-bottom.stl"))
-        export_stl(self.connectorframe, str(output_directory / "frame-connector.stl"))
-        export_stl(self.wallbracket, str(output_directory / "frame-wall-bracket.stl"))
+        export_stl(
+            self.bottomframe, str(output_directory / "frame-bottom.stl")
+        )
+        export_stl(
+            self.connectorframe, str(output_directory / "frame-connector.stl")
+        )
+        export_stl(
+            self.wallbracket, str(output_directory / "frame-wall-bracket.stl")
+        )
 
     def render_2d(self):
         pass
+
 
 if __name__ == "__main__":
     frameset = FrameSet(Path(__file__).parent / "../build-configs/debug.conf")

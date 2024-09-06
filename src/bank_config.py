@@ -36,11 +36,11 @@ class BankConfig:
     A dataclass for configuration values for our filament bank
     """
 
-    stl_folder:str = "../stl/default"
+    stl_folder: str = "../stl/default"
 
     bearing_diameter: float = 12.1
-    bearing_inner_diameter:float = 6.1
-    bearing_shelf_diameter:float = 8.5
+    bearing_inner_diameter: float = 6.1
+    bearing_shelf_diameter: float = 8.5
     bearing_depth: float = 4
 
     wheel_diameter: float = 70
@@ -48,41 +48,41 @@ class BankConfig:
     wheel_lateral_tolerance: float = 0.6
     wheel_radial_tolerance: float = 0.2
 
-    minimum_structural_thickness:float = 4
-    minimum_thickness:float = 1
+    minimum_structural_thickness: float = 4
+    minimum_thickness: float = 1
     minimum_bracket_depth = -1
 
     connector_diameter: float = 10.3
     connector_length: float = 6.7
-    connector_threaded:bool = True
+    connector_threaded: bool = True
     connector_thread_pitch: float = 1
     connector_thread_angle: float = 30
     connector_thread_interference = 0.4
 
-    tube_inner_diameter:float = 3.5
-    tube_outer_diameter:float = 6.5
+    tube_inner_diameter: float = 3.5
+    tube_outer_diameter: float = 6.5
 
-    fillet_ratio:float = 4
-    tolerance:float = 0.2
-    filament_count:int = 5
+    fillet_ratio: float = 4
+    tolerance: float = 0.2
+    filament_count: int = 5
 
-    frame_chamber_depth:float = 340
-    solid_walls:bool = False
-    wall_window_apothem:float = 8
-    wall_window_bar_thickness:float = 1.5
-    wall_thickness:float = 3
+    frame_chamber_depth: float = 340
+    solid_walls: bool = False
+    wall_window_apothem: float = 8
+    wall_window_bar_thickness: float = 1.5
+    wall_thickness: float = 3
 
-    frame_tongue_depth:float = 4
-    frame_lock_pin_tolerance:float = 0.35
-    frame_lock_style:LockStyle = LockStyle.BOTH
+    frame_tongue_depth: float = 4
+    frame_lock_pin_tolerance: float = 0.35
+    frame_lock_style: LockStyle = LockStyle.BOTH
 
-    frame_clip_depth_offset:float = 10
+    frame_clip_depth_offset: float = 10
 
-    frame_style:FrameStyle = FrameStyle.HYBRID
-    wall_bracket_screw_radius:float = 2.25
-    wall_bracket_screw_head_radius:float = 4.5
-    wall_bracket_screw_head_sink:float = 1.4
-    wall_bracket_post_count:int = 3
+    frame_style: FrameStyle = FrameStyle.HYBRID
+    wall_bracket_screw_radius: float = 2.25
+    wall_bracket_screw_head_radius: float = 4.5
+    wall_bracket_screw_head_sink: float = 1.4
+    wall_bracket_post_count: int = 3
 
     @property
     def frame_clip_point(self) -> Point:
@@ -113,8 +113,12 @@ class BankConfig:
         returns the length of the sidewall based on the overall chamber
         depth and allowing for the frame elements that contribute to the height
         """
-        return (self.frame_chamber_depth - self.frame_connector_depth - self.frame_base_depth - \
-             (self.frame_bracket_exterior_radius-self.wheel_radius))/2
+        return (
+            self.frame_chamber_depth
+            - self.frame_connector_depth
+            - self.frame_base_depth
+            - (self.frame_bracket_exterior_radius - self.wheel_radius)
+        ) / 2
 
     @property
     def frame_clip_inset(self) -> float:
@@ -417,14 +421,20 @@ class BankConfig:
         if file_path:
             path = Path(file_path)
             if not path.exists():
-                raise FileNotFoundError(f"The file {file_path} does not exist.")
+                raise FileNotFoundError(
+                    f"The file {file_path} does not exist."
+                )
             try:
                 self.load_config(file_path)
             except Exception as e:
-                raise ValueError(f"Error loading configuration from {file_path}: {e}") from e
+                raise ValueError(
+                    f"Error loading configuration from {file_path}: {e}"
+                ) from e
         else:
             for field in fields(self):
-                setattr(self, field.name, kwargs.get(field.name, field.default))
+                setattr(
+                    self, field.name, kwargs.get(field.name, field.default)
+                )
 
     def load_config(self, file_path: str):
         """
@@ -434,13 +444,13 @@ class BankConfig:
         config.read(file_path)
         config_dict = {}
         for field in fields(BankConfig):
-            value = config['BankConfig'][field.name]
+            value = config["BankConfig"][field.name]
             if field.type == int:
                 config_dict[field.name] = int(value)
             elif field.type == float:
                 config_dict[field.name] = float(value)
             elif field.type == bool:
-                config_dict[field.name] = value.lower() in ('true', 'yes', '1')
+                config_dict[field.name] = value.lower() in ("true", "yes", "1")
             elif field.type == LockStyle:
                 config_dict[field.name] = LockStyle[value.upper()]
             elif field.type == FrameStyle:
@@ -451,15 +461,17 @@ class BankConfig:
         for key, value in config_dict.items():
             setattr(self, key, value)
 
-if __name__ == '__main__':
-    test = BankConfig('../build-configs/debug.conf')
+
+if __name__ == "__main__":
+    test = BankConfig("../build-configs/debug.conf")
     print(test.frame_hanger_offset)
     print(test.filament_count)
     print(test.sidewall_straight_depth)
     print(test.bracket_depth)
-    print(            test.bearing_depth
-            + test.wheel_lateral_tolerance
-            + test.minimum_structural_thickness * 2,
-            test.connector_diameter + test.minimum_thickness * 2,
-            test.tube_outer_diameter + test.minimum_thickness * 2,
-)
+    print(
+        test.bearing_depth
+        + test.wheel_lateral_tolerance
+        + test.minimum_structural_thickness * 2,
+        test.connector_diameter + test.minimum_thickness * 2,
+        test.tube_outer_diameter + test.minimum_thickness * 2,
+    )
