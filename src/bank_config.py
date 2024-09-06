@@ -54,6 +54,7 @@ class BankConfig:
 
     connector_diameter: float = 10.3
     connector_length: float = 6.7
+    connector_threaded:bool = True
     connector_thread_pitch: float = 1
     connector_thread_angle: float = 30
     connector_thread_interference = 0.4

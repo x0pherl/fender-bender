@@ -40,18 +40,12 @@ from ocp_vscode import Camera, show
 from partomatic import Partomatic
 from bank_config import BankConfig, LockStyle
 from basic_shapes import lock_pin, rounded_cylinder
-from filament_channels import (
-    curved_filament_connector_threads,
-    curved_filament_path,
-    curved_filament_path_solid,
-    straight_filament_connector_threads,
-    straight_filament_path,
-    straight_filament_path_solid,
-)
+from filament_channels import FilamentChannels
 
 class FilamentBracket(Partomatic):
     """The partomatic for the filament bracket of the filament bank"""
     _config = BankConfig()
+    _filamentchannels = FilamentChannels(None)
 
     bottom:Part
     top:Part
@@ -378,15 +372,15 @@ class FilamentBracket(Partomatic):
             with BuildPart(
                 Location((self._config.wheel_radius, 0, 0)), mode=Mode.SUBTRACT
             ):
-                add(curved_filament_path_solid(top_exit_fillet=True))
+                add(self._filamentchannels.curved_filament_path_solid(top_exit_fillet=True))
             with BuildPart(
                 Location((-self._config.wheel_radius, 0, 0)), mode=Mode.SUBTRACT
             ):
-                add(straight_filament_path_solid())
+                add(self._filamentchannels.straight_filament_path_solid())
             with BuildPart(Location((self._config.wheel_radius, 0, 0))):
-                add(curved_filament_path_solid(top_exit_fillet=True))
+                add(self._filamentchannels.curved_filament_path_solid(top_exit_fillet=True))
             with BuildPart(Location((-self._config.wheel_radius, 0, 0))):
-                add(straight_filament_path_solid())
+                add(self._filamentchannels.straight_filament_path_solid())
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
                     Location((0, 0, self._config.bracket_depth / 2), (-90, 0, 0)),
@@ -449,13 +443,13 @@ class FilamentBracket(Partomatic):
             add(self.bottom_bracket_block())
             with BuildPart(mode=Mode.SUBTRACT):
                 with BuildPart(Location((self._config.wheel_radius, 0, 0))):
-                    add(curved_filament_path_solid(top_exit_fillet=True))
+                    add(self._filamentchannels.curved_filament_path_solid(top_exit_fillet=True))
                 with BuildPart(Location((-self._config.wheel_radius, 0, 0))):
-                    add(straight_filament_path_solid())
+                    add(self._filamentchannels.straight_filament_path_solid())
             with BuildPart(Location((self._config.wheel_radius, 0, 0)), mode=Mode.ADD):
-                add(curved_filament_path(top_exit_fillet=True))
+                add(self._filamentchannels.curved_filament_path(top_exit_fillet=True))
             with BuildPart(Location((-self._config.wheel_radius, 0, 0)), mode=Mode.ADD):
-                add(straight_filament_path())
+                add(self._filamentchannels.straight_filament_path())
             with BuildPart(mode=Mode.SUBTRACT):
                 add(
                     self.top_cut_template(self._config.tolerance)
@@ -523,14 +517,14 @@ class FilamentBracket(Partomatic):
                             tie_loop=False,
                         )
                     )
-            if not draft:
+            if not draft and self._config.connector_threaded:
                 add(
-                    straight_filament_connector_threads().move(
+                    self._filamentchannels.straight_filament_connector_threads().move(
                         Location((-self._config.wheel_radius, 0, 0))
                     )
                 )
                 add(
-                    curved_filament_connector_threads().move(
+                    self._filamentchannels.curved_filament_connector_threads().move(
                         Location((self._config.wheel_radius, 0, 0))
                     )
                 )
@@ -559,10 +553,12 @@ class FilamentBracket(Partomatic):
 
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
+        self._filamentchannels.load_config(configuration_path)
 
-    def __init__(self, configuration_file:str):
+    def __init__(self, configuration_path:str):
         super(Partomatic, self).__init__()
-        self.load_config(configuration_file)
+        if configuration_path is not None:
+            self.load_config(configuration_path)
 
     def compile(self):
         self.bottom = self.bottom_bracket(draft=False)
