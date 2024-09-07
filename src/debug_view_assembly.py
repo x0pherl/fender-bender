@@ -234,7 +234,6 @@ def tongue_groove_test():
         add(frameset.straight_wall_grooves().mirror())
     show(tongue.part, groove.part, reset_camera=Camera.KEEP)
 
-
 if __name__ == "__main__":
 
     bwall = (
@@ -287,23 +286,17 @@ if __name__ == "__main__":
 
     topframe = frameset.top_frame()
 
-    ROTATION_VALUE = 180 if FrameStyle.HANGING in _config.frame_style else 0
-    DEPTH_SHIFT_VALUE = (
-        -_config.sidewall_straight_depth
-        - _config.frame_connector_depth
-        - _config.sidewall_straight_depth
-        if FrameStyle.STANDING in _config.frame_style
-        else 0
-    )
     bframe = (
         frameset.bottom_frame()
-        .rotate(Axis.X, ROTATION_VALUE)
+        .rotate(Axis.X, 180)
         .move(
             Location(
                 (
                     0,
                     0,
-                    DEPTH_SHIFT_VALUE,
+                    -_config.sidewall_straight_depth
+                    - _config.frame_connector_depth
+                    - _config.sidewall_straight_depth,
                 )
             )
         )
