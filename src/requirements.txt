@@ -9,3 +9,4 @@ dataclasses
 math
 enum
 shapely
+bd_warehouse @ git+https://github.com/gumyr/bd_warehouse
