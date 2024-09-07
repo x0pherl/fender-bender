@@ -561,7 +561,7 @@ class FrameSet(Partomatic):
                             rounded_cylinder(
                                 radius=self._config.wall_thickness
                                 - self._config.tolerance,
-                                height=self._config.bracket_depth*1.5,
+                                height=self._config.bracket_depth * 1.5,
                                 align=(Align.CENTER, Align.CENTER, Align.MIN),
                             )
                         )
