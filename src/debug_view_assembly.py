@@ -22,7 +22,7 @@ from filament_bracket import FilamentBracket
 from frames import FrameSet
 from walls import Walls
 
-_config_file = "../build-configs/prototype.conf"
+_config_file = "../build-configs/debug.conf"
 _config = BankConfig(_config_file)
 filamentbracket = FilamentBracket(_config_file)
 frameset = FrameSet(_config_file)

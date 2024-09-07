@@ -750,6 +750,10 @@ class FrameSet(Partomatic):
         )
         self.topframe = self.top_frame()
         self.bottomframe = self.bottom_frame()
+        if FrameStyle.STANDING in self._config.frame_style:
+            self.bottomframe = self.bottomframe.rotate(Axis.X,180).move(
+                Location((0, 0, -self._config.frame_base_depth))
+            )
         self.connectorframe = self.connector_frame()
         self.wallbracket = self.wall_bracket()
 
@@ -774,7 +778,7 @@ class FrameSet(Partomatic):
                 if LockStyle.CLIP in self._config.frame_lock_style
                 else None
             ),
-            self.bottomframe.rotate(axis=Axis.X, angle=180).move(
+            self.bottomframe.move(
                 Location((0, 0, -self._config.frame_base_depth * 3))
             ),
             self.connectorframe.move(
