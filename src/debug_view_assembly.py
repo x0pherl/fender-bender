@@ -17,16 +17,17 @@ from build123d import (
 from ocp_vscode import Camera, show
 
 from bank_config import BankConfig, FrameStyle
-from basic_shapes import lock_pin
+from lock_pin import LockPin
 from filament_bracket import FilamentBracket
 from frames import FrameSet
 from walls import Walls
 
-_config_file = "../build-configs/debug.conf"
+_config_file = "../build-configs/prototype.conf"
 _config = BankConfig(_config_file)
 filamentbracket = FilamentBracket(_config_file)
 frameset = FrameSet(_config_file)
 walls = Walls(_config_file)
+lockpin = LockPin(_config_file)
 
 
 def bracket() -> Part:
@@ -77,7 +78,7 @@ def clip_test():
     the the egress side of the frame and bracket
     """
     with BuildPart() as testblock:
-        add(topframe)
+        add(frameset.top_frame())
         with BuildPart(
             Location((_config.frame_exterior_length / 4, 0, 0)),
             mode=Mode.SUBTRACT,
@@ -216,8 +217,6 @@ def cut_frame_test():
 
 
 def tongue_groove_test():
-    walls = Walls("../build-configs/debug.conf")
-    frameset = FrameSet("../build-configs/debug.conf")
     with BuildPart() as tongue:
         add(
             walls.straight_wall_tongue().move(
@@ -331,7 +330,7 @@ if __name__ == "__main__":
         )
     )
 
-    lockpin = lock_pin(
+    pin = lockpin.lock_pin(
         tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=True
     ).move(
         Location(
@@ -353,7 +352,7 @@ if __name__ == "__main__":
         cframe,
         fwall,
         swall,
-        lockpin,
+        pin,
         bframe,
         reset_camera=Camera.KEEP,
     )

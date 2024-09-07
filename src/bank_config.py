@@ -463,15 +463,6 @@ class BankConfig:
 
 
 if __name__ == "__main__":
-    test = BankConfig("../build-configs/debug.conf")
-    print(test.frame_hanger_offset)
-    print(test.filament_count)
-    print(test.sidewall_straight_depth)
-    print(test.bracket_depth)
-    print(
-        test.bearing_depth
-        + test.wheel_lateral_tolerance
-        + test.minimum_structural_thickness * 2,
-        test.connector_diameter + test.minimum_thickness * 2,
-        test.tube_outer_diameter + test.minimum_thickness * 2,
-    )
+    test = BankConfig("../build-configs/reference.conf")
+    print(test.bracket_depth, test.bracket_height, test.bracket_width)
+    print(test.sidewall_width)
