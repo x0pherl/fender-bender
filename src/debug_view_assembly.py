@@ -16,10 +16,10 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig, FrameStyle
-from lock_pin import LockPin
+from bank_config import BankConfig
 from filament_bracket import FilamentBracket
 from frames import FrameSet
+from lock_pin import LockPin
 from walls import Walls
 
 _config_file = "../build-configs/debug.conf"
@@ -203,20 +203,15 @@ def cut_frame_test():
             )
     show(
         cutframetest.part,
-        filamentbracket.bottom_bracket().move(
-            Location(
-                (
-                    _config.frame_hanger_offset,
-                    -_config.frame_bracket_spacing,
-                    0,
-                )
-            )
-        ),
+        filamentbracket.bottom_bracket()
+        .rotate(Axis.X, 90)
+        .move(Location((0, 0, _config.frame_base_depth))),
         reset_camera=Camera.KEEP,
     )
 
 
 def tongue_groove_test():
+    """testing the tongue and groove fitting"""
     with BuildPart() as tongue:
         add(
             walls.straight_wall_tongue().move(
@@ -234,7 +229,9 @@ def tongue_groove_test():
         add(frameset.straight_wall_grooves().mirror())
     show(tongue.part, groove.part, reset_camera=Camera.KEEP)
 
-if __name__ == "__main__":
+
+cut_frame_test()
+if __name__ == "_x_main__":
 
     bwall = (
         walls.guide_wall(_config.sidewall_straight_depth)

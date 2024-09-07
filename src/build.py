@@ -13,16 +13,27 @@ from walls import Walls
 
 start_time = time()
 parser = ArgumentParser(description="Build part stls")
-parser.add_argument('--config', type=str, help="The configuration file to run.")
+parser.add_argument(
+    "--config", type=str, help="The configuration file to run."
+)
 args = parser.parse_args()
 
 build_configs_dir = (Path(__file__).parent / "../build-configs").resolve()
 # Get the list of configuration files
-conf_files = [conf_file.resolve() for conf_file in build_configs_dir.glob('*.conf')]
+conf_files = [
+    conf_file.resolve() for conf_file in build_configs_dir.glob("*.conf")
+]
 
 # Filter the configuration files based on the provided stem
 if args.config:
-    conf_files = [conf_file for conf_file in conf_files if ((conf_file.name.lower() == args.config.lower()) | (conf_file.name.lower() == f"{args.config.lower()}.conf"))]
+    conf_files = [
+        conf_file
+        for conf_file in conf_files
+        if (
+            (conf_file.name.lower() == args.config.lower())
+            | (conf_file.name.lower() == f"{args.config.lower()}.conf")
+        )
+    ]
 
 if not conf_files:
     print("No matching configuration file found")

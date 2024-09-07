@@ -31,19 +31,20 @@ _config = BankConfig()
 def ring() -> Sketch:
     with BuildSketch() as frame:
         Rectangle(
-                _config.frame_exterior_length + 20,
-                _config.wheel_diameter + _config.frame_base_depth*2 + 38,
-                align=(Align.CENTER, Align.CENTER),
-            )
+            _config.frame_exterior_length + 20,
+            _config.wheel_diameter + _config.frame_base_depth * 2 + 38,
+            align=(Align.CENTER, Align.CENTER),
+        )
         fillet(frame.vertices(), _config.fillet_radius)
         with BuildSketch(mode=Mode.SUBTRACT) as cut:
             Rectangle(
                 _config.frame_exterior_length + 10,
-                _config.wheel_diameter + _config.frame_base_depth*2 + 28,
+                _config.wheel_diameter + _config.frame_base_depth * 2 + 28,
                 align=(Align.CENTER, Align.CENTER),
             )
         fillet(cut.vertices(), _config.fillet_radius)
     return frame
+
 
 def logo(border=False) -> Sketch:
     """generate the fenderbender logo!"""
@@ -133,7 +134,7 @@ def logo(border=False) -> Sketch:
         )
         add(text())
         if border:
-            add(ring().sketch.move(Location((-3,0))))
+            add(ring().sketch.move(Location((-3, 0))))
     return sketch
 
 

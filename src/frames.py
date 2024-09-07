@@ -751,7 +751,7 @@ class FrameSet(Partomatic):
         self.topframe = self.top_frame()
         self.bottomframe = self.bottom_frame()
         if FrameStyle.STANDING in self._config.frame_style:
-            self.bottomframe = self.bottomframe.rotate(Axis.X,180).move(
+            self.bottomframe = self.bottomframe.rotate(Axis.X, 180).move(
                 Location((0, 0, -self._config.frame_base_depth))
             )
         self.connectorframe = self.connector_frame()

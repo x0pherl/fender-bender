@@ -109,7 +109,9 @@ class LockPin(Partomatic):
             self.load_config(configuration_file)
 
     def compile(self):
-        self._lockpin = self.lock_pin(tolerance=self._config.frame_lock_pin_tolerance / 2, tie_loop=True)
+        self._lockpin = self.lock_pin(
+            tolerance=self._config.frame_lock_pin_tolerance / 2, tie_loop=True
+        )
         self._lockpin.label = "filament wheel"
 
     def display(self):
