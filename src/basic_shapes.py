@@ -20,11 +20,6 @@ from build123d import (
     loft,
 )
 
-from bank_config import BankConfig
-
-_config = BankConfig("../build-configs/debug.conf")
-
-
 def rounded_cylinder(
     radius, height, align=(Align.CENTER, Align.CENTER, Align.CENTER)
 ) -> Part:
