@@ -1,5 +1,6 @@
 """ Build and export all parts required for assebly for each configuration file in the build-configs directory """
 
+from argparse import ArgumentParser
 from pathlib import Path
 from time import time
 
@@ -11,11 +12,24 @@ from lock_pin import LockPin
 from walls import Walls
 
 start_time = time()
+parser = ArgumentParser(description="Build part stls")
+parser.add_argument('--config', type=str, help="The configuration file to run.")
+args = parser.parse_args()
+
 build_configs_dir = (Path(__file__).parent / "../build-configs").resolve()
-##handle kwargs???
-for conf_file in [
-    conf_file.resolve() for conf_file in build_configs_dir.glob("*.conf")
-]:
+# Get the list of configuration files
+conf_files = [conf_file.resolve() for conf_file in build_configs_dir.glob('*.conf')]
+
+# Filter the configuration files based on the provided stem
+if args.config:
+    conf_files = [conf_file for conf_file in conf_files if ((conf_file.name.lower() == args.config.lower()) | (conf_file.name.lower() == f"{args.config.lower()}.conf"))]
+
+if not conf_files:
+    print("No matching configuration file found")
+    exit()
+
+# Run the script for the matching configuration file(s)
+for conf_file in conf_files:
     config = BankConfig(conf_file)
     if config.stl_folder == "NONE":
         continue
