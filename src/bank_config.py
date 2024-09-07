@@ -283,8 +283,10 @@ class BankConfig:
             self.wheel_diameter
             + (
                 self.wheel_radial_tolerance
-                + self.tube_outer_diameter
-                + self.minimum_thickness
+                + self.connector_diameter
+                + self.fillet_radius
+                + self.wall_thickness
+                + self.tolerance
             )
             * 2
         )
@@ -369,7 +371,7 @@ class BankConfig:
         """
         the length to cut for each chamber in the frames
         """
-        return self.sidewall_width - self.wall_thickness * 2
+        return self.sidewall_width + self.fillet_radius
 
     @property
     def bracket_height(self) -> float:
