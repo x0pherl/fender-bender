@@ -135,7 +135,7 @@ class FilamentWheel(Partomatic):
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
-        export_stl(self.wheel, str(output_directory / "filament_wheel.stl"))
+        export_stl(self.wheel, str(output_directory / "filament-bracket-wheel.stl"))
 
     def render_2d(self):
         pass
