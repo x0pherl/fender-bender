@@ -1,5 +1,6 @@
 from build123d import (
     Align,
+    Box,
     BuildLine,
     BuildSketch,
     CenterArc,
@@ -9,10 +10,13 @@ from build123d import (
     Location,
     Locations,
     Mode,
+    Plane,
     Rectangle,
     Sketch,
     Text,
     add,
+    export_stl,
+    extrude,
     fillet,
 )
 from ocp_vscode import Camera, show
@@ -146,3 +150,18 @@ exporter.add_layer(
 )
 exporter.add_shape(fb2_logo, "Layer 1")
 exporter.write("../logo.svg")
+
+with BuildPart() as logo_blue:
+    extrude(fb2_logo.mirror(Plane.YZ),2)
+
+with BuildPart() as logo_white:
+    Box(_config.frame_exterior_length+20,_config.wheel_diameter+_config.frame_base_depth*2+40,3,
+    align=(Align.CENTER,Align.CENTER,Align.MIN))
+    add(logo_blue, mode=Mode.SUBTRACT)
+blue = logo_blue.part
+blue.color = (0,0,255)
+white=logo_white.part
+white.color = (255,255,255)
+show(white, blue, reset_camera=Camera.KEEP)
+export_stl(logo_blue.part, "../logo-blue.stl")
+export_stl(logo_white.part, "../logo-white.stl")
