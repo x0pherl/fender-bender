@@ -463,6 +463,6 @@ class BankConfig:
 
 
 if __name__ == "__main__":
-    test = BankConfig("../build-configs/reference.conf")
+    test = BankConfig(Path(__file__).parent / "../build-configs/reference.conf")
     print(test.bracket_depth, test.bracket_height, test.bracket_width)
     print(test.sidewall_width)
