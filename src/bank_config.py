@@ -283,10 +283,8 @@ class BankConfig:
             self.wheel_diameter
             + (
                 self.wheel_radial_tolerance
-                + self.connector_diameter
-                + self.fillet_radius
-                + self.wall_thickness
-                + self.tolerance
+                + self.tube_outer_diameter
+                + self.minimum_thickness
             )
             * 2
         )
