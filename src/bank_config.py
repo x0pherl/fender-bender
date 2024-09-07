@@ -50,7 +50,10 @@ class BankConfig:
 
     minimum_structural_thickness: float = 4
     minimum_thickness: float = 1
-    minimum_bracket_depth = -1
+
+    minimum_bracket_depth: float = -1
+    minimum_bracket_width: float = -1
+    minimum_bracket_height: float = -1
 
     connector_diameter: float = 10.3
     connector_length: float = 6.7
@@ -359,11 +362,12 @@ class BankConfig:
         """
         returns the width of the bracket
         """
-        return (
+        return max(
+            self.minimum_bracket_width,
             self.wheel_diameter
             + self.wheel_support_height * 2
             + self.minimum_structural_thickness * 3
-            + self.fillet_radius * 2
+            + self.fillet_radius * 2,
         )
 
     @property
@@ -378,10 +382,11 @@ class BankConfig:
         """
         returns the height of the bracket
         """
-        return (
+        return max(
+            self.minimum_bracket_height,
             self.wheel_radius
             + self.wheel_radial_tolerance
-            + self.minimum_structural_thickness * 2
+            + self.minimum_structural_thickness * 2,
         )
 
     @property
@@ -440,29 +445,34 @@ class BankConfig:
         """
         loads a configuration from a file
         """
-        config = configparser.ConfigParser()
-        config.read(file_path)
+        config_file = configparser.ConfigParser()
+        config_file.read(file_path)
         config_dict = {}
         for field in fields(BankConfig):
-            value = config["BankConfig"][field.name]
-            if field.type == int:
-                config_dict[field.name] = int(value)
-            elif field.type == float:
-                config_dict[field.name] = float(value)
-            elif field.type == bool:
-                config_dict[field.name] = value.lower() in ("true", "yes", "1")
-            elif field.type == LockStyle:
-                config_dict[field.name] = LockStyle[value.upper()]
-            elif field.type == FrameStyle:
-                config_dict[field.name] = FrameStyle[value.upper()]
-            else:
-                config_dict[field.name] = value
+            if config_file.has_option("BankConfig", field.name):
+                value = config_file["BankConfig"][field.name]
+                if field.type == int:
+                    config_dict[field.name] = int(value)
+                elif field.type == float:
+                    config_dict[field.name] = float(value)
+                elif field.type == bool:
+                    config_dict[field.name] = value.lower() in (
+                        "true",
+                        "yes",
+                        "1",
+                    )
+                elif field.type == LockStyle:
+                    config_dict[field.name] = LockStyle[value.upper()]
+                elif field.type == FrameStyle:
+                    config_dict[field.name] = FrameStyle[value.upper()]
+                else:
+                    config_dict[field.name] = value
 
         for key, value in config_dict.items():
             setattr(self, key, value)
 
 
 if __name__ == "__main__":
-    test = BankConfig(Path(__file__).parent / "../build-configs/reference.conf")
+    test = BankConfig(Path(__file__).parent / "../build-configs/debug.conf")
     print(test.bracket_depth, test.bracket_height, test.bracket_width)
     print(test.sidewall_width)
