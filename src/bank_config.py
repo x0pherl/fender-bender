@@ -371,7 +371,7 @@ class BankConfig:
         """
         the length to cut for each chamber in the frames
         """
-        return self.sidewall_width + self.fillet_radius
+        return self.sidewall_width - self.wall_thickness * 2
 
     @property
     def bracket_height(self) -> float:

@@ -230,8 +230,7 @@ def tongue_groove_test():
     show(tongue.part, groove.part, reset_camera=Camera.KEEP)
 
 
-cut_frame_test()
-if __name__ == "_x_main__":
+if __name__ == "__main__":
 
     bwall = (
         walls.guide_wall(_config.sidewall_straight_depth)
