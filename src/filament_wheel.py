@@ -128,7 +128,7 @@ class FilamentWheel(Partomatic):
         self.wheel.label = "filament wheel"
 
     def display(self):
-        show(self.wheel, Camera.KEEP)
+        show(self.wheel, reset_camera=Camera.KEEP)
 
     def export_stls(self):
         if self._config.stl_folder == "NONE":

@@ -475,7 +475,7 @@ class FilamentBracket(Partomatic):
             add(
                 rounded_cylinder(
                     radius=base_unit,
-                    height=self._config.bracket_depth + self._config.tolerance,
+                    height=self._config.bracket_depth*1.5 + self._config.tolerance,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             )
@@ -529,18 +529,6 @@ class FilamentBracket(Partomatic):
                     height=self._config.bracket_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
-                with BuildPart(
-                    Location(
-                        (
-                            -self._config.frame_bracket_exterior_radius,
-                            self._config.bracket_depth,
-                            self._config.bracket_depth / 2,
-                        ),
-                        (0, 90, 0),
-                    )
-                ):
-                    with GridLocations(self._config.bracket_depth, 0, 2, 1):
-                        add(self.pin_channel())
                 with Locations(
                     Location(
                         (
@@ -560,6 +548,18 @@ class FilamentBracket(Partomatic):
                     Sphere(self._config.frame_click_sphere_radius)
             add(self.wheel_guide())
             add(self.spoke_assembly())
+            with BuildPart(
+                Location(
+                    (
+                        -self._config.frame_bracket_exterior_radius,
+                        self._config.bracket_depth,
+                        self._config.bracket_depth / 2,
+                    ),
+                    (0, 90, 0),
+                ), mode=Mode.SUBTRACT
+            ):
+                with GridLocations(self._config.bracket_depth, 0, 2, 1):
+                    add(self.pin_channel())
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
                     Location(
@@ -663,7 +663,7 @@ class FilamentBracket(Partomatic):
                 if LockStyle.CLIP in self._config.frame_lock_style
                 else None
             ),
-            Camera.KEEP,
+            reset_camera=Camera.KEEP,
         )
 
     def export_stls(self):

@@ -414,7 +414,7 @@ class FilamentChannels(Partomatic):
         ).move(Location((self._config.wheel_radius, 0, 0)))
 
     def display(self):
-        show(self._curvedfilamentpath, self._straightfilamentpath, Camera.KEEP)
+        show(self._curvedfilamentpath, self._straightfilamentpath, reset_camera=Camera.KEEP)
 
     def export_stls(self):
         pass
