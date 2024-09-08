@@ -475,8 +475,7 @@ class FilamentBracket(Partomatic):
             add(
                 rounded_cylinder(
                     radius=base_unit,
-                    height=self._config.bracket_depth * 1.5
-                    + self._config.tolerance,
+                    height=self._config.bracket_depth + self._config.tolerance,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             )
