@@ -35,10 +35,13 @@ class LockPin(Partomatic):
         The pin shape for locking in the filament brackets if LockStyle.PIN is used
         """
         rail_height = self._config.minimum_structural_thickness - tolerance
+        lateral_tolerance = tolerance
+        if lateral_tolerance > 0:
+            lateral_tolerance *=2
         with BuildPart() as lpin:
             with BuildPart() as lower:
                 Box(
-                    self._config.minimum_structural_thickness - tolerance,
+                    self._config.minimum_structural_thickness - lateral_tolerance,
                     self._config.frame_exterior_width,
                     rail_height / 2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -53,7 +56,7 @@ class LockPin(Partomatic):
                 )
             with BuildPart(Plane.XY.offset(rail_height / 2)) as upper:
                 Box(
-                    self._config.minimum_structural_thickness - tolerance,
+                    self._config.minimum_structural_thickness - lateral_tolerance,
                     self._config.frame_exterior_width,
                     rail_height / 2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -115,7 +118,7 @@ class LockPin(Partomatic):
         self._lockpin.label = "filament wheel"
 
     def display(self):
-        show(self._lockpin, Camera.KEEP)
+        show(self._lockpin, reset_camera=Camera.KEEP)
 
     def export_stls(self):
         if self._config.stl_folder == "NONE":
