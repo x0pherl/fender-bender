@@ -20,11 +20,13 @@ from build123d import (
     BuildPart,
     BuildSketch,
     HexLocations,
+    Location,
     Mode,
     Part,
     RegularPolygon,
     extrude,
 )
+from ocp_vscode import Camera, show
 
 
 def HexWall(
@@ -53,17 +55,25 @@ def HexWall(
             Defaults to (Align.CENTER, Align.CENTER, Align.CENTER).
     """
     with BuildPart() as wall:
+        hexwall_radius = 2 * sqrt(3) / 3 * apothem
+        hexwall_xcount = int(length // ((sqrt(3) / 2 * apothem) / 2)) + 2
+        if hexwall_xcount % 2 == 0:
+            hexwall_xcount += 1
         Box(length=length, width=width, height=height, align=align)
         combine_mode = Mode.INTERSECT if inverse else Mode.SUBTRACT
         with BuildPart(mode=combine_mode):
             with BuildSketch(wall.faces().sort_by(Axis.Z)[0]) as sk:
                 with HexLocations(
-                    apothem=apothem,
-                    x_count=int(length // ((sqrt(3) / 2 * apothem) / 2)) + 2,
+                    radius=hexwall_radius,
+                    x_count=hexwall_xcount,
                     y_count=int(width // apothem / 2) + 2,
+                    align=(Align.CENTER, Align.CENTER),
                 ):
                     RegularPolygon(
-                        radius=apothem - wall_thickness / 2,
+                        radius=2
+                        * sqrt(3)
+                        / 3
+                        * (apothem - wall_thickness / 2),
                         major_radius=False,
                         side_count=6,
                     )
@@ -71,3 +81,18 @@ def HexWall(
     part = wall.part
     part.label = "hexwall"
     return part
+
+
+if __name__ == "__main__":
+    show(
+        HexWall(
+            width=200,
+            length=400,
+            height=2,
+            apothem=10,
+            wall_thickness=2,
+            inverse=True,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        ),
+        reset_camera=Camera.KEEP,
+    )

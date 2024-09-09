@@ -3,6 +3,8 @@ displays aligned critical components of our filament bank design
 useful for documentation and debugging
 """
 
+from pathlib import Path
+
 from build123d import (
     Align,
     Axis,
@@ -205,7 +207,9 @@ def cut_frame_test():
         cutframetest.part,
         filamentbracket.bottom_bracket()
         .rotate(Axis.X, 90)
-        .move(Location((0, 0, _config.frame_base_depth))),
+        .move(
+            Location((0, _config.bracket_depth / 2, _config.frame_base_depth))
+        ),
         reset_camera=Camera.KEEP,
     )
 
