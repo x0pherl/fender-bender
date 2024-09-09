@@ -345,8 +345,20 @@ class FilamentBracket(Partomatic):
                 self._config.fillet_radius,
             )
         with BuildPart(mode=Mode.PRIVATE) as inset_cylinder:
-            add(base_cylinder)
-            offset(amount=-self._config.wall_thickness + inset)
+            Cylinder(
+                radius=self._config.frame_bracket_exterior_radius
+                - self._config.wall_thickness
+                + inset,
+                height=self._config.frame_clip_width
+                - self._config.wall_thickness * 2
+                + inset * 2,
+                align=(Align.CENTER, Align.CENTER, Align.CENTER),
+                rotation=(90, 0, 0),
+            )
+            fillet(
+                inset_cylinder.edges().filter_by(GeomType.CIRCLE),
+                self._config.fillet_radius,
+            )
         with BuildPart() as clip:
             add(
                 self.bracket_clip_rail_block(
@@ -638,7 +650,7 @@ class FilamentBracket(Partomatic):
         self.top = self.top_bracket()
         if LockStyle.CLIP in self._config.frame_lock_style:
             self.bracketclip = self.bracket_clip(
-                inset=-self._config.tolerance / 2
+                inset=self._config.tolerance / 2
             )
 
     def display(self):
