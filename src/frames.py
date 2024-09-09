@@ -225,7 +225,26 @@ class FrameSet(Partomatic):
                     align=(Align.MIN, Align.CENTER, Align.MIN),
                 )
                 fillet(top_block.edges(), self._config.fillet_radius)
-            add(self.chamber_cut(height=self._config.frame_base_depth * 2))
+            # add(self.chamber_cut(height=self._config.frame_base_depth * 2))
+            with BuildPart() as chambercut:
+                Box(
+                    self._config.chamber_cut_length,
+                    self._config.bracket_depth - self._config.fillet_radius * 2
+                    + self._config.tolerance * 2,
+                    self._config.frame_base_depth*2,
+                    align=(Align.CENTER, Align.CENTER, Align.CENTER),
+                )
+                fillet(chambercut.edges().filter_by(Axis.Z), self._config.fillet_radius)
+                with BuildPart(Location((self._config.tube_outer_diameter * 0.375,0,0))) as outer:
+                    Box(
+                        self._config.chamber_cut_length-(self._config.tube_outer_diameter * 0.75),
+                        self._config.bracket_depth
+                        + self._config.tolerance * 2,
+                        self._config.frame_base_depth*2,
+                        align=(Align.CENTER, Align.CENTER, Align.CENTER),
+                    )
+                    fillet(outer.edges().filter_by(Axis.Z), self._config.fillet_radius)
+
             if LockStyle.CLIP in self._config.frame_lock_style:
                 add(
                     self._bracket.bracket_clip_rail_block(
@@ -819,6 +838,7 @@ class FrameSet(Partomatic):
 
 if __name__ == "__main__":
     frameset = FrameSet(Path(__file__).parent / "../build-configs/debug.conf")
+    # show(frameset.bracket_cutblock(), reset_camera=Camera.KEEP)
     frameset.compile()
     frameset.display()
     frameset.export_stls()
