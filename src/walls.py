@@ -126,7 +126,7 @@ class Walls(Partomatic):
                     2,
                     2,
                 ):
-                    Sphere(self._config.frame_click_sphere_radius * 0.75)
+                    Sphere(self._config.frame_click_sphere_radius * 0.675)
         part = channel.part
         part.label = "wall channel guide"
         return part
