@@ -652,7 +652,8 @@ class FrameSet(Partomatic):
                         (
                             self._config.wheel_radius
                             + self._config.bracket_depth / 2
-                            + self._config.frame_hanger_offset,
+                            + self._config.frame_hanger_offset
+                            + self._config.tolerance,
                             0,
                             self._config.bracket_depth
                             + self._config.minimum_structural_thickness / 2

@@ -208,7 +208,13 @@ def cut_frame_test():
         filamentbracket.bottom_bracket()
         .rotate(Axis.X, 90)
         .move(
-            Location((0, _config.bracket_depth / 2, _config.frame_base_depth))
+            Location(
+                (
+                    _config.tolerance,
+                    _config.bracket_depth / 2,
+                    _config.frame_base_depth,
+                )
+            )
         ),
         reset_camera=Camera.KEEP,
     )
@@ -234,7 +240,9 @@ def tongue_groove_test():
     show(tongue.part, groove.part, reset_camera=Camera.KEEP)
 
 
-if __name__ == "__main__":
+cut_frame_test()
+
+if __name__ == "x__main__":
 
     bwall = (
         walls.guide_wall(_config.sidewall_straight_depth)
