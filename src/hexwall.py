@@ -44,13 +44,13 @@ def HexWall(
 ) -> Part:
     """
     Part Object: hexwall
-
-    Args:
-        length (float): box size
-        width (float): box size
-        height (float): box size
-        apothem (float): the distance between two paralel edges of the hexagon
-        align (Union[Align, tuple[Align, Align, Align]], optional):
+    -------
+    arguments:
+        - length (float): box size
+        - width (float): box size
+        - height (float): box size
+        - apothem (float): the distance between two paralel edges of the hexagon
+        - align (Union[Align, tuple[Align, Align, Align]], optional):
             align min, center, or max of object.
             Defaults to (Align.CENTER, Align.CENTER, Align.CENTER).
     """

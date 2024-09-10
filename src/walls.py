@@ -46,7 +46,7 @@ class Walls(Partomatic):
         self, inset=0, length=_config.sidewall_section_depth, straignt_inset=0
     ) -> Sketch:
         """
-        the shape of the sidewall at the defined length
+        the 2d shape of the sidewall at the defined length
         """
         with BuildSketch(mode=Mode.PRIVATE) as wall:
             Rectangle(
@@ -85,10 +85,13 @@ class Walls(Partomatic):
             )
         return side.sketch.move(Location((0, self._config.frame_base_depth)))
 
-    def wall_channel(self, length: float) -> Part:
+    def _wall_channel(self, length: float) -> Part:
         """
-        creates a channel with tapered sides and
-        snap-click points for locking in side walls
+            creates a channel with tapered sides and
+            snap-click points for locking in side walls
+        -------
+            arguments:
+            length: the appropriate length of the channel
         """
         with BuildPart() as channel:
             with BuildPart():
@@ -128,7 +131,7 @@ class Walls(Partomatic):
         part.label = "wall channel guide"
         return part
 
-    def straight_wall_tongue(self) -> Part:
+    def _straight_wall_tongue(self) -> Part:
         """
         creates a tongue for locking in wall parts,
         companion to straight_wall_groove
@@ -194,10 +197,13 @@ class Walls(Partomatic):
         part.label = "tongue"
         return part
 
-    def guide_side(self, length: float) -> Part:
+    def _guide_side(self, length: float) -> Part:
         """
         defines the outer sides of the sidewall with appropriate structural
         reinforcements
+        -------
+            arguments:
+            length: the appropriate length of the guide
         """
         with BuildPart() as side:
             Box(
@@ -209,14 +215,15 @@ class Walls(Partomatic):
             )
         return side.part
 
-    def side_wall_divots(
+    def _side_wall_divots(
         self, length: float = _config.sidewall_straight_depth
     ):
         """
         positions the holes that get punched along a sidewall to connect to
         the front and back walls
+        -------
         arguments:
-        length: the length of the sidewall
+        length: the length of the sidewall controls the spacing of the divots
         """
         with BuildPart() as divots:
             with BuildPart(Location((0, 0, self._config.wall_thickness))):
@@ -245,6 +252,13 @@ class Walls(Partomatic):
     ) -> Part:
         """
         returns a sidewall
+        -------
+        arguments:
+        length: the appropriate length of the sidewall
+        reinforce: whether to add structural reinforcements
+        flipped: mirrors the sidewall on the xy plane
+            (this can be helpful for reinforced walls,
+            especially if there is a patterned wall)
         """
         with BuildPart() as wall:
             with BuildSketch(Plane.XY):
@@ -318,7 +332,9 @@ class Walls(Partomatic):
                 mode=Mode.SUBTRACT,
             ):
                 add(
-                    self.side_wall_divots(self._config.sidewall_straight_depth)
+                    self._side_wall_divots(
+                        self._config.sidewall_straight_depth
+                    )
                 )
 
         return wall.part
@@ -326,6 +342,12 @@ class Walls(Partomatic):
     def guide_wall(self, length: float, flipped=False) -> Part:
         """
         builds a wall with guides for each sidewall
+        -------
+        arguments:
+        length: the appropriate length of the channel
+        flipped: mirrors the sidewall on the xy plane
+            (this can be helpful for reinforced walls,
+            especially if there is a patterned wall)
         """
         base_length = length - self._config.wall_thickness / 2
         with BuildPart() as wall:
@@ -353,16 +375,16 @@ class Walls(Partomatic):
                         hw = hw.mirror(Plane.YZ)
                     add(hw)
             with BuildPart(wall.faces().sort_by(Axis.Y)[-1]):
-                add(self.straight_wall_tongue())
+                add(self._straight_wall_tongue())
             with BuildPart(wall.faces().sort_by(Axis.Y)[0]):
-                add(self.straight_wall_tongue())
+                add(self._straight_wall_tongue())
             with GridLocations(
                 self._config.frame_bracket_spacing,
                 0,
                 self._config.filament_count + 1,
                 1,
             ):
-                add(self.wall_channel(base_length))
+                add(self._wall_channel(base_length))
             with GridLocations(
                 self._config.frame_exterior_width
                 - self._config.minimum_structural_thickness
@@ -371,7 +393,7 @@ class Walls(Partomatic):
                 2,
                 1,
             ):
-                add(self.guide_side(base_length))
+                add(self._guide_side(base_length))
             fillet(
                 (
                     wall.faces().sort_by(Axis.X)[0]
@@ -386,15 +408,32 @@ class Walls(Partomatic):
         return part
 
     def load_config(self, configuration_path: str):
+        """
+        loads the configuration file
+        -------
+        arguments:
+        configuration_path: the path to the configuration file
+        """
         self._config.load_config(configuration_path)
 
     def __init__(
         self, configuration_file: str = "../build-config/reference.conf"
     ):
+        """
+        initializes the Partomatic walls
+        -------
+        arguments:
+        configuration_file: the path to the configuration file,
+        set to None to use the default configuration
+        """
         super(Partomatic, self).__init__()
-        self.load_config(configuration_file)
+        if configuration_file is not None:
+            self.load_config(configuration_file)
 
     def compile(self):
+        """
+        Builds the relevant parts for the walls
+        """
         self.gwall = self.guide_wall(self._config.sidewall_straight_depth)
         self.sidewall = self.side_wall(
             length=self._config.sidewall_section_depth
@@ -404,6 +443,9 @@ class Walls(Partomatic):
         )
 
     def display(self):
+        """
+        Shows the walls in OCP CAD Viewer
+        """
         show(
             self.gwall.move(
                 Location((0, -self._config.sidewall_straight_depth / 2, 0))
@@ -434,6 +476,10 @@ class Walls(Partomatic):
         )
 
     def export_stls(self):
+        """
+        Generates the wall STLs in the configured
+        folder
+        """
         if self._config.stl_folder == "NONE":
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
@@ -446,6 +492,9 @@ class Walls(Partomatic):
         export_stl(self.gwall, str(output_directory / "wall-guide.stl"))
 
     def render_2d(self):
+        """
+        not yet implemented
+        """
         pass
 
 

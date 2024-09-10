@@ -42,16 +42,16 @@ class FilamentChannels(Partomatic):
     _curvedfilamentpath: Part
     _straightfilamentpath: Part
 
-    ingress_connector_location = Location(
-        (
-            -_config.wheel_radius,
-            _config.bracket_height,
-            _config.bracket_depth / 2,
-        ),
-        (90, 0, 0),
-    )
+    # ingress_connector_location = Location(
+    #     (
+    #         -_config.wheel_radius,
+    #         _config.bracket_height,
+    #         _config.bracket_depth / 2,
+    #     ),
+    #     (90, 0, 0),
+    # )
 
-    def connector_threads(self) -> Part:
+    def _connector_threads(self) -> Part:
         """
         returns the threads for the connector
         """
@@ -67,6 +67,48 @@ class FilamentChannels(Partomatic):
                 hand="right",
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
+        part = threads.part
+        part.label = "connector threads"
+        return part
+
+    def straight_filament_connector_threads(self) -> Part:
+        """
+        the threads for the ingress connector
+        """
+        with BuildPart(
+            Location(
+                (
+                    0,
+                    self._config.bracket_height
+                    - self._config.minimum_thickness / 2,
+                    self._config.bracket_depth / 2,
+                ),
+                (90, 0, 0),
+            )
+        ) as threads:
+            add(self._connector_threads())
+        part = threads.part
+        part.label = "connector threads"
+        return part
+
+    def curved_filament_connector_threads(self) -> Part:
+        """
+        places the threads for the curved filament connector
+        """
+        with BuildLine() as path:
+            add(self._curved_filament_line())
+        offset = (self._config.minimum_thickness / 4) / sqrt(2)
+        with BuildPart(
+            Location(
+                (
+                    (path.line @ 1).X - offset,
+                    (path.line @ 1).Y - offset,
+                    self._config.bracket_depth / 2,
+                ),
+                (90, -45, 0),
+            )
+        ) as threads:
+            add(self._connector_threads())
         part = threads.part
         part.label = "connector threads"
         return part
@@ -149,26 +191,6 @@ class FilamentChannels(Partomatic):
             )
         return ingress.part
 
-    def straight_filament_connector_threads(self) -> Part:
-        """
-        the threads for the ingress connector
-        """
-        with BuildPart(
-            Location(
-                (
-                    0,
-                    self._config.bracket_height
-                    - self._config.minimum_thickness / 2,
-                    self._config.bracket_depth / 2,
-                ),
-                (90, 0, 0),
-            )
-        ) as threads:
-            add(self.connector_threads())
-        part = threads.part
-        part.label = "connector threads"
-        return part
-
     def straight_filament_path(self, draft=True) -> Part:
         """
         builds a straight filaement channel with the cut in place
@@ -183,7 +205,7 @@ class FilamentChannels(Partomatic):
         part.label = "filament path"
         return part
 
-    def curved_filament_line(self) -> Compound:
+    def _curved_filament_line(self) -> Compound:
         """
         returns a compund with three line segments representing the
         channel for the ingress funnel, the PTFE tube,
@@ -231,7 +253,7 @@ class FilamentChannels(Partomatic):
         returns the shape to be cut out of a curved filament path
         allowing for the PTFE tube and the connector
         """
-        path = self.curved_filament_line()
+        path = self._curved_filament_line()
         with BuildPart() as inlet:
             with BuildLine() as intake:
                 add(path.children[0])
@@ -316,17 +338,17 @@ class FilamentChannels(Partomatic):
         return complete
 
     def curved_filament_path_solid(self, top_exit_fillet=True) -> Part:
-        """ "
+        """
         The solid shape for the channel around a curved filament path
         optionally
         -------
         arguments:
-        top_exit_fillet: set to false to render a clean intersection with
-        box immediately to the left of the exit
+            - top_exit_fillet: set to false to render a clean intersection with
+                box immediately to the left of the exit
         """
         with BuildPart() as solid_path:
             with BuildLine() as curve:
-                add(self.curved_filament_line())
+                add(self._curved_filament_line())
             with BuildSketch(
                 Plane(origin=curve.line @ 0, z_dir=curve.line % 0)
             ) as path_face:
@@ -337,8 +359,8 @@ class FilamentChannels(Partomatic):
             sweep()
             if not top_exit_fillet:
                 with BuildLine() as curve2:
-                    add(self.curved_filament_line().children[1])
-                    add(self.curved_filament_line().children[2])
+                    add(self._curved_filament_line().children[1])
+                    add(self._curved_filament_line().children[2])
                 with BuildSketch(
                     Plane(origin=curve2.line @ 0, z_dir=curve2.line % 0)
                 ) as path_face:
@@ -361,31 +383,13 @@ class FilamentChannels(Partomatic):
         part.label = "curved filament path"
         return part
 
-    def curved_filament_connector_threads(self) -> Part:
-        """
-        places the threads for the curved filament connector
-        """
-        with BuildLine() as path:
-            add(self.curved_filament_line())
-        offset = (self._config.minimum_thickness / 4) / sqrt(2)
-        with BuildPart(
-            Location(
-                (
-                    (path.line @ 1).X - offset,
-                    (path.line @ 1).Y - offset,
-                    self._config.bracket_depth / 2,
-                ),
-                (90, -45, 0),
-            )
-        ) as threads:
-            add(self.connector_threads())
-        part = threads.part
-        part.label = "connector threads"
-        return part
-
     def curved_filament_path(self, top_exit_fillet=False, draft=True) -> Part:
         """
         builds a straight filaement channel with the cut in place
+        -------
+        arguments:
+            - top_exit_fillet: set to false to render a clean intersection with
+                box immediately to the left of the exit
         """
         with BuildPart() as path:
             add(self.curved_filament_path_solid(top_exit_fillet))
@@ -398,14 +402,30 @@ class FilamentChannels(Partomatic):
         return part
 
     def load_config(self, configuration_path: str):
+        """
+        loads the configuration file
+        -------
+        arguments:
+            - configuration_path: the path to the configuration file
+        """
         self._config.load_config(configuration_path)
 
     def __init__(self, configuration_file: str):
+        """
+        initializes the Partomatic filament channels
+        -------
+        arguments:
+            - configuration_file: the path to the configuration file,
+                    set to None to use the default configuration
+        """
         super(Partomatic, self).__init__()
         if configuration_file is not None:
             self.load_config(configuration_file)
 
     def compile(self):
+        """
+        Builds the relevant parts for the filament channels
+        """
         self._straightfilamentpath = self.straight_filament_path(
             draft=False
         ).move(Location((-self._config.wheel_radius, 0, 0)))
@@ -414,6 +434,9 @@ class FilamentChannels(Partomatic):
         ).move(Location((self._config.wheel_radius, 0, 0)))
 
     def display(self):
+        """
+        Shows the filament channels in OCP CAD Viewer
+        """
         show(
             self._curvedfilamentpath,
             self._straightfilamentpath,
@@ -421,9 +444,16 @@ class FilamentChannels(Partomatic):
         )
 
     def export_stls(self):
+        """
+        Required for partomatic, although there are no
+        STLs to export for the filament channels
+        """
         pass
 
     def render_2d(self):
+        """
+        not yet implemented
+        """
         pass
 
 

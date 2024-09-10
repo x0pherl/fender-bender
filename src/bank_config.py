@@ -5,12 +5,10 @@ module for all of the configuration required to build a filament bank
 import configparser
 from dataclasses import dataclass, fields
 from enum import Flag, auto
-from math import sqrt
+from math import cos, radians, sin, sqrt
 from pathlib import Path
 
 from shapely.geometry import Point
-
-from geometry_utils import distance_to_circle_edge, point_distance
 
 
 class LockStyle(Flag):
@@ -28,6 +26,36 @@ class FrameStyle(Flag):
     HANGING = auto()
     STANDING = auto()
     HYBRID = HANGING | STANDING
+
+
+def _distance_to_circle_edge(radius, point, angle) -> float:
+    """
+    for a circle with the given radius, find the distance from the
+    given point to the edge of the circle in the direction determined
+    by the given angle
+    """
+    x1, y1 = point
+    theta = radians(angle)  # Convert angle to radians if it's given in degrees
+
+    # Coefficients of the quadratic equation
+    a = 1
+    b = 2 * (x1 * cos(theta) + y1 * sin(theta))
+    c = x1**2 + y1**2 - radius**2
+
+    # Calculate the discriminant
+    discriminant = b**2 - 4 * a * c
+
+    if discriminant < 0:
+        return None  # No real intersection, should not happen
+
+    # Solve the quadratic equation for t
+    t1 = (-b + sqrt(discriminant)) / (2 * a)
+    t2 = (-b - sqrt(discriminant)) / (2 * a)
+
+    # We need the positive t, as we are extending outwards
+    t = max(t1, t2)
+
+    return t
 
 
 @dataclass
@@ -93,7 +121,7 @@ class BankConfig:
         the x/y coordinates at which the center of the frame clip is positioned
         """
         return Point(
-            distance_to_circle_edge(
+            _distance_to_circle_edge(
                 self.frame_bracket_exterior_radius,
                 (0, self.frame_clip_depth_offset),
                 angle=0,
@@ -105,8 +133,11 @@ class BankConfig:
         """
         for a given y value, find the distance from the center
         to the exterior of the frame curve
+        -------
+        arguments:
+            - y_value: the placement of the intersection on the y axis
         """
-        return distance_to_circle_edge(
+        return _distance_to_circle_edge(
             self.frame_bracket_exterior_radius, (0, y_value), 0
         )
 
@@ -181,11 +212,10 @@ class BankConfig:
         """
         the correct exterior radius for the cylinder of the frame bracket
         """
-        return point_distance(
-            Point(0, 0),
+        return Point(0, 0).distance(
             Point(
                 self.wheel_radius - self.bracket_depth / 2, self.bracket_height
-            ),
+            )
         )
 
     @property
@@ -269,7 +299,7 @@ class BankConfig:
         calculates the appropriate filament funnel height
         to clear the filament wheel
         """
-        return distance_to_circle_edge(
+        return _distance_to_circle_edge(
             radius=self.wheel_radius
             + self.wheel_radial_tolerance
             + self.minimum_thickness,
@@ -441,12 +471,15 @@ class BankConfig:
                     self, field.name, kwargs.get(field.name, field.default)
                 )
 
-    def load_config(self, file_path: str):
+    def load_config(self, configuration_path: str):
         """
         loads a configuration from a file
+        -------
+        arguments:
+            - configuration_path: the path to the configuration file
         """
         config_file = configparser.ConfigParser()
-        config_file.read(file_path)
+        config_file.read(configuration_path)
         config_dict = {}
         for field in fields(BankConfig):
             if config_file.has_option("BankConfig", field.name):

@@ -218,7 +218,7 @@ def tongue_groove_test():
     """testing the tongue and groove fitting"""
     with BuildPart() as tongue:
         add(
-            walls.straight_wall_tongue().move(
+            walls._straight_wall_tongue().move(
                 Location(
                     (
                         -_config.sidewall_width / 2

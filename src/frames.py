@@ -56,8 +56,9 @@ class FrameSet(Partomatic):
     ) -> Part:
         """
         builds a side of the frame
+        -------
         arguments:
-        thickness: determines the depth of the wall
+            - thickness: determines the depth of the wall
         """
         mid_adjustor = thickness / 2
         with BuildPart() as side:
@@ -88,6 +89,9 @@ class FrameSet(Partomatic):
     def _frame_cut_sketch(self, inset=0) -> Sketch:
         """
         the overall shape of the sidewall with the arch
+        -------
+        arguments:
+            - inset: amount to inset the sketch
         """
         with BuildSketch(mode=Mode.PRIVATE) as wall:
             Rectangle(
@@ -115,6 +119,7 @@ class FrameSet(Partomatic):
         """
         a template to subtract in order to create the groove
         for fitting the side wall
+        -------
         arguments:
             - thickness: determines the depth of the wall
         """
@@ -229,21 +234,31 @@ class FrameSet(Partomatic):
             with BuildPart() as chambercut:
                 Box(
                     self._config.chamber_cut_length,
-                    self._config.bracket_depth - self._config.fillet_radius * 2
+                    self._config.bracket_depth
+                    - self._config.fillet_radius * 2
                     + self._config.tolerance * 2,
-                    self._config.frame_base_depth*2,
+                    self._config.frame_base_depth * 2,
                     align=(Align.CENTER, Align.CENTER, Align.CENTER),
                 )
-                fillet(chambercut.edges().filter_by(Axis.Z), self._config.fillet_radius)
-                with BuildPart(Location((self._config.tube_outer_diameter * 0.375,0,0))) as outer:
+                fillet(
+                    chambercut.edges().filter_by(Axis.Z),
+                    self._config.fillet_radius,
+                )
+                with BuildPart(
+                    Location((self._config.tube_outer_diameter * 0.375, 0, 0))
+                ) as outer:
                     Box(
-                        self._config.chamber_cut_length-(self._config.tube_outer_diameter * 0.75),
+                        self._config.chamber_cut_length
+                        - (self._config.tube_outer_diameter * 0.75),
                         self._config.bracket_depth
                         + self._config.tolerance * 2,
-                        self._config.frame_base_depth*2,
+                        self._config.frame_base_depth * 2,
                         align=(Align.CENTER, Align.CENTER, Align.CENTER),
                     )
-                    fillet(outer.edges().filter_by(Axis.Z), self._config.fillet_radius)
+                    fillet(
+                        outer.edges().filter_by(Axis.Z),
+                        self._config.fillet_radius,
+                    )
 
             if LockStyle.CLIP in self._config.frame_lock_style:
                 add(
@@ -261,6 +276,9 @@ class FrameSet(Partomatic):
     def chamber_cut(self, height=_config.bracket_height * 3) -> Part:
         """
         a filleted box for each chamber in the lower connectors
+        -------
+        arguments:
+            - height: the height of the chamber cut
         """
         with BuildPart() as cut:
             Box(
@@ -645,8 +663,7 @@ class FrameSet(Partomatic):
                 ):
                     add(
                         self._lockpin.lock_pin(
-                            tolerance=-self._config.frame_lock_pin_tolerance
-                            / 2,
+                            inset=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
                     )
@@ -716,10 +733,10 @@ class FrameSet(Partomatic):
                 ),
                 mode=Mode.SUBTRACT,
             ):
-                add(self.screw_head())
+                add(self._screw_head())
         return bracket.part
 
-    def screw_head(self) -> Part:
+    def _screw_head(self) -> Part:
         """
         template for the cutout for a screwhead
         """
@@ -746,15 +763,32 @@ class FrameSet(Partomatic):
         return head.part
 
     def load_config(self, configuration_path: str):
+        """
+        loads the configuration file
+         -------
+        arguments:
+            - configuration_path: the path to the configuration file
+        """
         self._config.load_config(configuration_path)
         self._bracket.load_config(configuration_path)
         self._lockpin.load_config(configuration_path)
 
     def __init__(self, configuration_file: str):
+        """
+        initializes the Partomatic filament wheel
+        -------
+        arguments:
+            - configuration_file: the path to the configuration file,
+        set to None to use the default configuration
+        """
         super(Partomatic, self).__init__()
-        self.load_config(configuration_file)
+        if configuration_file is not None:
+            self.load_config(configuration_file)
 
     def compile(self):
+        """
+        Builds the relevant parts for the frame
+        """
         self.bracketclip = self._bracket.bracket_clip(
             inset=self._config.tolerance / 2
         ).move(
@@ -777,6 +811,9 @@ class FrameSet(Partomatic):
         self.wallbracket = self.wall_bracket()
 
     def display(self):
+        """
+        Shows the filament wheel in OCP CAD Viewer
+        """
         show(
             self.topframe,
             self._bracket.bottom_bracket_block()
@@ -817,6 +854,10 @@ class FrameSet(Partomatic):
         )
 
     def export_stls(self):
+        """
+        Generates the frame STLs in the configured
+        folder
+        """
         if self._config.stl_folder == "NONE":
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
@@ -833,6 +874,9 @@ class FrameSet(Partomatic):
         )
 
     def render_2d(self):
+        """
+        not yet implemented
+        """
         pass
 
 

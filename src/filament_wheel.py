@@ -33,6 +33,10 @@ from partomatic import Partomatic
 def diamond_torus(major_radius: float, minor_radius: float) -> Part:
     """
     sweeps a regular diamond along a circle defined by major_radius
+    -------
+    arguments:
+        - major_radius: the radius of the circle to sweep the diamond along
+        - minor_radius: the radius of the diamond
     """
     with BuildPart() as torus:
         with BuildLine():
@@ -54,7 +58,7 @@ class FilamentWheel(Partomatic):
     _config = BankConfig()
     wheel: Part
 
-    def spoke(self) -> Sketch:
+    def _spoke(self) -> Sketch:
         """
         returns the spoke Sketch for the filament wheel
         """
@@ -106,7 +110,7 @@ class FilamentWheel(Partomatic):
                 )
                 Circle(radius=self._config.bearing_radius, mode=Mode.SUBTRACT)
             with PolarLocations(0, self._config.wheel_spoke_count):
-                add(self.spoke())
+                add(self._spoke())
             extrude(amount=self._config.bearing_depth)
             add(
                 diamond_torus(
@@ -117,20 +121,44 @@ class FilamentWheel(Partomatic):
         return fwheel.part
 
     def load_config(self, configuration_path: str):
+        """
+        loads the configuration file
+         -------
+        arguments:
+            - configuration_path: the path to the configuration file
+        """
         self._config.load_config(configuration_path)
 
     def __init__(self, configuration_file: str):
+        """
+        initializes the Partomatic filament wheel
+        -------
+        arguments:
+            - configuration_file: the path to the configuration file,
+        set to None to use the default configuration
+        """
         super(Partomatic, self).__init__()
-        self.load_config(configuration_file)
+        if configuration_file is not None:
+            self.load_config(configuration_file)
 
     def compile(self):
+        """
+        Builds the relevant parts for the filament wheel
+        """
         self.wheel = self.filament_wheel()
         self.wheel.label = "filament wheel"
 
     def display(self):
+        """
+        Shows the filament wheel in OCP CAD Viewer
+        """
         show(self.wheel, reset_camera=Camera.KEEP)
 
     def export_stls(self):
+        """
+        Generates the filament wheel STLs in the configured
+        folder
+        """
         if self._config.stl_folder == "NONE":
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
@@ -140,6 +168,9 @@ class FilamentWheel(Partomatic):
         )
 
     def render_2d(self):
+        """
+        not yet implemented
+        """
         pass
 
 

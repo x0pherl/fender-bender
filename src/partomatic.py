@@ -21,19 +21,31 @@ class Partomatic(Part, ABC):
 
     @abstractmethod
     def load_config(self, configuration_path: str):
-        """method to load a configuration for the part"""
+        """
+        loads the configuration file
+         -------
+        arguments:
+            - configuration_path: the path to the configuration file
+        """
 
     @abstractmethod
     def compile(self):
-        """method to generate the parts"""
+        """
+        Builds the relevant parts for the partomatic part
+        """
 
     @abstractmethod
     def display(self):
-        """method to display the part using OCP"""
+        """
+        Shows the relevant parts in OCP CAD Viewer
+        """
 
     @abstractmethod
     def export_stls(self):
-        """method to display the part using OCP"""
+        """
+        Generates the relevant STLs in the configured
+        folder
+        """
 
     @abstractmethod
     def render_2d(self):

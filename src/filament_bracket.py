@@ -16,6 +16,7 @@ from build123d import (
     BuildSketch,
     CenterArc,
     Circle,
+    Cone,
     Cylinder,
     GeomType,
     GridLocations,
@@ -57,27 +58,26 @@ class FilamentBracket(Partomatic):
     top: Part
     bracketclip: Part
 
-    def wheel_guide_cut(self) -> Part:
+    def _wheel_guide_cut(self) -> Part:
         """
         the cutout shape for a wheel guide
         """
+
         with BuildPart() as wheelcut:
             base_radius = (
                 self._config.wheel_radius + self._config.wheel_radial_tolerance
+            ) * 0.8
+            Cone(
+                bottom_radius=base_radius + self._config.wheel_support_height,
+                top_radius=base_radius,
+                height=self._config.wheel_support_height,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
-            with BuildSketch():
-                Circle(base_radius * 0.8)
-                offset(amount=self._config.wheel_support_height)
-            with BuildSketch(
-                Plane.XY.offset(self._config.wheel_support_height)
-            ):
-                Circle(base_radius * 0.8)
-            loft()
         return wheelcut.part
 
-    def bracket_spoke(self) -> Part:
+    def _bracket_spoke(self) -> Part:
         """
-        returns the spoke Sketch for the filament wheel
+        returns ts single spoke part for the filament wheel
         """
         spoke_outer_radius = (
             (
@@ -93,44 +93,33 @@ class FilamentBracket(Partomatic):
             self._config.wheel_radius - self._config.bearing_shelf_diameter * 2
         )
         with BuildPart() as spoke:
-            with BuildSketch() as sketch:
-                with BuildLine():
-                    l1 = CenterArc(
-                        center=((spoke_shift, 0)),
-                        radius=spoke_outer_radius,
-                        start_angle=0,
-                        arc_size=180,
-                    )
-                    l2 = CenterArc(
-                        center=((spoke_shift, 0)),
-                        radius=spoke_outer_radius
-                        - self._config.bearing_shelf_diameter,
-                        start_angle=0,
-                        arc_size=180,
-                    )
-                    Line(l1 @ 0, l2 @ 0)
-                    Line(l1 @ 1, l2 @ 1)
-                make_face()
-            extrude(sketch.sketch, self._config.wheel_support_height)
+            with BuildPart(Location((spoke_shift, 0, 0))):
+                Cylinder(
+                    radius=spoke_outer_radius,
+                    height=self._config.wheel_support_height,
+                    arc_size=180,
+                    align=(Align.CENTER, Align.MIN, Align.MIN),
+                )
+                Cylinder(
+                    radius=spoke_outer_radius
+                    - self._config.bearing_shelf_diameter,
+                    height=self._config.wheel_support_height,
+                    arc_size=180,
+                    align=(Align.CENTER, Align.MIN, Align.MIN),
+                    mode=Mode.SUBTRACT,
+                )
         return spoke.part
 
-    def cut_spokes(self) -> Part:
-        """
-        returns the wheel spokes cut down to the correct size
-        """
-        with BuildPart() as spokes:
-            with PolarLocations(0, 3, start_angle=45):
-                add(self.bracket_spoke())
-            with BuildPart(mode=Mode.INTERSECT):
-                add(self.wheel_guide_cut())
-        return spokes.part
-
-    def spoke_assembly(self) -> Part:
+    def _spoke_assembly(self) -> Part:
         """
         adds the axle for the filament wall bearing, along with the spokes
         """
         with BuildPart() as constructed_brace:
-            add(self.cut_spokes())
+            with BuildPart() as spokes:
+                with PolarLocations(0, 3, start_angle=45):
+                    add(self._bracket_spoke())
+                with BuildPart(mode=Mode.INTERSECT):
+                    add(self._wheel_guide_cut())
             Cylinder(
                 radius=self._config.bearing_shelf_radius,
                 height=self._config.bearing_shelf_height,
@@ -146,7 +135,7 @@ class FilamentBracket(Partomatic):
         part.label = "spoke assembly"
         return part
 
-    def wheel_guide(self) -> Part:
+    def _wheel_guide(self) -> Part:
         """
         The outer ring responsible for guiding the
         filament wheel and keeping it straight
@@ -156,25 +145,25 @@ class FilamentBracket(Partomatic):
         )
 
         with BuildPart() as wheel_brace:
-            with BuildPart():
-                with BuildSketch():
-                    Circle(base_radius)
-                    offset(amount=self._config.wheel_support_height)
-                with BuildSketch(
-                    Plane.XY.offset(self._config.wheel_support_height)
-                ):
-                    Circle(base_radius)
-                loft()
+            Cone(
+                bottom_radius=base_radius + self._config.wheel_support_height,
+                top_radius=base_radius,
+                height=self._config.wheel_support_height,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
             with BuildPart(mode=Mode.SUBTRACT):
-                add(self.wheel_guide_cut())
+                add(self._wheel_guide_cut())
         part = wheel_brace.part
         part.label = "rim"
         return part
 
-    def top_cut_shape(self, inset: float = 0) -> Sketch:
+    def _top_cut_shape(self, inset: float = 0) -> Sketch:
         """
         returns a 2d scetch of the basic shape used for the top cutout
         of the filament bracket
+        -------
+        arguments:
+            - inset: an inset amount allowing tolerance in the printed parts
         """
         base_outer_radius = (
             self._config.wheel_radius
@@ -196,20 +185,22 @@ class FilamentBracket(Partomatic):
             )
         return base_template.sketch
 
-    def top_cut_template(self, tolerance: float = 0) -> Part:
+    def _top_cut_template(self, tolerance: float = 0) -> Part:
         """
         returns the shape defining the top cut of the bracket
         (the part that slides into place to hold the filament wheel in place)
-        provide a tolerance for the actual part to make it easier to assemble
+        -------
+        arguments:
+            - tolerance: an inset amount allowing tolerance in the printed parts
         """
         with BuildPart() as cut:
             with BuildSketch():
-                add(self.top_cut_shape(-tolerance))
+                add(self._top_cut_shape(-tolerance))
             with BuildSketch(
                 Plane.XY.offset(self._config.wheel_support_height)
             ):
                 add(
-                    self.top_cut_shape(
+                    self._top_cut_shape(
                         -tolerance - self._config.wheel_support_height
                     )
                 )
@@ -223,6 +214,10 @@ class FilamentBracket(Partomatic):
         the basic shape defining the clip rail profile including the
         clip points and the rails. This can be cut from the frame or
         modified to fit the shape of the filament bracket
+        -------
+        arguments:
+            - inset: an inset amount allowing tolerance in the printed parts
+            - frame_depth: how deep in the frame to place the clip
         """
         x_intersection = self._config.frame_bracket_exterior_x_distance(
             frame_depth
@@ -329,9 +324,10 @@ class FilamentBracket(Partomatic):
     ) -> Part:
         """
         the part for locking the frame bracket into the frame
+        -------
         arguments:
-        inset: the amount to push the boundries to the interior of the clip,
-        a positive inset results in a larger part, a negative inset is smaller
+            - inset: an inset amount allowing tolerance in the printed parts
+            - frame_depth: how deep in the frame to place the clip
         """
         with BuildPart(mode=Mode.PRIVATE) as base_cylinder:
             Cylinder(
@@ -468,8 +464,7 @@ class FilamentBracket(Partomatic):
                 ):
                     add(
                         self._lockpin.lock_pin(
-                            tolerance=-self._config.frame_lock_pin_tolerance
-                            / 2,
+                            inset=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
                     )
@@ -478,7 +473,7 @@ class FilamentBracket(Partomatic):
         part.label = "solid bracket block"
         return part
 
-    def pin_channel(self) -> Part:
+    def _pin_channel(self) -> Part:
         """
         the channel to lock the filament bracket into the back of the top frame
         """
@@ -508,30 +503,14 @@ class FilamentBracket(Partomatic):
         """
         with BuildPart() as constructed_bracket:
             add(self.bottom_bracket_block())
+
             with BuildPart(mode=Mode.SUBTRACT):
                 with BuildPart(Location((self._config.wheel_radius, 0, 0))):
-                    add(
-                        self._filamentchannels.curved_filament_path_solid(
-                            top_exit_fillet=True
-                        )
-                    )
+                    add(self._filamentchannels.curved_filament_path_cut())
                 with BuildPart(Location((-self._config.wheel_radius, 0, 0))):
-                    add(self._filamentchannels.straight_filament_path_solid())
-            with BuildPart(
-                Location((self._config.wheel_radius, 0, 0)), mode=Mode.ADD
-            ):
+                    add(self._filamentchannels.straight_filament_path_cut())
                 add(
-                    self._filamentchannels.curved_filament_path(
-                        top_exit_fillet=True
-                    )
-                )
-            with BuildPart(
-                Location((-self._config.wheel_radius, 0, 0)), mode=Mode.ADD
-            ):
-                add(self._filamentchannels.straight_filament_path())
-            with BuildPart(mode=Mode.SUBTRACT):
-                add(
-                    self.top_cut_template(self._config.tolerance)
+                    self._top_cut_template(self._config.tolerance)
                     .mirror()
                     .move(Location((0, 0, self._config.bracket_depth)))
                 )
@@ -558,8 +537,8 @@ class FilamentBracket(Partomatic):
                     ),
                 ):
                     Sphere(self._config.frame_click_sphere_radius)
-            add(self.wheel_guide())
-            add(self.spoke_assembly())
+            add(self._wheel_guide())
+            add(self._spoke_assembly())
             with BuildPart(
                 Location(
                     (
@@ -572,7 +551,7 @@ class FilamentBracket(Partomatic):
                 mode=Mode.SUBTRACT,
             ):
                 with GridLocations(self._config.bracket_depth, 0, 2, 1):
-                    add(self.pin_channel())
+                    add(self._pin_channel())
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
                     Location(
@@ -597,8 +576,7 @@ class FilamentBracket(Partomatic):
                 ):
                     add(
                         self._lockpin.lock_pin(
-                            tolerance=-self._config.frame_lock_pin_tolerance
-                            / 2,
+                            inset=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
                     )
@@ -624,7 +602,7 @@ class FilamentBracket(Partomatic):
         with BuildPart() as frame:
             add(self.bottom_bracket(draft=True).mirror(Plane.YZ))
             with BuildPart(mode=Mode.INTERSECT):
-                add(self.top_cut_template(tolerance))
+                add(self._top_cut_template(tolerance))
                 Cylinder(
                     radius=self._config.bearing_shelf_radius,
                     height=self._config.bracket_depth / 2,
@@ -636,16 +614,32 @@ class FilamentBracket(Partomatic):
         return part
 
     def load_config(self, configuration_path: str):
+        """
+        loads the configuration file
+         -------
+        arguments:
+        configuration_path: the path to the configuration file
+        """
         self._config.load_config(configuration_path)
         self._filamentchannels.load_config(configuration_path)
         self._lockpin.load_config(configuration_path)
 
     def __init__(self, configuration_path: str):
+        """
+        initializes the Partomatic filament bracket
+        -------
+        arguments:
+        configuration_file: the path to the configuration file,
+        set to None to use the default configuration
+        """
         super(Partomatic, self).__init__()
         if configuration_path is not None:
             self.load_config(configuration_path)
 
     def compile(self):
+        """
+        Builds the relevant parts for the filament bracket
+        """
         self.bottom = self.bottom_bracket(draft=False)
         self.top = self.top_bracket()
         if LockStyle.CLIP in self._config.frame_lock_style:
@@ -654,6 +648,9 @@ class FilamentBracket(Partomatic):
             )
 
     def display(self):
+        """
+        Shows the filament wheel in OCP CAD Viewer
+        """
         show(
             self.bottom.move(
                 Location((self._config.bracket_width / 2 + 5, 0, 0))
@@ -680,6 +677,10 @@ class FilamentBracket(Partomatic):
         )
 
     def export_stls(self):
+        """
+        Generates the filament wheel STLs in the configured
+        folder
+        """
         if self._config.stl_folder == "NONE":
             return
         output_directory = Path(__file__).parent / self._config.stl_folder

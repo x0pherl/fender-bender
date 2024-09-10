@@ -25,6 +25,11 @@ from ocp_vscode import Camera, show
 def wall_slot(width, height, depth) -> Part:
     """
     creates the basic interlocking shape for connecting the two parts
+    ------
+    arguments:
+        - width: the width of the slot
+        - height: the height of the slot
+        - depth: the depth of the slot
     """
     with BuildPart() as slot:
         with BuildSketch():
@@ -43,8 +48,18 @@ def wall_hanger_cut_template(
     post_count=2,
     tolerance: float = 0.2,
 ) -> Part:
-    """returns a template for splitting a box along the y axis for hanging
-    on a wall"""
+    """
+    returns a template for splitting a box along the y axis for hanging
+    on a wall
+    ------
+    arguments:
+        - length: the length of the wall hanger
+        - width: the width of the wall hanger
+        - height: the height of the wall hanger
+        - bottom: whether the cut is on the bottom or top
+        - post_count: the number of posts to include in the cut
+        - tolerance: the tolerance to allow for spacing
+    """
     effective_tolerance = -tolerance / 2 if bottom else tolerance / 2
     cut_unit = length / 4
     with BuildPart() as cut:
@@ -101,25 +116,25 @@ def wall_hanger_cut_template(
     return cut.part
 
 
-with BuildPart() as hanger:
-    Box(9, 80, 40, align=(Align.MIN, Align.CENTER, Align.MIN))
-    with BuildPart(mode=Mode.INTERSECT):
-        add(
-            wall_hanger_cut_template(
-                6.0, 59.0, 43.2, bottom=True, post_count=3, tolerance=0.2
-            )
-        )
-
-with BuildPart() as hung:
-    Box(9, 80, 40, align=(Align.MIN, Align.CENTER, Align.MIN))
-    with BuildPart(mode=Mode.SUBTRACT):
-        add(
-            wall_hanger_cut_template(
-                6.0, 59.0, 43.2, bottom=False, post_count=3, tolerance=0.2
-            )
-        )
-
 if __name__ == "__main__":
+    with BuildPart() as hanger:
+        Box(9, 80, 40, align=(Align.MIN, Align.CENTER, Align.MIN))
+        with BuildPart(mode=Mode.INTERSECT):
+            add(
+                wall_hanger_cut_template(
+                    6.0, 59.0, 43.2, bottom=True, post_count=3, tolerance=0.2
+                )
+            )
+
+    with BuildPart() as hung:
+        Box(9, 80, 40, align=(Align.MIN, Align.CENTER, Align.MIN))
+        with BuildPart(mode=Mode.SUBTRACT):
+            add(
+                wall_hanger_cut_template(
+                    6.0, 59.0, 43.2, bottom=False, post_count=3, tolerance=0.2
+                )
+            )
+
     show(
         hanger.part,
         hung.part.move(Location((0, 0, 40))),

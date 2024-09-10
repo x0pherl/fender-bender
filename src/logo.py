@@ -29,6 +29,9 @@ _config = BankConfig()
 
 
 def ring() -> Sketch:
+    """
+    a frame for the logo
+    """
     with BuildSketch() as frame:
         Rectangle(
             _config.frame_exterior_length + 20,
@@ -139,6 +142,9 @@ def logo(border=False) -> Sketch:
 
 
 def text() -> Sketch:
+    """
+    generate the text portion of the logo
+    """
     with BuildSketch() as fb2:
         with Locations(Location((14, 0))) as fb:
             Text(
