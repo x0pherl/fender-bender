@@ -104,7 +104,7 @@ class BankConfig:
     wall_thickness: float = 3
 
     frame_tongue_depth: float = 4
-    frame_lock_pin_tolerance: float = 0.35
+    frame_lock_pin_tolerance: float = 0.4
     frame_lock_style: LockStyle = LockStyle.BOTH
 
     frame_clip_depth_offset: float = 10

@@ -261,6 +261,7 @@ class FilamentBracket(Partomatic):
             top_height = frame_depth + (
                 (self._config.minimum_structural_thickness - inset) / 2
             )
+            radial_inset = inset if inset > 0 else inset*4
             with BuildPart(
                 Location(
                     (
@@ -285,14 +286,14 @@ class FilamentBracket(Partomatic):
                     2,
                 ):
                     Cylinder(
-                        radius=self._config.frame_click_sphere_radius - inset,
+                        radius=self._config.frame_click_sphere_radius - radial_inset,
                         height=self._config.wall_thickness,
                         rotation=(90, 0, 0),
                     )
             with BuildPart(
                 rounded.faces().filter_by(Axis.Y)[-1], mode=Mode.SUBTRACT
             ):
-                Sphere(self._config.frame_click_sphere_radius + inset)
+                Sphere(self._config.frame_click_sphere_radius + radial_inset)
                 if inset > 0:
                     Cylinder(
                         radius=max(
@@ -306,7 +307,7 @@ class FilamentBracket(Partomatic):
             with BuildPart(
                 rounded.faces().filter_by(Axis.Y)[0], mode=Mode.SUBTRACT
             ):
-                Sphere(self._config.frame_click_sphere_radius + inset)
+                Sphere(self._config.frame_click_sphere_radius + radial_inset)
                 if inset > 0:
                     Cylinder(
                         radius=max(

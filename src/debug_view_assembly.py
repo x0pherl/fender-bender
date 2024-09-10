@@ -240,9 +240,7 @@ def tongue_groove_test():
     show(tongue.part, groove.part, reset_camera=Camera.KEEP)
 
 
-cut_frame_test()
-
-if __name__ == "x__main__":
+if __name__ == "__main__":
 
     bwall = (
         walls.guide_wall(_config.sidewall_straight_depth)
@@ -332,7 +330,7 @@ if __name__ == "x__main__":
     )
 
     pin = lockpin.lock_pin(
-        tolerance=_config.frame_lock_pin_tolerance / 2, tie_loop=True
+        inset=_config.frame_lock_pin_tolerance / 2, tie_loop=True
     ).move(
         Location(
             (
