@@ -105,6 +105,7 @@ class BankConfig:
 
     frame_tongue_depth: float = 4
     frame_lock_pin_tolerance: float = 0.4
+    frame_click_sphere_radius: float = 1
     frame_lock_style: LockStyle = LockStyle.BOTH
 
     frame_clip_depth_offset: float = 10
@@ -242,13 +243,6 @@ class BankConfig:
             - self.minimum_structural_thickness * 1.5,
             self.fillet_radius + self.frame_click_sphere_radius,
         )
-
-    @property
-    def frame_click_sphere_radius(self) -> Point:
-        """
-        the radius for the snap fit points
-        """
-        return self.minimum_thickness
 
     @property
     def top_frame_interior_width(self) -> float:
