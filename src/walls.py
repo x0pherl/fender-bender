@@ -2,6 +2,7 @@
 Generates the part for the chamber walls of the filament bank
 """
 
+from enum import Enum, auto
 from pathlib import Path
 
 from build123d import (
@@ -14,6 +15,7 @@ from build123d import (
     Cylinder,
     GridLocations,
     Location,
+    Locations,
     Mode,
     Part,
     Plane,
@@ -25,6 +27,7 @@ from build123d import (
     extrude,
     fillet,
     loft,
+    offset,
 )
 from ocp_vscode import Camera, show
 
@@ -36,6 +39,13 @@ from partomatic import Partomatic
 class Walls(Partomatic):
     """partomatic for the chamber walls of the filament bank"""
 
+    class SidewallShape(Enum):
+        """What sort of clip to have"""
+
+        BASE = auto()
+        POINT = auto()
+        REINFORCEMENT = auto()
+
     _config = BankConfig()
 
     gwall: Part
@@ -43,47 +53,47 @@ class Walls(Partomatic):
     reinforcedsidewall: Part
 
     def _sidewall_shape(
-        self, inset=0, length=_config.sidewall_section_depth, straignt_inset=0
+        self,
+        shape: SidewallShape = SidewallShape.BASE,
     ) -> Sketch:
         """
         the 2d shape of the sidewall at the defined length
         """
+        straight_width = self._config.sidewall_width - self._config.wall_thickness
+        curve_radius = self._config.wheel_radius - self._config.wall_thickness / 2
+        wall_length = self._config.sidewall_section_depth - self._config.frame_base_depth - curve_radius - self._config.wall_thickness * 1.5
+        straight_offset = -self._config.wall_thickness / 2
+
+        if shape == self.SidewallShape.REINFORCEMENT:
+            straight_width -= self._config.minimum_structural_thickness * 2
+        elif shape == self.SidewallShape.POINT:
+            straight_width += self._config.wall_thickness
+            curve_radius += self._config.wall_thickness * .75
+            wall_length += self._config.wall_thickness * 1.25
+            straight_offset += self._config.wall_thickness * .75
+
         with BuildSketch(mode=Mode.PRIVATE) as wall:
-            Rectangle(
-                width=self._config.sidewall_width
-                - inset * 2
-                - straignt_inset * 2,
-                height=length
-                - self._config.wheel_radius
-                - self._config.frame_base_depth
-                - inset * 2,
-                align=(Align.CENTER, Align.MAX),
-            )
-            if inset > 0:
+            with Locations(Location((0, straight_offset))):
                 Rectangle(
-                    width=self._config.wheel_diameter - inset * 2,
-                    height=-inset,
-                    align=(Align.CENTER, Align.MIN),
-                )
-        with BuildSketch() as side:
-            Circle(radius=self._config.wheel_radius - inset)
-            with BuildSketch(mode=Mode.SUBTRACT):
-                Rectangle(
-                    self._config.wheel_diameter * 2,
-                    self._config.wheel_diameter * 2,
+                    straight_width,
+                    wall_length,
                     align=(Align.CENTER, Align.MAX),
                 )
-            Rectangle(
-                width=self._config.wheel_diameter - inset * 2,
-                height=self._config.frame_base_depth,
-                align=(Align.CENTER, Align.MAX),
-            )
-            add(
-                wall.sketch.move(
-                    Location((0, -self._config.frame_base_depth - inset))
-                )
-            )
-        return side.sketch.move(Location((0, self._config.frame_base_depth)))
+            with BuildSketch():
+                with Locations(Location((0, self._config.frame_base_depth))):
+                    Circle(radius=curve_radius)
+                    Rectangle(
+                        curve_radius * 2,
+                        curve_radius * 2,
+                        align=(Align.CENTER, Align.MAX),
+                        mode=Mode.SUBTRACT,
+                    )
+                    Rectangle(
+                        curve_radius * 2,
+                        self._config.frame_base_depth-straight_offset,
+                        align=(Align.CENTER, Align.MAX),
+                    )
+        return wall.sketch
 
     def _wall_channel(self, length: float) -> Part:
         """
@@ -262,57 +272,27 @@ class Walls(Partomatic):
         """
         with BuildPart() as wall:
             with BuildSketch(Plane.XY):
-                add(
-                    self._sidewall_shape(
-                        inset=self._config.wall_thickness / 2, length=length
-                    )
-                )
+                add(self._sidewall_shape(self.SidewallShape.BASE))
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness / 2)):
-                add(self._sidewall_shape(length=length))
+                add(self._sidewall_shape(self.SidewallShape.POINT))
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness)):
-                add(
-                    self._sidewall_shape(
-                        inset=self._config.wall_thickness / 2, length=length
-                    )
-                )
+                add(self._sidewall_shape(self.SidewallShape.BASE))
             loft(ruled=True)
             if reinforce:
                 with BuildPart():
                     with BuildSketch():
-                        add(
-                            self._sidewall_shape(
-                                inset=self._config.wall_thickness / 2,
-                                length=length,
-                                straignt_inset=self._config.minimum_structural_thickness
-                                + self._config.tolerance,
-                            )
-                        )
-                        add(
-                            self._sidewall_shape(
-                                inset=self._config.wall_thickness / 2
-                                + self._config.minimum_structural_thickness,
-                                length=length,
-                                straignt_inset=self._config.minimum_structural_thickness,
-                            ),
-                            mode=Mode.SUBTRACT,
-                        )
+                        add(self._sidewall_shape(self.SidewallShape.REINFORCEMENT))
+                        with BuildSketch(mode=Mode.SUBTRACT):
+                            add(offset(self._sidewall_shape(self.SidewallShape.REINFORCEMENT),-self._config.minimum_structural_thickness))
                     extrude(
                         amount=self._config.minimum_structural_thickness
                         + self._config.wall_thickness
                     )
             if not self._config.solid_walls:
-                multiplier = 1 if reinforce else 0
+                shape = self.SidewallShape.REINFORCEMENT if reinforce else self.SidewallShape.BASE
                 with BuildPart(mode=Mode.SUBTRACT):
-                    with BuildSketch():
-                        add(
-                            self._sidewall_shape(
-                                inset=self._config.wall_thickness / 2
-                                + self._config.minimum_structural_thickness,
-                                length=length,
-                                straignt_inset=self._config.minimum_structural_thickness
-                                * multiplier,
-                            )
-                        )
+                    with BuildSketch() as sk:
+                        add(offset(self._sidewall_shape(shape),-self._config.minimum_structural_thickness))
                     extrude(amount=self._config.wall_thickness)
                     with BuildPart(mode=Mode.INTERSECT):
                         hw = HexWall(
@@ -496,7 +476,6 @@ class Walls(Partomatic):
         not yet implemented
         """
         pass
-
 
 if __name__ == "__main__":
     walls = Walls(Path(__file__).parent / "../build-configs/debug.conf")
