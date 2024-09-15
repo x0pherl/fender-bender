@@ -705,7 +705,7 @@ class FilamentBracket(Partomatic):
 
 if __name__ == "__main__":
     bracket = FilamentBracket(
-        Path(__file__).parent / "../build-configs/behemoth.conf"
+        Path(__file__).parent / "../build-configs/debug.conf"
     )
     bracket.compile()
     bracket.display()
