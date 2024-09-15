@@ -261,7 +261,7 @@ class FilamentBracket(Partomatic):
             top_height = frame_depth + (
                 (self._config.minimum_structural_thickness - inset) / 2
             )
-            radial_inset = inset if inset > 0 else inset*4
+            radial_inset = inset if inset > 0 else inset * 4
             with BuildPart(
                 Location(
                     (
@@ -286,7 +286,8 @@ class FilamentBracket(Partomatic):
                     2,
                 ):
                     Cylinder(
-                        radius=self._config.frame_click_sphere_radius - radial_inset,
+                        radius=self._config.frame_click_sphere_radius
+                        - radial_inset,
                         height=self._config.wall_thickness,
                         rotation=(90, 0, 0),
                     )
@@ -385,7 +386,7 @@ class FilamentBracket(Partomatic):
                         self._config.frame_clip_point.x
                         + self._config.bracket_depth / 2,
                         0,
-                        self._config.frame_clip_point.y,
+                        frame_depth,
                     )
                 ),
                 mode=Mode.SUBTRACT,
@@ -396,8 +397,8 @@ class FilamentBracket(Partomatic):
                         - self._config.fillet_radius * 2
                     )
                     / 3.5,
-                    height=self._config.bracket_depth,
-                    align=(Align.CENTER, Align.CENTER, Align.CENTER),
+                    height=self._config.minimum_structural_thickness + inset,
+                    align=(Align.MIN, Align.CENTER, Align.CENTER),
                 )
         part = clip.part
         part.label = "Bracket Clip"
@@ -704,7 +705,7 @@ class FilamentBracket(Partomatic):
 
 if __name__ == "__main__":
     bracket = FilamentBracket(
-        Path(__file__).parent / "../build-configs/debug.conf"
+        Path(__file__).parent / "../build-configs/behemoth.conf"
     )
     bracket.compile()
     bracket.display()
