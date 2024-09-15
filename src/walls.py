@@ -59,18 +59,27 @@ class Walls(Partomatic):
         """
         the 2d shape of the sidewall at the defined length
         """
-        straight_width = self._config.sidewall_width - self._config.wall_thickness
-        curve_radius = self._config.wheel_radius - self._config.wall_thickness / 2
-        wall_length = self._config.sidewall_section_depth - self._config.frame_base_depth - curve_radius - self._config.wall_thickness * 1.5
+        straight_width = (
+            self._config.sidewall_width - self._config.wall_thickness
+        )
+        curve_radius = (
+            self._config.wheel_radius - self._config.wall_thickness / 2
+        )
+        wall_length = (
+            self._config.sidewall_section_depth
+            - self._config.frame_base_depth
+            - curve_radius
+            - self._config.wall_thickness * 1.5
+        )
         straight_offset = -self._config.wall_thickness / 2
 
         if shape == self.SidewallShape.REINFORCEMENT:
             straight_width -= self._config.minimum_structural_thickness * 2
         elif shape == self.SidewallShape.POINT:
             straight_width += self._config.wall_thickness
-            curve_radius += self._config.wall_thickness * .75
+            curve_radius += self._config.wall_thickness * 0.75
             wall_length += self._config.wall_thickness * 1.25
-            straight_offset += self._config.wall_thickness * .75
+            straight_offset += self._config.wall_thickness * 0.75
 
         with BuildSketch(mode=Mode.PRIVATE) as wall:
             with Locations(Location((0, straight_offset))):
@@ -90,7 +99,7 @@ class Walls(Partomatic):
                     )
                     Rectangle(
                         curve_radius * 2,
-                        self._config.frame_base_depth-straight_offset,
+                        self._config.frame_base_depth - straight_offset,
                         align=(Align.CENTER, Align.MAX),
                     )
         return wall.sketch
@@ -281,18 +290,38 @@ class Walls(Partomatic):
             if reinforce:
                 with BuildPart():
                     with BuildSketch():
-                        add(self._sidewall_shape(self.SidewallShape.REINFORCEMENT))
+                        add(
+                            self._sidewall_shape(
+                                self.SidewallShape.REINFORCEMENT
+                            )
+                        )
                         with BuildSketch(mode=Mode.SUBTRACT):
-                            add(offset(self._sidewall_shape(self.SidewallShape.REINFORCEMENT),-self._config.minimum_structural_thickness))
+                            add(
+                                offset(
+                                    self._sidewall_shape(
+                                        self.SidewallShape.REINFORCEMENT
+                                    ),
+                                    -self._config.minimum_structural_thickness,
+                                )
+                            )
                     extrude(
                         amount=self._config.minimum_structural_thickness
                         + self._config.wall_thickness
                     )
             if not self._config.solid_walls:
-                shape = self.SidewallShape.REINFORCEMENT if reinforce else self.SidewallShape.BASE
+                shape = (
+                    self.SidewallShape.REINFORCEMENT
+                    if reinforce
+                    else self.SidewallShape.BASE
+                )
                 with BuildPart(mode=Mode.SUBTRACT):
                     with BuildSketch() as sk:
-                        add(offset(self._sidewall_shape(shape),-self._config.minimum_structural_thickness))
+                        add(
+                            offset(
+                                self._sidewall_shape(shape),
+                                -self._config.minimum_structural_thickness,
+                            )
+                        )
                     extrude(amount=self._config.wall_thickness)
                     with BuildPart(mode=Mode.INTERSECT):
                         hw = HexWall(
@@ -476,6 +505,7 @@ class Walls(Partomatic):
         not yet implemented
         """
         pass
+
 
 if __name__ == "__main__":
     walls = Walls(Path(__file__).parent / "../build-configs/debug.conf")
