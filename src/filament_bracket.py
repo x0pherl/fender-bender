@@ -58,18 +58,32 @@ class FilamentBracket(Partomatic):
     top: Part
     bracketclip: Part
 
+    @property
+    def _wheel_guide_outer_radius(self) -> float:
+        return (
+            self._config.wheel_radius
+            + self._config.wheel_radial_tolerance
+            + self._config.wheel_support_height
+        )
+
+    @property
+    def _wheel_guide_inner_radius(self) -> float:
+        return self._wheel_guide_outer_radius - self._spoke_thickness
+
+    @property
+    def _spoke_thickness(self) -> float:
+        return self._config.wheel_support_height * 1.5
+
     def _wheel_guide_cut(self) -> Part:
         """
         the cutout shape for a wheel guide
         """
 
         with BuildPart() as wheelcut:
-            base_radius = (
-                self._config.wheel_radius + self._config.wheel_radial_tolerance
-            ) * 0.8
             Cone(
-                bottom_radius=base_radius + self._config.wheel_support_height,
-                top_radius=base_radius,
+                bottom_radius=self._wheel_guide_inner_radius,
+                top_radius=self._wheel_guide_inner_radius
+                - self._config.wheel_support_height,
                 height=self._config.wheel_support_height,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
@@ -80,18 +94,9 @@ class FilamentBracket(Partomatic):
         returns ts single spoke part for the filament wheel
         """
         spoke_outer_radius = (
-            (
-                self._config.wheel_radius
-                + self._config.bearing_shelf_radius
-                + self._config.wheel_support_height
-            )
-            / 2
-            + self._config.wheel_radial_tolerance
-            + 1
+            self._wheel_guide_inner_radius / 2 + self._spoke_thickness
         )
-        spoke_shift = (
-            self._config.wheel_radius - self._config.bearing_shelf_diameter * 2
-        )
+        spoke_shift = spoke_outer_radius - self._spoke_thickness
         with BuildPart() as spoke:
             with BuildPart(Location((spoke_shift, 0, 0))):
                 Cylinder(
@@ -101,8 +106,7 @@ class FilamentBracket(Partomatic):
                     align=(Align.CENTER, Align.MIN, Align.MIN),
                 )
                 Cylinder(
-                    radius=spoke_outer_radius
-                    - self._config.bearing_shelf_diameter,
+                    radius=spoke_outer_radius - self._spoke_thickness,
                     height=self._config.wheel_support_height,
                     arc_size=180,
                     align=(Align.CENTER, Align.MIN, Align.MIN),
@@ -131,6 +135,11 @@ class FilamentBracket(Partomatic):
                 - self._config.wheel_lateral_tolerance,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
+            Cylinder(
+                radius=self._spoke_thickness,
+                height=self._config.wheel_support_height,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
         part = constructed_brace.part
         part.label = "spoke assembly"
         return part
@@ -140,14 +149,11 @@ class FilamentBracket(Partomatic):
         The outer ring responsible for guiding the
         filament wheel and keeping it straight
         """
-        base_radius = (
-            self._config.wheel_radius + self._config.wheel_radial_tolerance
-        )
-
         with BuildPart() as wheel_brace:
             Cone(
-                bottom_radius=base_radius + self._config.wheel_support_height,
-                top_radius=base_radius,
+                bottom_radius=self._wheel_guide_outer_radius,
+                top_radius=self._wheel_guide_outer_radius
+                - self._config.wheel_support_height,
                 height=self._config.wheel_support_height,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
@@ -165,12 +171,7 @@ class FilamentBracket(Partomatic):
         arguments:
             - inset: an inset amount allowing tolerance in the printed parts
         """
-        base_outer_radius = (
-            self._config.wheel_radius
-            + self._config.wheel_radial_tolerance
-            + self._config.wheel_support_height
-            - inset
-        )
+        base_outer_radius = self._wheel_guide_outer_radius - inset
         with BuildSketch(mode=Mode.PRIVATE) as base_template:
             Circle(base_outer_radius)
             Rectangle(
@@ -705,7 +706,7 @@ class FilamentBracket(Partomatic):
 
 if __name__ == "__main__":
     bracket = FilamentBracket(
-        Path(__file__).parent / "../build-configs/debug.conf"
+        Path(__file__).parent / "../build-configs/behemoth.conf"
     )
     bracket.compile()
     bracket.display()
