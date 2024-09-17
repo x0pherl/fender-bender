@@ -843,6 +843,55 @@ class FrameSet(Partomatic):
             loft(ruled=True)
         return head.part
 
+    def _screw_fitting(self):
+        """
+        a fitting for screwing the bracket to the wall
+        """
+        with BuildPart(
+            Location(
+                (
+                    -self._config.frame_exterior_length / 2,
+                    0,
+                    self._config.frame_bracket_exterior_radius
+                    + self._config.frame_base_depth
+                    + self._config.minimum_structural_thickness
+                    - self._config.fillet_radius,
+                )
+            )
+        ) as fitting:
+            Box(
+                (
+                    self._config.frame_exterior_length
+                    - self._config.chamber_cut_length
+                    - self._config.frame_hanger_offset
+                )
+                / 2
+                + self._config.tolerance / 2,
+                self._config.frame_bracket_spacing,
+                self._config.frame_bracket_exterior_radius / 2,
+                align=(Align.MIN, Align.CENTER, Align.MAX),
+            )
+            with BuildPart(
+                fitting.faces()
+                .sort_by(Axis.Z)[0]
+                .offset(-self._config.fillet_radius),
+                mode=Mode.SUBTRACT,
+            ) as cut:
+                Box(
+                    self._config.frame_exterior_length,
+                    self._config.bracket_depth,
+                    self._config.fillet_radius * 3,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+                fillet(
+                    cut.edges().filter_by(Axis.X), self._config.fillet_radius
+                )
+            with BuildPart(mode=Mode.INTERSECT):
+                add(self._bottom_frame_stand_sectioncut())
+        screwfitting = fitting.part
+        screwfitting.label = "Screw Fitting"
+        return screwfitting
+
     def load_config(self, configuration_path: str):
         """
         loads the configuration file
@@ -960,63 +1009,9 @@ class FrameSet(Partomatic):
         """
         pass
 
-    def _screw_fitting(self):
-        """
-        a fitting for screwing the bracket to the wall
-        """
-        with BuildPart(
-            Location(
-                (
-                    -self._config.frame_exterior_length / 2,
-                    0,
-                    self._config.frame_bracket_exterior_radius
-                    + self._config.frame_base_depth
-                    + self._config.minimum_structural_thickness
-                    - self._config.fillet_radius,
-                )
-            )
-        ) as fitting:
-            Box(
-                (
-                    self._config.frame_exterior_length
-                    - self._config.chamber_cut_length
-                    - self._config.frame_hanger_offset
-                )
-                / 2
-                + self._config.tolerance / 2,
-                self._config.frame_bracket_spacing,
-                self._config.frame_bracket_exterior_radius / 2,
-                align=(Align.MIN, Align.CENTER, Align.MAX),
-            )
-            with BuildPart(
-                fitting.faces()
-                .sort_by(Axis.Z)[0]
-                .offset(-self._config.fillet_radius),
-                mode=Mode.SUBTRACT,
-            ) as cut:
-                Box(
-                    self._config.frame_exterior_length,
-                    self._config.bracket_depth,
-                    self._config.fillet_radius * 3,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN),
-                )
-                fillet(
-                    cut.edges().filter_by(Axis.X), self._config.fillet_radius
-                )
-            with BuildPart(mode=Mode.INTERSECT):
-                add(self._bottom_frame_stand_sectioncut())
-        screwfitting = fitting.part
-        screwfitting.label = "Screw Fitting"
-        return screwfitting
-
 
 if __name__ == "__main__":
     frameset = FrameSet(Path(__file__).parent / "../build-configs/debug.conf")
-    # frameset.compile()
-    # frameset.display()
-    # frameset.export_stls()
-
-    show(
-        frameset.bottom_frame(),
-        reset_camera=Camera.KEEP,
-    )
+    frameset.compile()
+    frameset.display()
+    frameset.export_stls()
