@@ -334,13 +334,13 @@ class FrameSet(Partomatic):
                     add(self._chamber_cut())
         return cframe.part
 
-    def _bottom_frame_stand(self) -> Part:
+    def _bottom_frame_stand_sectioncut(self) -> Part:
         """
-        a stand for balancing the bottom bracket when sitting on a flat surface
-        instead of hanging from a wall
+        cuts along the side of the bottom frame stand;
+        purely aesthetic.
         """
         with BuildPart(
-            Location((0, 0, self._config.frame_base_depth)), mode=Mode.PRIVATE
+            Location((0, 0, self._config.frame_base_depth))
         ) as sectioncut:
             Box(
                 self._config.frame_bracket_exterior_diameter * 2,
@@ -350,14 +350,28 @@ class FrameSet(Partomatic):
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
             fillet(sectioncut.edges(), radius=self._config.fillet_radius)
+        return sectioncut.part
+
+    @property
+    def _bottom_frame_stand_height(self) -> float:
+        """The height of the bottom frame stand"""
+        return (
+            self._config.frame_bracket_exterior_radius
+            + self._config.frame_base_depth
+            + self._config.minimum_structural_thickness
+        )
+
+    def _bottom_frame_stand(self) -> Part:
+        """
+        a stand for balancing the bottom bracket when sitting on a flat surface
+        instead of hanging from a wall
+        """
 
         with BuildPart() as stand:
             Box(
                 self._config.frame_exterior_length,
                 self._config.frame_exterior_width,
-                self._config.frame_bracket_exterior_radius
-                + self._config.frame_base_depth
-                + self._config.minimum_structural_thickness,
+                self._bottom_frame_stand_height,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
             with BuildPart(
@@ -385,7 +399,7 @@ class FrameSet(Partomatic):
                 1,
                 self._config.filament_count,
             ):
-                add(sectioncut, mode=Mode.SUBTRACT)
+                add(self._bottom_frame_stand_sectioncut(), mode=Mode.SUBTRACT)
 
         return stand.part
 
@@ -486,6 +500,67 @@ class FrameSet(Partomatic):
                         align=(Align.CENTER, Align.CENTER, Align.MAX),
                     )
                 add(self.straight_wall_grooves().mirror(Plane.XY))
+            if FrameStyle.STANDING in self._config.frame_style:
+                add(self._screw_fitting())
+                with BuildPart(
+                    Location(
+                        (
+                            -self._config.frame_exterior_length / 2
+                            + self._config.minimum_structural_thickness * 2
+                            + self._config.frame_hanger_offset,
+                            0,
+                            self._bottom_frame_stand_height
+                            - self._config.minimum_structural_thickness,
+                        ),
+                        (0, 225, 0),
+                    ),
+                    mode=Mode.SUBTRACT,
+                ):
+                    add(self._screw_cut())
+            else:
+                tab_width = (
+                    self._config.minimum_structural_thickness
+                    + self._config.fillet_radius
+                    + self._config.frame_hanger_offset
+                )
+                with BuildPart(
+                    Location(
+                        (
+                            -self._config.frame_exterior_length / 2,
+                            0,
+                            self._config.fillet_radius,
+                        )
+                    )
+                ) as tab:
+                    Box(
+                        tab_width,
+                        self._config.bracket_depth,
+                        self._config.bracket_depth
+                        + self._config.frame_base_depth,
+                        align=(Align.MIN, Align.CENTER, Align.MIN),
+                    )
+                    fillet(
+                        (tab.edges() - tab.faces().sort_by(Axis.X)[0].edges()),
+                        self._config.fillet_radius,
+                    )
+                with BuildPart(
+                    Location(
+                        (
+                            -self._config.frame_exterior_length / 2
+                            + tab_width / 2,
+                            0,
+                            self._config.frame_base_depth
+                            + self._config.fillet_radius,
+                        ),
+                        (0, 225, 0),
+                    ),
+                    mode=Mode.SUBTRACT,
+                ) as cutter:
+                    add(self._screw_cut())
+                    extrude(
+                        cutter.faces().sort_by(Axis.Z)[-1],
+                        amount=self._config.frame_chamber_depth,
+                    )
         part = bframe.part
         part.label = "bottom stand with frame"
         return part
@@ -739,15 +814,15 @@ class FrameSet(Partomatic):
                 ),
                 mode=Mode.SUBTRACT,
             ):
-                add(self._screw_head())
+                add(self._screw_cut())
         return bracket.part
 
-    def _screw_head(self) -> Part:
+    def _screw_cut(self) -> Part:
         """
         template for the cutout for a screwhead
         """
         with BuildPart() as head:
-            with BuildSketch():
+            with BuildSketch(Plane.XY.offset(-self._config.bracket_depth)):
                 Circle(self._config.wall_bracket_screw_head_radius)
             with BuildSketch(
                 Plane.XY.offset(self._config.wall_bracket_screw_head_sink)
@@ -762,7 +837,7 @@ class FrameSet(Partomatic):
             ):
                 Circle(self._config.wall_bracket_screw_radius)
             with BuildSketch(
-                Plane.XY.offset(self._config.minimum_structural_thickness * 2)
+                Plane.XY.offset(self._config.frame_chamber_depth)
             ):
                 Circle(self._config.wall_bracket_screw_radius)
             loft(ruled=True)
@@ -885,9 +960,63 @@ class FrameSet(Partomatic):
         """
         pass
 
+    def _screw_fitting(self):
+        """
+        a fitting for screwing the bracket to the wall
+        """
+        with BuildPart(
+            Location(
+                (
+                    -self._config.frame_exterior_length / 2,
+                    0,
+                    self._config.frame_bracket_exterior_radius
+                    + self._config.frame_base_depth
+                    + self._config.minimum_structural_thickness
+                    - self._config.fillet_radius,
+                )
+            )
+        ) as fitting:
+            Box(
+                (
+                    self._config.frame_exterior_length
+                    - self._config.chamber_cut_length
+                    - self._config.frame_hanger_offset
+                )
+                / 2
+                + self._config.tolerance / 2,
+                self._config.frame_bracket_spacing,
+                self._config.frame_bracket_exterior_radius / 2,
+                align=(Align.MIN, Align.CENTER, Align.MAX),
+            )
+            with BuildPart(
+                fitting.faces()
+                .sort_by(Axis.Z)[0]
+                .offset(-self._config.fillet_radius),
+                mode=Mode.SUBTRACT,
+            ) as cut:
+                Box(
+                    self._config.frame_exterior_length,
+                    self._config.bracket_depth,
+                    self._config.fillet_radius * 3,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+                fillet(
+                    cut.edges().filter_by(Axis.X), self._config.fillet_radius
+                )
+            with BuildPart(mode=Mode.INTERSECT):
+                add(self._bottom_frame_stand_sectioncut())
+        screwfitting = fitting.part
+        screwfitting.label = "Screw Fitting"
+        return screwfitting
+
 
 if __name__ == "__main__":
     frameset = FrameSet(Path(__file__).parent / "../build-configs/debug.conf")
-    frameset.compile()
-    frameset.display()
-    frameset.export_stls()
+    # frameset.compile()
+    # frameset.display()
+    # frameset.export_stls()
+
+    show(
+        frameset.bottom_frame(),
+        reset_camera=Camera.KEEP,
+    )
