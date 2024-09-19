@@ -862,11 +862,12 @@ class FrameSet(Partomatic):
             Box(
                 (
                     self._config.frame_exterior_length
-                    - self._config.chamber_cut_length
-                    - self._config.frame_hanger_offset
+                    - (
+                        self._config.frame_bracket_exterior_diameter
+                        - self._config.minimum_structural_thickness * 2
+                    )
                 )
-                / 2
-                + self._config.tolerance / 2,
+                / 2,
                 self._config.frame_bracket_spacing,
                 self._config.frame_bracket_exterior_radius / 2,
                 align=(Align.MIN, Align.CENTER, Align.MAX),
