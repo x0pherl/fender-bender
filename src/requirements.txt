@@ -7,6 +7,7 @@ build123d
 ocp_vscode
 dataclasses
 math
+pyyaml
 enum
 shapely
 bd_warehouse @ git+https://github.com/gumyr/bd_warehouse

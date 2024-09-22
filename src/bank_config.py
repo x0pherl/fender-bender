@@ -2,7 +2,7 @@
 module for all of the configuration required to build a filament bank
 """
 
-import configparser
+import yaml
 from dataclasses import dataclass, fields
 from enum import Flag, auto
 from math import cos, radians, sin, sqrt
@@ -472,31 +472,17 @@ class BankConfig:
         arguments:
             - configuration_path: the path to the configuration file
         """
-        config_file = configparser.ConfigParser()
-        config_file.read(configuration_path)
-        config_dict = {}
-        for field in fields(BankConfig):
-            if config_file.has_option("BankConfig", field.name):
-                value = config_file["BankConfig"][field.name]
-                if field.type == int:
-                    config_dict[field.name] = int(value)
-                elif field.type == float:
-                    config_dict[field.name] = float(value)
-                elif field.type == bool:
-                    config_dict[field.name] = value.lower() in (
-                        "true",
-                        "yes",
-                        "1",
-                    )
-                elif field.type == LockStyle:
-                    config_dict[field.name] = LockStyle[value.upper()]
-                elif field.type == FrameStyle:
-                    config_dict[field.name] = FrameStyle[value.upper()]
-                else:
-                    config_dict[field.name] = value
+        with open(configuration_path, "r") as stream:
+            config_dict = yaml.safe_load(stream)
 
-        for key, value in config_dict.items():
-            setattr(self, key, value)
+        for field in fields(BankConfig):
+            if field.name in config_dict["BankConfig"]:
+                value = config_dict["BankConfig"][field.name]
+                if field.name == "frame_lock_style":
+                    value = LockStyle[value.upper()]
+                elif field.name == "frame_style":
+                    value = FrameStyle[value.upper()]
+                setattr(self, field.name, value)
 
 
 if __name__ == "__main__":
