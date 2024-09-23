@@ -100,9 +100,9 @@ class FrameSet(Partomatic):
                 align=(Align.CENTER, Align.MAX),
             )
         with BuildSketch() as side:
-            Circle(radius=self._config.wheel_radius - inset)
+            Circle(radius=self._config.wheel.radius - inset)
             Rectangle(
-                width=self._config.wheel_diameter - inset * 2,
+                width=self._config.wheel.diameter - inset * 2,
                 height=self._config.frame_base_depth,
                 align=(Align.CENTER, Align.MAX),
             )
@@ -216,7 +216,7 @@ class FrameSet(Partomatic):
             with BuildPart(
                 Location(
                     (
-                        -self._config.wheel_radius
+                        -self._config.wheel.radius
                         - self._config.bracket_depth / 2,
                         0,
                         0,
@@ -499,12 +499,12 @@ class FrameSet(Partomatic):
                     )
                 ):
                     Cylinder(
-                        radius=self._config.wheel_radius,
+                        radius=self._config.wheel.radius,
                         height=self._config.frame_exterior_width,
                         rotation=(90, 0, 0),
                     )
                     Box(
-                        self._config.wheel_diameter,
+                        self._config.wheel.diameter,
                         self._config.frame_exterior_width,
                         self._config.frame_base_depth,
                         align=(Align.CENTER, Align.CENTER, Align.MAX),
@@ -648,12 +648,12 @@ class FrameSet(Partomatic):
                     )
                 ):
                     Cylinder(
-                        radius=self._config.wheel_radius,
+                        radius=self._config.wheel.radius,
                         height=self._config.frame_exterior_width,
                         rotation=(90, 0, 0),
                     )
                     Box(
-                        self._config.wheel_diameter,
+                        self._config.wheel.diameter,
                         self._config.frame_exterior_width,
                         self._config.frame_base_depth,
                         align=(Align.CENTER, Align.CENTER, Align.MAX),
@@ -740,7 +740,7 @@ class FrameSet(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.wheel_radius
+                            self._config.wheel.radius
                             + self._config.bracket_depth / 2
                             + self._config.frame_hanger_offset
                             + self._config.frame_lock_pin_tolerance,

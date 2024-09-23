@@ -61,8 +61,8 @@ class FilamentBracket(Partomatic):
     @property
     def _wheel_guide_outer_radius(self) -> float:
         return (
-            self._config.wheel_radius
-            + self._config.wheel_radial_tolerance
+            self._config.wheel.radius
+            + self._config.wheel.radial_tolerance
             + self._config.wheel_support_height
         )
 
@@ -125,14 +125,14 @@ class FilamentBracket(Partomatic):
                 with BuildPart(mode=Mode.INTERSECT):
                     add(self._wheel_guide_cut())
             Cylinder(
-                radius=self._config.bearing_shelf_radius,
+                radius=self._config.wheel.bearing.shelf_radius,
                 height=self._config.bearing_shelf_height,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
             Cylinder(
-                radius=self._config.bearing_inner_radius,
+                radius=self._config.wheel.bearing.inner_radius,
                 height=self._config.bracket_depth / 2
-                - self._config.wheel_lateral_tolerance,
+                - self._config.wheel.lateral_tolerance,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
             Cylinder(
@@ -423,7 +423,7 @@ class FilamentBracket(Partomatic):
             extrude(amount=self._config.bracket_depth)
             fillet(arch.edges(), self._config.fillet_radius)
             with BuildPart(
-                Location((self._config.wheel_radius, 0, 0)), mode=Mode.SUBTRACT
+                Location((self._config.wheel.radius, 0, 0)), mode=Mode.SUBTRACT
             ):
                 add(
                     self._filamentchannels.curved_filament_path_solid(
@@ -431,17 +431,17 @@ class FilamentBracket(Partomatic):
                     )
                 )
             with BuildPart(
-                Location((-self._config.wheel_radius, 0, 0)),
+                Location((-self._config.wheel.radius, 0, 0)),
                 mode=Mode.SUBTRACT,
             ):
                 add(self._filamentchannels.straight_filament_path_solid())
-            with BuildPart(Location((self._config.wheel_radius, 0, 0))):
+            with BuildPart(Location((self._config.wheel.radius, 0, 0))):
                 add(
                     self._filamentchannels.curved_filament_path_solid(
                         top_exit_fillet=True
                     )
                 )
-            with BuildPart(Location((-self._config.wheel_radius, 0, 0))):
+            with BuildPart(Location((-self._config.wheel.radius, 0, 0))):
                 add(self._filamentchannels.straight_filament_path_solid())
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
@@ -455,7 +455,7 @@ class FilamentBracket(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.wheel_radius
+                            self._config.wheel.radius
                             + self._config.bracket_depth / 2,
                             self._config.bracket_depth
                             + self._config.minimum_structural_thickness / 2,
@@ -508,9 +508,9 @@ class FilamentBracket(Partomatic):
             add(self.bottom_bracket_block())
 
             with BuildPart(mode=Mode.SUBTRACT):
-                with BuildPart(Location((self._config.wheel_radius, 0, 0))):
+                with BuildPart(Location((self._config.wheel.radius, 0, 0))):
                     add(self._filamentchannels.curved_filament_path_cut())
-                with BuildPart(Location((-self._config.wheel_radius, 0, 0))):
+                with BuildPart(Location((-self._config.wheel.radius, 0, 0))):
                     add(self._filamentchannels.straight_filament_path_cut())
                 add(
                     self._top_cut_template(self._config.tolerance)
@@ -518,8 +518,8 @@ class FilamentBracket(Partomatic):
                     .move(Location((0, 0, self._config.bracket_depth)))
                 )
                 Cylinder(
-                    radius=self._config.wheel_radius
-                    + self._config.wheel_radial_tolerance,
+                    radius=self._config.wheel.radius
+                    + self._config.wheel.radial_tolerance,
                     height=self._config.bracket_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
@@ -567,7 +567,7 @@ class FilamentBracket(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.wheel_radius
+                            self._config.wheel.radius
                             + self._config.bracket_depth / 2,
                             self._config.bracket_depth
                             + self._config.minimum_structural_thickness / 2,
@@ -586,12 +586,12 @@ class FilamentBracket(Partomatic):
             if not draft and self._config.default_connector.threaded:
                 add(
                     self._filamentchannels.straight_filament_connector_threads().move(
-                        Location((-self._config.wheel_radius, 0, 0))
+                        Location((-self._config.wheel.radius, 0, 0))
                     )
                 )
                 add(
                     self._filamentchannels.curved_filament_connector_threads().move(
-                        Location((self._config.wheel_radius, 0, 0))
+                        Location((self._config.wheel.radius, 0, 0))
                     )
                 )
         part = constructed_bracket.part
@@ -607,7 +607,7 @@ class FilamentBracket(Partomatic):
             with BuildPart(mode=Mode.INTERSECT):
                 add(self._top_cut_template(tolerance))
                 Cylinder(
-                    radius=self._config.bearing_shelf_radius,
+                    radius=self._config.wheel.bearing.shelf_radius,
                     height=self._config.bracket_depth / 2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )

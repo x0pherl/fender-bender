@@ -60,6 +60,51 @@ def _distance_to_circle_edge(radius, point, angle) -> float:
 
 
 @dataclass
+class BearingConfig:
+    diameter: float = 12.1
+    inner_diameter: float = 6.1
+    shelf_diameter: float = 8.5
+    depth: float = 4
+
+    @property
+    def radius(self) -> float:
+        """
+        returns the radius of the bearing
+        """
+        return self.diameter / 2
+
+    @property
+    def inner_radius(self) -> float:
+        """
+        returns the inner_radius of the bearing
+        """
+        return self.inner_diameter / 2
+
+    @property
+    def shelf_radius(self) -> float:
+        """
+        returns the radius of the bearing shelf
+        """
+        return self.shelf_diameter / 2
+
+
+@dataclass
+class WheelConfig:
+    diameter: float = 70
+    spoke_count: int = 5
+    lateral_tolerance: float = 0.6
+    radial_tolerance: float = 0.2
+    bearing: BearingConfig = field(default_factory=BearingConfig)
+
+    @property
+    def radius(self) -> float:
+        """
+        returns the radius of the wheel
+        """
+        return self.diameter / 2
+
+
+@dataclass
 class TubeConfig:
     inner_diameter: float = 3.55
     outer_diameter: float = 6.5
@@ -108,15 +153,9 @@ class BankConfig:
 
     stl_folder: str = "../stl/default"
 
-    bearing_diameter: float = 12.1
-    bearing_inner_diameter: float = 6.1
-    bearing_shelf_diameter: float = 8.5
-    bearing_depth: float = 4
+    bearing: BearingConfig = field(default_factory=BearingConfig)
 
-    wheel_diameter: float = 70
-    wheel_spoke_count: int = 5
-    wheel_lateral_tolerance: float = 0.6
-    wheel_radial_tolerance: float = 0.2
+    wheel: WheelConfig = field(default_factory=WheelConfig)
 
     minimum_structural_thickness: float = 4
     minimum_thickness: float = 1
@@ -185,7 +224,7 @@ class BankConfig:
             self.frame_chamber_depth
             - self.frame_connector_depth
             - self.frame_base_depth
-            - (self.frame_bracket_exterior_radius - self.wheel_radius)
+            - (self.frame_bracket_exterior_radius - self.wheel.radius)
         ) / 2
 
     @property
@@ -230,7 +269,7 @@ class BankConfig:
         """
         return (
             self.sidewall_section_depth
-            - self.wheel_radius
+            - self.wheel.radius
             - self.frame_base_depth
         )
 
@@ -248,7 +287,7 @@ class BankConfig:
         """
         return Point(0, 0).distance(
             Point(
-                self.wheel_radius - self.bracket_depth / 2, self.bracket_height
+                self.wheel.radius - self.bracket_depth / 2, self.bracket_height
             )
         )
 
@@ -327,11 +366,11 @@ class BankConfig:
         to clear the filament wheel
         """
         return _distance_to_circle_edge(
-            radius=self.wheel_radius
-            + self.wheel_radial_tolerance
+            radius=self.wheel.radius
+            + self.wheel.radial_tolerance
             + self.minimum_thickness,
             point=(
-                self.wheel_radius - self.default_connector.tube.outer_radius,
+                self.wheel.radius - self.default_connector.tube.outer_radius,
                 0,
             ),
             angle=90,
@@ -354,9 +393,9 @@ class BankConfig:
         returns the appropriate width for the sidewalls
         """
         return (
-            self.wheel_diameter
+            self.wheel.diameter
             + (
-                self.wheel_radial_tolerance
+                self.wheel.radial_tolerance
                 + self.default_connector.diameter
                 + self.fillet_radius
                 + self.wall_thickness
@@ -366,46 +405,11 @@ class BankConfig:
         )
 
     @property
-    def bearing_shelf_radius(self) -> float:
-        """
-        returns the radius of the bearing shelf
-        """
-        return self.bearing_shelf_diameter / 2
-
-    @property
     def bearing_shelf_height(self) -> float:
         """
         returns the appropriate height for the bearing shelf
         """
-        return (self.bracket_depth - self.bearing_depth) / 2
-
-    @property
-    def wheel_radius(self) -> float:
-        """
-        returns the radius of the wheel
-        """
-        return self.wheel_diameter / 2
-
-    @property
-    def bearing_radius(self) -> float:
-        """
-        returns the radius of the bearing
-        """
-        return self.bearing_diameter / 2
-
-    @property
-    def bearing_inner_radius(self) -> float:
-        """
-        returns the inner_radius of the bearing
-        """
-        return self.bearing_inner_diameter / 2
-
-    @property
-    def rim_thickness(self) -> float:
-        """
-        returns the thickness of the rim
-        """
-        return self.bearing_depth
+        return (self.bracket_depth - self.wheel.bearing.depth) / 2
 
     @property
     def bracket_width(self) -> float:
@@ -414,7 +418,7 @@ class BankConfig:
         """
         return max(
             self.minimum_bracket_width,
-            self.wheel_diameter
+            self.wheel.diameter
             + self.wheel_support_height * 2
             + self.minimum_structural_thickness * 3
             + self.fillet_radius * 2,
@@ -434,8 +438,8 @@ class BankConfig:
         """
         return max(
             self.minimum_bracket_height,
-            self.wheel_radius
-            + self.wheel_radial_tolerance
+            self.wheel.radius
+            + self.wheel.radial_tolerance
             + self.minimum_structural_thickness * 2,
         )
 
@@ -446,8 +450,8 @@ class BankConfig:
         """
         return max(
             self.minimum_bracket_depth,
-            self.bearing_depth
-            + self.wheel_lateral_tolerance
+            self.wheel.bearing.depth
+            + self.wheel.lateral_tolerance
             + self.minimum_structural_thickness * 2,
             self.default_connector.diameter + self.minimum_thickness * 2,
             self.default_connector.tube.outer_diameter
@@ -468,8 +472,8 @@ class BankConfig:
         """
         return (
             self.bracket_depth
-            - self.bearing_depth
-            - self.wheel_lateral_tolerance
+            - self.wheel.bearing.depth
+            - self.wheel.lateral_tolerance
         ) / 2
 
     def __init__(self, file_path: str = None, **kwargs):
@@ -493,6 +497,8 @@ class BankConfig:
                 )
             default_connector = ConnectorConfig()
             self.connectors = [default_connector]
+            self.wheel.bearing = BearingConfig()
+            self.wheel = WheelConfig()
 
     def load_config(self, configuration_path: str):
         """
@@ -511,6 +517,10 @@ class BankConfig:
                     setattr(self, field.name, LockStyle[value.upper()])
                 elif field.name == "frame_style":
                     setattr(self, field.name, FrameStyle[value.upper()])
+                elif field.name == "wheel":
+                    if "bearing" in value:
+                        value["bearing"] = BearingConfig(**value["bearing"])
+                    self.wheel = WheelConfig(**value)
                 elif field.name == "connectors":
                     self.connectors = [
                         ConnectorConfig(
@@ -528,8 +538,10 @@ class BankConfig:
 
 if __name__ == "__main__":
     test = BankConfig(Path(__file__).parent / "../build-configs/debug.conf")
+    # test = BankConfig()
     print(test.bracket_depth, test.bracket_height, test.bracket_width)
     print(test.sidewall_width)
     for connector in test.connectors:
         print(connector.tube.inner_diameter)
     print(test.default_connector.diameter)
+    print(test.wheel.radius, test.wheel.bearing.depth)

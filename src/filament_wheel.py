@@ -63,14 +63,14 @@ class FilamentWheel(Partomatic):
         returns the spoke Sketch for the filament wheel
         """
         spoke_outer_radius = (
-            self._config.wheel_radius
-            + self._config.bearing_radius
-            + self._config.rim_thickness
+            self._config.wheel.radius
+            + self._config.wheel.bearing.radius
+            + self._config.wheel.bearing.depth
         ) / 2
         spoke_shift = (
-            self._config.wheel_radius
-            - self._config.bearing_radius
-            - self._config.rim_thickness
+            self._config.wheel.radius
+            - self._config.wheel.bearing.radius
+            - self._config.wheel.bearing.depth
         ) / 2
         with BuildSketch() as sketch:
             with BuildLine():
@@ -82,7 +82,8 @@ class FilamentWheel(Partomatic):
                 )
                 l2 = CenterArc(
                     center=((spoke_shift, 0)),
-                    radius=spoke_outer_radius - self._config.rim_thickness,
+                    radius=spoke_outer_radius
+                    - self._config.wheel.bearing.depth,
                     start_angle=0,
                     arc_size=180,
                 )
@@ -97,25 +98,29 @@ class FilamentWheel(Partomatic):
         """
         with BuildPart() as fwheel:
             with BuildSketch():
-                Circle(radius=self._config.wheel_radius)
+                Circle(radius=self._config.wheel.radius)
                 Circle(
-                    radius=self._config.wheel_radius
-                    - self._config.rim_thickness,
+                    radius=self._config.wheel.radius
+                    - self._config.wheel.bearing.depth,
                     mode=Mode.SUBTRACT,
                 )
             with BuildSketch():
                 Circle(
-                    radius=self._config.bearing_radius
-                    + self._config.rim_thickness
+                    radius=self._config.wheel.bearing.radius
+                    + self._config.wheel.bearing.depth
                 )
-                Circle(radius=self._config.bearing_radius, mode=Mode.SUBTRACT)
-            with PolarLocations(0, self._config.wheel_spoke_count):
+                Circle(
+                    radius=self._config.wheel.bearing.radius,
+                    mode=Mode.SUBTRACT,
+                )
+            with PolarLocations(0, self._config.wheel.spoke_count):
                 add(self._spoke())
-            extrude(amount=self._config.bearing_depth)
+            extrude(amount=self._config.wheel.bearing.depth)
             add(
                 diamond_torus(
-                    self._config.wheel_radius, self._config.bearing_depth / 2
-                ).move(Location((0, 0, self._config.bearing_depth / 2))),
+                    self._config.wheel.radius,
+                    self._config.wheel.bearing.depth / 2,
+                ).move(Location((0, 0, self._config.wheel.bearing.depth / 2))),
                 mode=Mode.SUBTRACT,
             )
         return fwheel.part

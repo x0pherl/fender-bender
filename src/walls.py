@@ -63,7 +63,7 @@ class Walls(Partomatic):
             self._config.sidewall_width - self._config.wall_thickness
         )
         curve_radius = (
-            self._config.wheel_radius - self._config.wall_thickness / 2
+            self._config.wheel.radius - self._config.wall_thickness / 2
         )
         wall_length = (
             self._config.sidewall_section_depth

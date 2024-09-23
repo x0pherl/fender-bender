@@ -42,15 +42,6 @@ class FilamentChannels(Partomatic):
     _curvedfilamentpath: Part
     _straightfilamentpath: Part
 
-    # ingress_connector_location = Location(
-    #     (
-    #         -_config.wheel_radius,
-    #         _config.bracket_height,
-    #         _config.bracket_depth / 2,
-    #     ),
-    #     (90, 0, 0),
-    # )
-
     def _connector_threads(self) -> Part:
         """
         returns the threads for the connector
@@ -128,8 +119,8 @@ class FilamentChannels(Partomatic):
                     Rectangle(
                         width=self._config.default_connector.tube.outer_diameter
                         * 2,
-                        height=self._config.bearing_depth
-                        + self._config.wheel_lateral_tolerance,
+                        height=self._config.wheel.bearing.depth
+                        + self._config.wheel.lateral_tolerance,
                         mode=Mode.INTERSECT,
                     )
                 with BuildSketch(
@@ -233,8 +224,8 @@ class FilamentChannels(Partomatic):
                 ),
             )
             curve = CenterArc(
-                center=(self._config.wheel_radius, (bridge @ 1).Y),
-                radius=self._config.wheel_radius,
+                center=(self._config.wheel.radius, (bridge @ 1).Y),
+                radius=self._config.wheel.radius,
                 start_angle=180,
                 arc_size=-45,
             )
@@ -273,8 +264,8 @@ class FilamentChannels(Partomatic):
                 Rectangle(
                     height=self._config.default_connector.tube.outer_diameter
                     * 2,
-                    width=self._config.bearing_depth
-                    + self._config.wheel_lateral_tolerance,
+                    width=self._config.wheel.bearing.depth
+                    + self._config.wheel.lateral_tolerance,
                     mode=Mode.INTERSECT,
                 )
             with BuildSketch(
@@ -438,10 +429,10 @@ class FilamentChannels(Partomatic):
         """
         self._straightfilamentpath = self.straight_filament_path(
             draft=False
-        ).move(Location((-self._config.wheel_radius, 0, 0)))
+        ).move(Location((-self._config.wheel.radius, 0, 0)))
         self._curvedfilamentpath = self.curved_filament_path(
             top_exit_fillet=True, draft=False
-        ).move(Location((self._config.wheel_radius, 0, 0)))
+        ).move(Location((self._config.wheel.radius, 0, 0)))
 
     def display(self):
         """
