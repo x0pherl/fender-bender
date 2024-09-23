@@ -45,6 +45,7 @@ for conf_file in conf_files:
     if config.stl_folder == "NONE":
         continue
     print(f"Generating parts for {conf_file.name}")
+    print(f"\t connector diam is {config.default_connector.diameter}")
     iteration_start_time = time()
     wheel = FilamentWheel(conf_file)
     wheel.partomate()

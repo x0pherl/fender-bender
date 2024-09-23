@@ -583,7 +583,7 @@ class FilamentBracket(Partomatic):
                             tie_loop=False,
                         )
                     )
-            if not draft and self._config.connector_threaded:
+            if not draft and self._config.default_connector.threaded:
                 add(
                     self._filamentchannels.straight_filament_connector_threads().move(
                         Location((-self._config.wheel_radius, 0, 0))
@@ -706,7 +706,7 @@ class FilamentBracket(Partomatic):
 
 if __name__ == "__main__":
     bracket = FilamentBracket(
-        Path(__file__).parent / "../build-configs/behemoth.conf"
+        Path(__file__).parent / "../build-configs/debug.conf"
     )
     bracket.compile()
     bracket.display()

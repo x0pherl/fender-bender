@@ -245,11 +245,21 @@ class FrameSet(Partomatic):
                     self._config.fillet_radius,
                 )
                 with BuildPart(
-                    Location((self._config.tube_outer_diameter * 0.375, 0, 0))
+                    Location(
+                        (
+                            self._config.default_connector.tube.outer_diameter
+                            * 0.375,
+                            0,
+                            0,
+                        )
+                    )
                 ) as outer:
                     Box(
                         self._config.chamber_cut_length
-                        - (self._config.tube_outer_diameter * 0.75),
+                        - (
+                            self._config.default_connector.tube.outer_diameter
+                            * 0.75
+                        ),
                         self._config.bracket_depth
                         + self._config.tolerance * 2,
                         self._config.frame_base_depth * 2,

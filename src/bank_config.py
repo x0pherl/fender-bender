@@ -3,7 +3,8 @@ module for all of the configuration required to build a filament bank
 """
 
 import yaml
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
+from typing import Optional, List
 from enum import Flag, auto
 from math import cos, radians, sin, sqrt
 from pathlib import Path
@@ -59,6 +60,47 @@ def _distance_to_circle_edge(radius, point, angle) -> float:
 
 
 @dataclass
+class TubeConfig:
+    inner_diameter: float = 3.55
+    outer_diameter: float = 6.5
+
+    @property
+    def inner_radius(self) -> float:
+        """
+        returnes the inner radius of the tube
+        """
+        return self.inner_diameter / 2
+
+    @property
+    def outer_radius(self) -> float:
+        """
+        returnes the outer radius of the tube
+        """
+        return self.outer_diameter / 2
+
+
+@dataclass
+class ConnectorConfig:
+    name: str = "connector"
+    file_prefix: Optional[str] = None
+    file_suffix: Optional[str] = None
+    diameter: float = 10.1
+    length: float = 6.7
+    threaded: bool = True
+    thread_pitch: float = 1.0
+    thread_angle: float = 30.0
+    thread_interference: float = 0.4
+    tube: TubeConfig = field(default_factory=TubeConfig)
+
+    @property
+    def radius(self) -> float:
+        """
+        returns the radius of the connector
+        """
+        return self.diameter / 2
+
+
+@dataclass
 class BankConfig:
     """
     A dataclass for configuration values for our filament bank
@@ -83,16 +125,7 @@ class BankConfig:
     minimum_bracket_width: float = -1
     minimum_bracket_height: float = -1
 
-    connector_diameter: float = 10.3
-    connector_length: float = 6.7
-    connector_threaded: bool = True
-    connector_thread_pitch: float = 1
-    connector_thread_angle: float = 30
-    connector_thread_interference = 0.4
-
-    tube_inner_diameter: float = 3.5
-    tube_outer_diameter: float = 6.5
-
+    connectors: List[ConnectorConfig] = field(default_factory=list)
     fillet_ratio: float = 4
     tolerance: float = 0.2
     filament_count: int = 5
@@ -297,9 +330,23 @@ class BankConfig:
             radius=self.wheel_radius
             + self.wheel_radial_tolerance
             + self.minimum_thickness,
-            point=(self.wheel_radius - self.tube_outer_radius, 0),
+            point=(
+                self.wheel_radius - self.default_connector.tube.outer_radius,
+                0,
+            ),
             angle=90,
         )
+
+    @property
+    def default_connector(self) -> ConnectorConfig:
+        """
+        returns the default connector
+        """
+        default_index = 0
+        for connector in self.connectors:
+            if connector.name.lower() == "default":
+                return connector
+        return self.connectors[default_index]
 
     @property
     def sidewall_width(self) -> float:
@@ -310,7 +357,7 @@ class BankConfig:
             self.wheel_diameter
             + (
                 self.wheel_radial_tolerance
-                + self.connector_diameter
+                + self.default_connector.diameter
                 + self.fillet_radius
                 + self.wall_thickness
                 + self.tolerance
@@ -352,27 +399,6 @@ class BankConfig:
         returns the inner_radius of the bearing
         """
         return self.bearing_inner_diameter / 2
-
-    @property
-    def connector_radius(self) -> float:
-        """
-        returns the radius of the connector
-        """
-        return self.connector_diameter / 2
-
-    @property
-    def tube_inner_radius(self) -> float:
-        """
-        returnes the inner radius of the tube
-        """
-        return self.tube_inner_diameter / 2
-
-    @property
-    def tube_outer_radius(self) -> float:
-        """
-        returnes the outer radius of the tube
-        """
-        return self.tube_outer_diameter / 2
 
     @property
     def rim_thickness(self) -> float:
@@ -423,8 +449,9 @@ class BankConfig:
             self.bearing_depth
             + self.wheel_lateral_tolerance
             + self.minimum_structural_thickness * 2,
-            self.connector_diameter + self.minimum_thickness * 2,
-            self.tube_outer_diameter + self.minimum_thickness * 2,
+            self.default_connector.diameter + self.minimum_thickness * 2,
+            self.default_connector.tube.outer_diameter
+            + self.minimum_thickness * 2,
         )
 
     @property
@@ -464,6 +491,8 @@ class BankConfig:
                 setattr(
                     self, field.name, kwargs.get(field.name, field.default)
                 )
+            default_connector = ConnectorConfig()
+            self.connectors = [default_connector]
 
     def load_config(self, configuration_path: str):
         """
@@ -479,13 +508,28 @@ class BankConfig:
             if field.name in config_dict["BankConfig"]:
                 value = config_dict["BankConfig"][field.name]
                 if field.name == "frame_lock_style":
-                    value = LockStyle[value.upper()]
+                    setattr(self, field.name, LockStyle[value.upper()])
                 elif field.name == "frame_style":
-                    value = FrameStyle[value.upper()]
-                setattr(self, field.name, value)
+                    setattr(self, field.name, FrameStyle[value.upper()])
+                elif field.name == "connectors":
+                    self.connectors = [
+                        ConnectorConfig(
+                            **{
+                                **connector,
+                                "tube": TubeConfig(**connector["tube"]),
+                            }
+                        )
+                        for connector in value
+                    ]
+
+                else:
+                    setattr(self, field.name, value)
 
 
 if __name__ == "__main__":
     test = BankConfig(Path(__file__).parent / "../build-configs/debug.conf")
     print(test.bracket_depth, test.bracket_height, test.bracket_width)
     print(test.sidewall_width)
+    for connector in test.connectors:
+        print(connector.tube.inner_diameter)
+    print(test.default_connector.diameter)
