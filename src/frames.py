@@ -31,7 +31,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig, FrameStyle, LockStyle
+from bender_config import BenderConfig, FrameStyle, LockStyle
 from basic_shapes import rounded_cylinder
 from filament_bracket import FilamentBracket
 from lock_pin import LockPin
@@ -42,7 +42,7 @@ from wall_hanger_cut_template import wall_hanger_cut_template
 class FrameSet(Partomatic):
     """The complete set of frames"""
 
-    _config: BankConfig = BankConfig()
+    _config: BenderConfig = BenderConfig()
     topframe: Part
     bottomframe: Part
     connectorframe: Part

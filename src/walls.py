@@ -31,7 +31,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig
+from bender_config import BenderConfig
 from hexwall import HexWall
 from partomatic import Partomatic
 
@@ -46,7 +46,7 @@ class Walls(Partomatic):
         POINT = auto()
         REINFORCEMENT = auto()
 
-    _config = BankConfig()
+    _config = BenderConfig()
 
     gwall: Part
     sidewall: Part

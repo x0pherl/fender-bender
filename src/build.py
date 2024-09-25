@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from time import time
 
-from bank_config import BankConfig, LockStyle
+from bender_config import BenderConfig, LockStyle
 from filament_bracket import FilamentBracket
 from filament_wheel import FilamentWheel
 from frames import FrameSet
@@ -41,7 +41,7 @@ if not conf_files:
 
 # Run the script for the matching configuration file(s)
 for conf_file in conf_files:
-    config = BankConfig(conf_file)
+    config = BenderConfig(conf_file)
     if config.stl_folder == "NONE":
         continue
     print(f"Generating parts for {conf_file.name}")

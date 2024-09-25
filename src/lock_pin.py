@@ -18,14 +18,14 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig
+from bender_config import BenderConfig
 from partomatic import Partomatic
 
 
 class LockPin(Partomatic):
     """a partomatic of the lock pin"""
 
-    _config = BankConfig()
+    _config = BenderConfig()
     _lockpin: Part
 
     def lock_pin(

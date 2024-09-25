@@ -18,14 +18,14 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig
+from bender_config import BenderConfig
 from filament_bracket import FilamentBracket
 from frames import FrameSet
 from lock_pin import LockPin
 from walls import Walls
 
 _config_file = Path(__file__).parent / "../build-configs/debug.conf"
-_config = BankConfig(_config_file)
+_config = BenderConfig(_config_file)
 filamentbracket = FilamentBracket(_config_file)
 frameset = FrameSet(_config_file)
 walls = Walls(_config_file)

@@ -146,7 +146,7 @@ class ConnectorConfig:
 
 
 @dataclass
-class BankConfig:
+class BenderConfig:
     """
     A dataclass for configuration values for our filament bank
     """
@@ -510,9 +510,9 @@ class BankConfig:
         with open(configuration_path, "r") as stream:
             config_dict = yaml.safe_load(stream)
 
-        for field in fields(BankConfig):
-            if field.name in config_dict["BankConfig"]:
-                value = config_dict["BankConfig"][field.name]
+        for field in fields(BenderConfig):
+            if field.name in config_dict["BenderConfig"]:
+                value = config_dict["BenderConfig"][field.name]
                 if field.name == "frame_lock_style":
                     setattr(self, field.name, LockStyle[value.upper()])
                 elif field.name == "frame_style":
@@ -537,8 +537,8 @@ class BankConfig:
 
 
 if __name__ == "__main__":
-    test = BankConfig(Path(__file__).parent / "../build-configs/debug.conf")
-    # test = BankConfig()
+    test = BenderConfig(Path(__file__).parent / "../build-configs/debug.conf")
+    # test = BenderConfig()
     print(test.bracket_depth, test.bracket_height, test.bracket_width)
     print(test.sidewall_width)
     for connector in test.connectors:

@@ -31,14 +31,14 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig
+from bender_config import BenderConfig
 from partomatic import Partomatic
 
 
 class FilamentChannels(Partomatic):
     """a partomatic for the filament ingress and egress channels"""
 
-    _config = BankConfig()
+    _config = BenderConfig()
     _curvedfilamentpath: Part
     _straightfilamentpath: Part
 

@@ -26,7 +26,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig
+from bender_config import BenderConfig
 from partomatic import Partomatic
 
 
@@ -55,7 +55,7 @@ def diamond_torus(major_radius: float, minor_radius: float) -> Part:
 class FilamentWheel(Partomatic):
     """A partomatic for the filament wheel of the filament bank"""
 
-    _config = BankConfig()
+    _config = BenderConfig()
     wheel: Part
 
     def _spoke(self) -> Sketch:

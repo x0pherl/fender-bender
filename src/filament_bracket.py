@@ -40,7 +40,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig, LockStyle
+from bender_config import BenderConfig, LockStyle
 from basic_shapes import rounded_cylinder
 from filament_channels import FilamentChannels
 from lock_pin import LockPin
@@ -50,7 +50,7 @@ from partomatic import Partomatic
 class FilamentBracket(Partomatic):
     """The partomatic for the filament bracket of the filament bank"""
 
-    _config = BankConfig()
+    _config = BenderConfig()
     _filamentchannels = FilamentChannels(None)
     _lockpin = LockPin(None)
 

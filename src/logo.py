@@ -21,11 +21,11 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bank_config import BankConfig
+from bender_config import BenderConfig
 
 ##Note: Flamente Round Bold must be installed with the context menu: "Install For all Users" to show up!!!
 
-_config = BankConfig()
+_config = BenderConfig()
 
 
 def ring() -> Sketch:
