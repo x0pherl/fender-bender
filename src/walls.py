@@ -446,7 +446,7 @@ class Walls(Partomatic):
 
     def _side_wall_assembly(self) -> Part:
         """
-        Arranges the guide walls for display
+        Arranges the side walls for display
         """
         wallspart = Compound(children=[], label="Inernal Side Walls")
         for i in range(self._config.filament_count - 1):
@@ -473,6 +473,9 @@ class Walls(Partomatic):
         return wallspart
 
     def _reinforced_side_wall_assembly(self) -> Part:
+        """
+        Arranges the reinforced side walls for display
+        """
         right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).move(
             Location(
                 (
@@ -508,6 +511,7 @@ class Walls(Partomatic):
         return outerwalls
 
     def _step_one_assembly(self) -> Part:
+        """creates an assembly for documentation step one"""
         bottom_guide = self.gwall
         bottom_guide.label = "bottom guide wall"
         bottom_guide.color = "#168529"
@@ -531,6 +535,7 @@ class Walls(Partomatic):
         )
 
     def _step_two_assembly(self) -> Part:
+        """creates an assembly for documentation step two"""
         wall_assembly = self._step_one_assembly()
         wall_assembly.label = "Step Two Assembly"
         right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).move(
@@ -615,7 +620,7 @@ class Walls(Partomatic):
 
     def render_2d(self):
         """
-        not yet implemented
+        renders docuemntation images to the renders folder
         """
         output_directory = Path(__file__).parent / "../renders/documentation"
         output_directory.mkdir(parents=True, exist_ok=True)
