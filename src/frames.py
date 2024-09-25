@@ -375,7 +375,7 @@ class FrameSet(Partomatic):
             + self._config.minimum_structural_thickness
         )
 
-    def _bottom_frame_stand(self) -> Part:
+    def _bottom_frame_stand(self, frame_style=FrameStyle.STANDING) -> Part:
         """
         a stand for balancing the bottom bracket when sitting on a flat surface
         instead of hanging from a wall
@@ -383,9 +383,7 @@ class FrameSet(Partomatic):
 
         with BuildPart() as stand:
             Box(
-                self._config.frame_exterior_length(
-                    frame_style=FrameStyle.STANDING
-                ),
+                self._config.frame_exterior_length(frame_style=frame_style),
                 self._config.frame_exterior_width,
                 self._bottom_frame_stand_height,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -473,7 +471,7 @@ class FrameSet(Partomatic):
             )
             fillet(edge_set, self._config.fillet_radius)
             if FrameStyle.STANDING in frame_style:
-                add(self._bottom_frame_stand())
+                add(self._bottom_frame_stand(frame_style=frame_style))
             with BuildPart(
                 Location((self._config.frame_hanger_offset, 0, 0)),
                 mode=Mode.SUBTRACT,
@@ -518,7 +516,7 @@ class FrameSet(Partomatic):
                         align=(Align.CENTER, Align.CENTER, Align.MAX),
                     )
                 add(self.straight_wall_grooves().mirror(Plane.XY))
-            if FrameStyle.STANDING in frame_style:
+            if frame_style == FrameStyle.HYBRID:
                 add(self._screw_fitting())
                 with BuildPart(
                     Location(
@@ -538,7 +536,7 @@ class FrameSet(Partomatic):
                     mode=Mode.SUBTRACT,
                 ):
                     add(self._screw_cut())
-            else:
+            elif frame_style == FrameStyle.HANGING:
                 tab_width = (
                     self._config.minimum_structural_thickness
                     + self._config.fillet_radius
