@@ -42,29 +42,44 @@ class FilamentChannels(Partomatic):
     _curvedfilamentpath: Part
     _straightfilamentpath: Part
 
-    def _connector_threads(self) -> Part:
+    def _connector_threads(self, connector_index=0) -> Part:
         """
         returns the threads for the connector
+        arguments:
+            - connector_index: the index of the connector in the configuration
         """
         with BuildPart() as threads:
             TrapezoidalThread(
-                diameter=self._config.default_connector.diameter,
-                pitch=self._config.default_connector.thread_pitch,
-                length=self._config.default_connector.length
+                diameter=self._config.connectors[connector_index].diameter,
+                pitch=self._config.connectors[connector_index].thread_pitch,
+                length=self._config.connectors[connector_index].length
                 - self._config.minimum_thickness / 2,
-                thread_angle=self._config.default_connector.thread_angle,
+                thread_angle=self._config.connectors[
+                    connector_index
+                ].thread_angle,
                 external=False,
-                interference=self._config.default_connector.thread_interference,
+                interference=self._config.connectors[
+                    connector_index
+                ].thread_interference,
                 hand="right",
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+            Cylinder(
+                radius=self._config.connectors[connector_index].radius,
+                height=self._config.connectors[connector_index].length
+                - self._config.minimum_thickness / 2,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+                mode=Mode.INTERSECT,
             )
         part = threads.part
         part.label = "connector threads"
         return part
 
-    def straight_filament_connector_threads(self) -> Part:
+    def straight_filament_connector_threads(self, connector_index=0) -> Part:
         """
         the threads for the ingress connector
+        arguments:
+            - connector_index: the index of the connector in the configuration
         """
         with BuildPart(
             Location(
@@ -77,18 +92,20 @@ class FilamentChannels(Partomatic):
                 (90, 0, 0),
             )
         ) as threads:
-            add(self._connector_threads())
+            add(self._connector_threads(connector_index=connector_index))
         part = threads.part
         part.label = "connector threads"
         return part
 
-    def curved_filament_connector_threads(self) -> Part:
+    def curved_filament_connector_threads(self, connector_index=0) -> Part:
         """
         places the threads for the curved filament connector
+        arguments:
+            - connector_index: the index of the connector in the configuration
         """
         with BuildLine() as path:
             add(self._curved_filament_line())
-        offset = (self._config.minimum_thickness / 4) / sqrt(2)
+        offset = (self._config.minimum_thickness / 2) / sqrt(2)
         with BuildPart(
             Location(
                 (
@@ -99,25 +116,31 @@ class FilamentChannels(Partomatic):
                 (90, -45, 0),
             )
         ) as threads:
-            add(self._connector_threads())
+            add(self._connector_threads(connector_index=connector_index))
         part = threads.part
         part.label = "connector threads"
         return part
 
-    def straight_filament_path_cut(self):
+    def straight_filament_path_cut(self, connector_index=0) -> Part:
         """
         creates a cutout for a filament tube allowing for the connector, and
         a tube stop with a funnel entry
+        arguments:
+            - connector_index: the index of the connector in the configuration
         """
         with BuildPart(mode=Mode.PRIVATE) as tube:
             with BuildPart():
                 with BuildSketch(Plane.XY.offset(0)):
                     Circle(
-                        radius=self._config.default_connector.tube.outer_diameter
+                        radius=self._config.connectors[
+                            connector_index
+                        ].tube.outer_diameter
                         * 0.75
                     )
                     Rectangle(
-                        width=self._config.default_connector.tube.outer_diameter
+                        width=self._config.connectors[
+                            connector_index
+                        ].tube.outer_diameter
                         * 2,
                         height=self._config.wheel.bearing.depth
                         + self._config.wheel.lateral_tolerance,
@@ -127,21 +150,25 @@ class FilamentChannels(Partomatic):
                     Plane.XY.offset(self._config.filament_funnel_height)
                 ):
                     Circle(
-                        radius=self._config.default_connector.tube.inner_radius
+                        radius=self._config.connectors[
+                            connector_index
+                        ].tube.inner_radius
                     )
                 loft()
             with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
                 Cylinder(
-                    radius=self._config.default_connector.tube.outer_radius,
+                    radius=self._config.connectors[
+                        connector_index
+                    ].tube.outer_radius,
                     height=self._config.bracket_height
                     - self._config.filament_funnel_height
-                    - self._config.default_connector.length,
+                    - self._config.connectors[connector_index].length,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
                 Cylinder(
-                    radius=self._config.default_connector.radius,
-                    height=self._config.default_connector.length,
+                    radius=self._config.connectors[connector_index].radius,
+                    height=self._config.connectors[connector_index].length,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             with BuildSketch(
@@ -150,17 +177,13 @@ class FilamentChannels(Partomatic):
                     - self._config.minimum_thickness / 2
                 )
             ):
-                Circle(radius=self._config.default_connector.radius)
+                Circle(radius=self._config.connectors[connector_index].radius)
             with BuildSketch(Plane.XY.offset(self._config.bracket_height)):
                 Circle(
-                    radius=self._config.default_connector.radius
+                    radius=self._config.connectors[connector_index].radius
                     + self._config.minimum_thickness / 2
                 )
             loft()
-
-            # Cylinder(radius=self._config.default_connector.tube.outer_radius,
-            #          height=self._config.bracket_height-self._config.bracket_depth,
-            #             align=(Align.CENTER, Align.CENTER, Align.MIN))
 
         with BuildPart(
             Location((0, 0, self._config.bracket_depth / 2), (-90, 0, 0))
@@ -188,28 +211,40 @@ class FilamentChannels(Partomatic):
             )
         return ingress.part
 
-    def straight_filament_path(self, draft=True) -> Part:
+    def straight_filament_path(self, draft=True, connector_index=0) -> Part:
         """
         builds a straight filaement channel with the cut in place
+        arguments:
+            - connector_index: the index of the connector in the configuration
         """
         with BuildPart() as path:
             add(self.straight_filament_path_solid())
             with BuildPart(mode=Mode.SUBTRACT):
-                add(self.straight_filament_path_cut())
-            if not draft and self._config.default_connector.threaded:
-                add(self.straight_filament_connector_threads())
+                add(
+                    self.straight_filament_path_cut(
+                        connector_index=connector_index
+                    )
+                )
+            if not draft and self._config.connectors[connector_index].threaded:
+                add(
+                    self.straight_filament_connector_threads(
+                        connector_index=connector_index
+                    )
+                )
         part = path.part
         part.label = "filament path"
         return part
 
-    def _curved_filament_line(self) -> Compound:
+    def _curved_filament_line(self, connector_index=0) -> Compound:
         """
         returns a compund with three line segments representing the
         channel for the ingress funnel, the PTFE tube,
         and the connector
+        arguments:
+            - connector_index: the index of the connector in the configuration
         """
         straight_distance = (
-            self._config.default_connector.length / 2
+            self._config.connectors[connector_index].length / 2
             + self._config.minimum_structural_thickness
         ) / sqrt(2)
 
@@ -245,10 +280,12 @@ class FilamentChannels(Partomatic):
         lines = Compound(children=(funnel, bridge, curve, output))
         return lines
 
-    def curved_filament_path_cut(self) -> Compound:
+    def curved_filament_path_cut(self, connector_index=0) -> Compound:
         """
         returns the shape to be cut out of a curved filament path
         allowing for the PTFE tube and the connector
+        arguments:
+            - connector_index: the index of the connector in the configuration
         """
         path = self._curved_filament_line()
         with BuildPart() as inlet:
@@ -258,11 +295,15 @@ class FilamentChannels(Partomatic):
                 Plane(origin=intake.line @ 0, z_dir=intake.line % 0)
             ):
                 Circle(
-                    radius=self._config.default_connector.tube.outer_diameter
+                    radius=self._config.connectors[
+                        connector_index
+                    ].tube.outer_diameter
                     * 0.75
                 )
                 Rectangle(
-                    height=self._config.default_connector.tube.outer_diameter
+                    height=self._config.connectors[
+                        connector_index
+                    ].tube.outer_diameter
                     * 2,
                     width=self._config.wheel.bearing.depth
                     + self._config.wheel.lateral_tolerance,
@@ -271,7 +312,9 @@ class FilamentChannels(Partomatic):
             with BuildSketch(
                 Plane(origin=intake.line @ 1, z_dir=intake.line % 1)
             ):
-                Circle(self._config.default_connector.tube.inner_radius)
+                Circle(
+                    self._config.connectors[connector_index].tube.inner_radius
+                )
             loft()
             extrude(
                 inlet.faces().sort_by(Axis.Y)[0], self._config.bracket_depth
@@ -282,7 +325,9 @@ class FilamentChannels(Partomatic):
             with BuildSketch(
                 Plane(origin=tube_path.line @ 0, z_dir=tube_path.line % 0)
             ):
-                Circle(self._config.default_connector.tube.outer_radius)
+                Circle(
+                    self._config.connectors[connector_index].tube.outer_radius
+                )
             sweep()
         with BuildPart() as tube_curve:
             with BuildLine() as tube_path:
@@ -290,7 +335,9 @@ class FilamentChannels(Partomatic):
             with BuildSketch(
                 Plane(origin=tube_path.line @ 0, z_dir=tube_path.line % 0)
             ):
-                Circle(self._config.default_connector.tube.outer_radius)
+                Circle(
+                    self._config.connectors[connector_index].tube.outer_radius
+                )
             sweep()
         with BuildPart() as connector:
             with BuildLine() as connector_path:
@@ -301,7 +348,7 @@ class FilamentChannels(Partomatic):
                     z_dir=connector_path.line % 0,
                 )
             ):
-                Circle(self._config.default_connector.radius)
+                Circle(self._config.connectors[connector_index].radius)
             sweep()
         with BuildPart() as connector_chamfer:
             with BuildSketch(
@@ -311,7 +358,7 @@ class FilamentChannels(Partomatic):
                 )
             ):
                 Circle(
-                    self._config.default_connector.radius
+                    self._config.connectors[connector_index].radius
                     + self._config.minimum_thickness / 2
                 )
             with BuildSketch(
@@ -320,7 +367,7 @@ class FilamentChannels(Partomatic):
                     z_dir=connector_path.line % 1,
                 ).offset(-self._config.minimum_thickness / 2)
             ):
-                Circle(self._config.default_connector.radius)
+                Circle(self._config.connectors[connector_index].radius)
             loft()
             extrude(
                 connector_chamfer.faces().sort_by(Axis.X)[-1],
@@ -384,20 +431,27 @@ class FilamentChannels(Partomatic):
         part.label = "curved filament path"
         return part
 
-    def curved_filament_path(self, top_exit_fillet=False, draft=True) -> Part:
+    def curved_filament_path(
+        self, top_exit_fillet=False, draft=True, connector_index=0
+    ) -> Part:
         """
         builds a straight filaement channel with the cut in place
         -------
         arguments:
             - top_exit_fillet: set to false to render a clean intersection with
                 box immediately to the left of the exit
+            - connector_index: the index of the connector in the configuration
         """
         with BuildPart() as path:
             add(self.curved_filament_path_solid(top_exit_fillet))
             with BuildPart(mode=Mode.SUBTRACT):
                 add(self.curved_filament_path_cut())
-            if not draft and self._config.default_connector.threaded:
-                add(self.curved_filament_connector_threads())
+            if not draft and self._config.connectors[connector_index].threaded:
+                add(
+                    self.curved_filament_connector_threads(
+                        connector_index=connector_index
+                    )
+                )
         part = path.part
         part.label = "filament path"
         return part

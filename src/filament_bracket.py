@@ -54,9 +54,12 @@ class FilamentBracket(Partomatic):
     _filamentchannels = FilamentChannels(None)
     _lockpin = LockPin(None)
 
-    bottom: Part
-    top: Part
-    bracketclip: Part
+    # bottom: Part
+    # top: Part
+    # bracketclip: Part
+    bottom_brackets = {}
+    top_brackets = {}
+    bracketclips = {}
 
     @property
     def _wheel_guide_outer_radius(self) -> float:
@@ -500,7 +503,7 @@ class FilamentBracket(Partomatic):
                 fillet(guide.edges(), base_unit - self._config.tolerance / 2)
         return channel.part
 
-    def bottom_bracket(self, draft: bool = False) -> Part:
+    def bottom_bracket(self, draft: bool = False, connector_index=0) -> Part:
         """
         returns the bottom (main) portion of the filament
         """
@@ -509,9 +512,17 @@ class FilamentBracket(Partomatic):
 
             with BuildPart(mode=Mode.SUBTRACT):
                 with BuildPart(Location((self._config.wheel.radius, 0, 0))):
-                    add(self._filamentchannels.curved_filament_path_cut())
+                    add(
+                        self._filamentchannels.curved_filament_path_cut(
+                            connector_index=connector_index
+                        )
+                    )
                 with BuildPart(Location((-self._config.wheel.radius, 0, 0))):
-                    add(self._filamentchannels.straight_filament_path_cut())
+                    add(
+                        self._filamentchannels.straight_filament_path_cut(
+                            connector_index=connector_index
+                        )
+                    )
                 add(
                     self._top_cut_template(self._config.tolerance)
                     .mirror()
@@ -583,27 +594,31 @@ class FilamentBracket(Partomatic):
                             tie_loop=False,
                         )
                     )
-            if not draft and self._config.default_connector.threaded:
+            if not draft and self._config.connectors[connector_index].threaded:
                 add(
-                    self._filamentchannels.straight_filament_connector_threads().move(
-                        Location((-self._config.wheel.radius, 0, 0))
-                    )
+                    self._filamentchannels.straight_filament_connector_threads(
+                        connector_index=connector_index
+                    ).move(Location((-self._config.wheel.radius, 0, 0)))
                 )
                 add(
-                    self._filamentchannels.curved_filament_connector_threads().move(
-                        Location((self._config.wheel.radius, 0, 0))
-                    )
+                    self._filamentchannels.curved_filament_connector_threads(
+                        connector_index=connector_index
+                    ).move(Location((self._config.wheel.radius, 0, 0)))
                 )
         part = constructed_bracket.part
         part.label = "bottom bracket"
         return part
 
-    def top_bracket(self, tolerance: float = 0) -> Part:
+    def top_bracket(self, tolerance: float = 0, connector_index=0) -> Part:
         """
         returns the top slide-in part for the filament bracket
         """
         with BuildPart() as frame:
-            add(self.bottom_bracket(draft=True).mirror(Plane.YZ))
+            add(
+                self.bottom_bracket(
+                    draft=True, connector_index=connector_index
+                ).mirror(Plane.YZ)
+            )
             with BuildPart(mode=Mode.INTERSECT):
                 add(self._top_cut_template(tolerance))
                 Cylinder(
@@ -643,26 +658,31 @@ class FilamentBracket(Partomatic):
         """
         Builds the relevant parts for the filament bracket
         """
-        self.bottom = self.bottom_bracket(draft=False)
-        self.top = self.top_bracket()
-        if LockStyle.CLIP in self._config.frame_lock_style:
-            self.bracketclip = self.bracket_clip(
-                inset=self._config.tolerance / 2
+        for index, connector in enumerate(self._config.connectors):
+            self.bottom_brackets[index] = self.bottom_bracket(
+                draft=False, connector_index=index
             )
+            self.top_brackets[index] = self.top_bracket(connector_index=index)
+            if LockStyle.CLIP in self._config.frame_lock_style:
+                self.bracketclips[index] = self.bracket_clip(
+                    inset=self._config.tolerance / 2
+                )
 
     def display(self):
         """
         Shows the filament wheel in OCP CAD Viewer
         """
         show(
-            self.bottom.move(
+            self.bottom_brackets[0].move(
                 Location((self._config.bracket_width / 2 + 5, 0, 0))
             ),
-            self.top.move(
+            self.top_brackets[0].move(
                 Location((-self._config.bracket_width / 2 + 5, 0, 0))
             ),
             (
-                self.bracketclip.rotate(Axis.X, -90).move(
+                self.bracketclips[0]
+                .rotate(Axis.X, -90)
+                .move(
                     Location(
                         (
                             self._config.bracket_width / 2
@@ -688,16 +708,32 @@ class FilamentBracket(Partomatic):
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
+        for index, connector in enumerate(self._config.connectors):
+            file_prefix = (
+                connector.file_prefix
+                if connector.file_prefix is not None
+                else ""
+            )
+            file_suffix = (
+                connector.file_suffix
+                if connector.file_suffix is not None
+                else ""
+            )
+            export_stl(
+                self.bottom_brackets[index],
+                str(
+                    output_directory
+                    / f"{file_prefix}filament-bracket-bottom{file_suffix}.stl"
+                ),
+            )
         if LockStyle.CLIP in self._config.frame_lock_style:
             export_stl(
-                self.bracketclip,
+                self.bracketclips[0],
                 str(output_directory / "filament-bracket-clip.stl"),
             )
         export_stl(
-            self.bottom, str(output_directory / "filament-bracket-bottom.stl")
-        )
-        export_stl(
-            self.top, str(output_directory / "filament-bracket-top.stl")
+            self.top_brackets[0],
+            str(output_directory / "filament-bracket-top.stl"),
         )
 
     def render_2d(self):
