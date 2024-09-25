@@ -182,7 +182,6 @@ class BenderConfig:
 
     frame_clip_depth_offset: float = 10
 
-    frame_style: FrameStyle = FrameStyle.HYBRID
     wall_bracket_screw_radius: float = 2.25
     wall_bracket_screw_head_radius: float = 4.5
     wall_bracket_screw_head_sink: float = 1.4
@@ -326,8 +325,7 @@ class BenderConfig:
             * self.filament_count
         ) - self.wall_thickness
 
-    @property
-    def frame_exterior_length(self) -> float:
+    def frame_exterior_length(self, frame_style=FrameStyle.HYBRID) -> float:
         """
         the overall interior length of the top frame
         """
@@ -335,8 +333,9 @@ class BenderConfig:
             self.frame_bracket_exterior_diameter
             + self.wall_thickness * 2
             + self.minimum_structural_thickness * 2.5
-            + self.frame_hanger_offset * 2
         )
+        if FrameStyle.HANGING in frame_style:
+            length += self.frame_hanger_offset * 2
         return length
 
     @property
@@ -344,11 +343,7 @@ class BenderConfig:
         """
         the offset to adjust for a wall bracket if enabled
         """
-        return (
-            self.minimum_structural_thickness / 2
-            if FrameStyle.HANGING in self.frame_style
-            else 0
-        )
+        return self.minimum_structural_thickness / 2
 
     @property
     def frame_exterior_width(self) -> float:
@@ -515,8 +510,6 @@ class BenderConfig:
                 value = config_dict["BenderConfig"][field.name]
                 if field.name == "frame_lock_style":
                     setattr(self, field.name, LockStyle[value.upper()])
-                elif field.name == "frame_style":
-                    setattr(self, field.name, FrameStyle[value.upper()])
                 elif field.name == "wheel":
                     if "bearing" in value:
                         value["bearing"] = BearingConfig(**value["bearing"])

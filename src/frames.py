@@ -43,9 +43,13 @@ class FrameSet(Partomatic):
     """The complete set of frames"""
 
     _config: BenderConfig = BenderConfig()
-    topframe: Part
-    bottomframe: Part
-    connectorframe: Part
+    hangingtopframe: Part
+    standingtopframe: Part
+    standingbottomframe: Part
+    hangingbottomframe: Part
+    hybridbottomframe: Part
+    hybridconnectorframe: Part
+    standingconnectorframe: Part
     wallbracket: Part
     bracketclip: Part
     _bracket = FilamentBracket(None)
@@ -303,9 +307,7 @@ class FrameSet(Partomatic):
             )
         return cut.part
 
-    def connector_frame(
-        self,
-    ) -> Part:
+    def connector_frame(self, frame_style=FrameStyle.HYBRID) -> Part:
         """
         the connecting frame for supporting the walls of the top and extension
         sections
@@ -313,7 +315,9 @@ class FrameSet(Partomatic):
         with BuildPart() as cframe:
             with BuildPart():
                 Box(
-                    self._config.frame_exterior_length,
+                    self._config.frame_exterior_length(
+                        frame_style=frame_style
+                    ),
                     self._config.frame_exterior_width,
                     self._config.frame_connector_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -379,7 +383,9 @@ class FrameSet(Partomatic):
 
         with BuildPart() as stand:
             Box(
-                self._config.frame_exterior_length,
+                self._config.frame_exterior_length(
+                    frame_style=FrameStyle.STANDING
+                ),
                 self._config.frame_exterior_width,
                 self._bottom_frame_stand_height,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -413,7 +419,7 @@ class FrameSet(Partomatic):
 
         return stand.part
 
-    def bottom_frame(self) -> Part:
+    def bottom_frame(self, frame_style=FrameStyle.HYBRID) -> Part:
         """
         the bottom frame for supporting the walls
         """
@@ -421,7 +427,9 @@ class FrameSet(Partomatic):
         with BuildPart() as bframe:
             with BuildPart():
                 Box(
-                    self._config.frame_exterior_length,
+                    self._config.frame_exterior_length(
+                        frame_style=frame_style
+                    ),
                     self._config.frame_exterior_width,
                     self._config.frame_base_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -464,7 +472,7 @@ class FrameSet(Partomatic):
                 )
             )
             fillet(edge_set, self._config.fillet_radius)
-            if FrameStyle.STANDING in self._config.frame_style:
+            if FrameStyle.STANDING in frame_style:
                 add(self._bottom_frame_stand())
             with BuildPart(
                 Location((self._config.frame_hanger_offset, 0, 0)),
@@ -510,12 +518,15 @@ class FrameSet(Partomatic):
                         align=(Align.CENTER, Align.CENTER, Align.MAX),
                     )
                 add(self.straight_wall_grooves().mirror(Plane.XY))
-            if FrameStyle.STANDING in self._config.frame_style:
+            if FrameStyle.STANDING in frame_style:
                 add(self._screw_fitting())
                 with BuildPart(
                     Location(
                         (
-                            -self._config.frame_exterior_length / 2
+                            -self._config.frame_exterior_length(
+                                frame_style=frame_style
+                            )
+                            / 2
                             + self._config.minimum_structural_thickness * 2
                             + self._config.frame_hanger_offset,
                             0,
@@ -536,7 +547,10 @@ class FrameSet(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            -self._config.frame_exterior_length / 2,
+                            -self._config.frame_exterior_length(
+                                frame_style=frame_style
+                            )
+                            / 2,
                             0,
                             self._config.fillet_radius,
                         )
@@ -556,7 +570,10 @@ class FrameSet(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            -self._config.frame_exterior_length / 2
+                            -self._config.frame_exterior_length(
+                                frame_style=frame_style
+                            )
+                            / 2
                             + tab_width / 2,
                             0,
                             self._config.frame_base_depth
@@ -575,20 +592,23 @@ class FrameSet(Partomatic):
         part.label = "bottom stand with frame"
         return part
 
-    def top_frame(self) -> Part:
+    def top_frame(self, frame_style=FrameStyle.HYBRID) -> Part:
         """
         the top frame for fitting the filament brackets and hanging the walls
         """
         with BuildPart() as tframe:
             with BuildPart():
                 Box(
-                    self._config.frame_exterior_length,
+                    self._config.frame_exterior_length(
+                        frame_style=frame_style
+                    ),
                     self._config.frame_exterior_width,
                     self._config.frame_base_depth,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
                 Box(
-                    self._config.frame_exterior_length / 2,
+                    self._config.frame_exterior_length(frame_style=frame_style)
+                    / 2,
                     self._config.frame_exterior_width,
                     self._config.bracket_height,
                     align=(Align.MAX, Align.CENTER, Align.MIN),
@@ -719,9 +739,18 @@ class FrameSet(Partomatic):
                     ):
                         Sphere(self._config.frame_click_sphere_radius * 0.75)
 
-            if FrameStyle.HANGING in self._config.frame_style:
+            if FrameStyle.HANGING in frame_style:
                 with BuildPart(
-                    Location((-self._config.frame_exterior_length / 2, 0, 0)),
+                    Location(
+                        (
+                            -self._config.frame_exterior_length(
+                                frame_style=frame_style
+                            )
+                            / 2,
+                            0,
+                            0,
+                        )
+                    ),
                     mode=Mode.SUBTRACT,
                 ):
                     add(
@@ -761,7 +790,10 @@ class FrameSet(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.frame_exterior_length / 2
+                            self._config.frame_exterior_length(
+                                frame_style=frame_style
+                            )
+                            / 2
                             - self._config.fillet_radius,
                             0,
                             0,
@@ -853,14 +885,17 @@ class FrameSet(Partomatic):
             loft(ruled=True)
         return head.part
 
-    def _screw_fitting(self):
+    def _screw_fitting(self, frame_style=FrameStyle.HYBRID) -> Part:
         """
         a fitting for screwing the bracket to the wall
         """
         with BuildPart(
             Location(
                 (
-                    -self._config.frame_exterior_length / 2,
+                    -self._config.frame_exterior_length(
+                        frame_style=frame_style
+                    )
+                    / 2,
                     0,
                     self._config.frame_bracket_exterior_radius
                     + self._config.frame_base_depth
@@ -871,7 +906,7 @@ class FrameSet(Partomatic):
         ) as fitting:
             Box(
                 (
-                    self._config.frame_exterior_length
+                    self._config.frame_exterior_length(frame_style=frame_style)
                     - (
                         self._config.frame_bracket_exterior_diameter
                         - self._config.minimum_structural_thickness * 2
@@ -889,7 +924,9 @@ class FrameSet(Partomatic):
                 mode=Mode.SUBTRACT,
             ) as cut:
                 Box(
-                    self._config.frame_exterior_length,
+                    self._config.frame_exterior_length(
+                        frame_style=frame_style
+                    ),
                     self._config.bracket_depth,
                     self._config.fillet_radius * 3,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
@@ -942,13 +979,27 @@ class FrameSet(Partomatic):
                 )
             )
         )
-        self.topframe = self.top_frame()
-        self.bottomframe = self.bottom_frame()
-        if FrameStyle.STANDING in self._config.frame_style:
-            self.bottomframe = self.bottomframe.rotate(Axis.X, 180).move(
-                Location((0, 0, -self._config.frame_base_depth))
-            )
-        self.connectorframe = self.connector_frame()
+        self.hangingtopframe = self.top_frame(frame_style=FrameStyle.HANGING)
+        self.standingtopframe = self.top_frame(frame_style=FrameStyle.STANDING)
+        self.hybridbottomframe = (
+            self.bottom_frame(frame_style=FrameStyle.HYBRID)
+            .rotate(Axis.X, 180)
+            .move(Location((0, 0, -self._config.frame_base_depth)))
+        )
+        self.hangingbottomframe = self.bottom_frame(
+            frame_style=FrameStyle.HANGING
+        )
+        self.standingbottomframe = (
+            self.bottom_frame(frame_style=FrameStyle.STANDING)
+            .rotate(Axis.X, 180)
+            .move(Location((0, 0, -self._config.frame_base_depth)))
+        )
+        self.standingconnectorframe = self.connector_frame(
+            frame_style=FrameStyle.STANDING
+        )
+        self.hangingconnectorframe = self.connector_frame(
+            frame_style=FrameStyle.HANGING
+        )
         self.wallbracket = self.wall_bracket()
 
     def display(self):
@@ -956,7 +1007,7 @@ class FrameSet(Partomatic):
         Shows the filament wheel in OCP CAD Viewer
         """
         show(
-            self.topframe,
+            self.hangingtopframe,
             self._bracket.bottom_bracket_block()
             .move(Location((0, 0, -self._config.bracket_depth / 2)))
             .rotate(Axis.X, 90)
@@ -975,16 +1026,19 @@ class FrameSet(Partomatic):
                 if LockStyle.CLIP in self._config.frame_lock_style
                 else None
             ),
-            self.bottomframe.move(
+            self.hybridbottomframe.move(
                 Location((0, 0, -self._config.frame_base_depth * 3))
             ),
-            self.connectorframe.move(
+            self.hangingconnectorframe.move(
                 Location((0, 0, -self._config.frame_base_depth * 2))
             ),
             self.wallbracket.move(
                 Location(
                     (
-                        -self._config.frame_exterior_length / 2
+                        -self._config.frame_exterior_length(
+                            frame_style=FrameStyle.HANGING
+                        )
+                        / 2
                         - self._config.minimum_structural_thickness * 3,
                         0,
                         0,
@@ -1003,12 +1057,31 @@ class FrameSet(Partomatic):
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
-        export_stl(self.topframe, str(output_directory / "frame-top.stl"))
         export_stl(
-            self.bottomframe, str(output_directory / "frame-bottom.stl")
+            self.hangingtopframe, str(output_directory / "frame-top.stl")
         )
         export_stl(
-            self.connectorframe, str(output_directory / "frame-connector.stl")
+            self.standingtopframe,
+            str(output_directory / "frame-top-alt-standing.stl"),
+        )
+        export_stl(
+            self.hybridbottomframe, str(output_directory / "frame-bottom.stl")
+        )
+        export_stl(
+            self.hangingbottomframe,
+            str(output_directory / "frame-bottom-alt-hanging-no-stand.stl"),
+        )
+        export_stl(
+            self.standingbottomframe,
+            str(output_directory / "frame-bottom-alt-standing.stl"),
+        )
+        export_stl(
+            self.hangingconnectorframe,
+            str(output_directory / "frame-connector.stl"),
+        )
+        export_stl(
+            self.standingconnectorframe,
+            str(output_directory / "frame-connector-alt-standing.stl"),
         )
         export_stl(
             self.wallbracket, str(output_directory / "frame-wall-bracket.stl")
