@@ -4,11 +4,11 @@
 
 ![FENDER BENDER logo](logo.svg){: width="25%"}
 
-FENDER BENDER is an open-source filament buffering system. Filament buffers are necesarry for reliable operation of multi-material systems such as Prusa's MMU3 or earlier revisions of the ERCF.
+FENDER BENDER is an open-source filament buffering system. Filament buffers are necessary for reliable operation of multi-material systems such as Prusa's MMU3 or earlier revisions of the ERCF.
 
 The 3d modeling in this project is made possible by Build123d -- a python-based, parametric, boundary representation (BREP) modeling framework for 2D and 3D CAD. You can learn more by reading the [build123d documentation](https://build123d.readthedocs.io/en/latest/).
 
-FENDER BENDER begins with an opinionated design for building the most effective buffering system that eliminates as much friction from the system as possible. This was done through careful measurement of resistance *all the way through the system* for hundreds of prototypes. The final reference design uses 6mm OD x 3mm ID PTFE tubing wherever possible in our internal filament passages to minimize any friction introduced by the buffering system. This attention to performance was matched by focus on creating a design that maintains a reasonable asthetic.
+FENDER BENDER begins with an opinionated design for building the most effective buffering system that eliminates as much friction from the system as possible. This was done through careful measurement of resistance *all the way through the system* for hundreds of prototypes. The final reference design uses 6mm OD x 3mm ID PTFE tubing wherever possible in our internal filament passages to minimize any friction introduced by the buffering system. This attention to performance was matched by focus on creating a design that maintains a reasonable aesthetic.
 
 We believe the reference design represents the best choices for a buffering system. However, because FENDER BENDER was built using a flexible, parametric tool, the design can easily be modified to build buffering systems representing differing opinions on design; allowing for different tubes, connectors, and bearings to be built without having to modify the Python/Build123d source code.
 
@@ -24,7 +24,9 @@ The system requires one filament bracket for each filament you need to buffer (o
 
 #### Bottom Bracket
 
-This is the primary part of the filament bracket, supporting the PTFE tubes through the system. The filament bracket wheel mounts on top of this part
+This is the primary part of the filament bracket, supporting the PTFE tubes through the system. The filament bracket wheel mounts on top of this part.
+
+Several alternative parts exist for different tube and connector configurations. The default part is for 3mm inner diameter / 6mm outer diameter PTFE tubing without a connector. See [Resources for fittings and tubing for part sources](## Resources for fittings and tubing)
 
 #### Bracket Wheel
 
@@ -32,7 +34,7 @@ The wheel will mount on a bearing and sit on the [bottom bracket](#bottom-bracke
 
 #### Bracket Top
 
-The bracket top slides into the [bottom bracket](#bottom-bracket) and locks the wheel/bearing assemly into place.
+The bracket top slides into the [bottom bracket](#bottom-bracket) and locks the wheel/bearing assembly into place.
 
 #### Bracket Clip
 
@@ -57,11 +59,17 @@ The frame holds everything together.
 #### Frame Top
 This is one of the most critical components of the system. Each filament bracket should snap into the frame with a satisfying click when properly assembled. One of the wall assemblies will click into the bottom of the frame. In wall mounted installations, the frame top will also connect to the wall hanger.
 
+The default part includes the cut for the wall hanger; if you prefer to print the self-standing version it will have a smoother exterior profile, but you'll have to choose alternative parts for the connector and bottom as well.
+
 #### Frame Connector
 This connects the two wall assemblies.
 
+The default part includes a thicker wall to the wall side for wall mounted installations. The alternative "standing" file will provide a straight back line when coupled with the standing top and bottom components.
+
 #### Frame Bottom
-In hanging installations, this part is not strictly necesarry. In hybrid or standing installtions, this includes a flat bottom for a free-standing buffer.
+In hanging installations, this part is not strictly necessary. In hybrid or standing installations, this includes a flat bottom for a free-standing buffer.
+
+The default part includes the stand but also has extra spacing for wall mounted installations. The "hanging-no-stand" alternative has a round bottom profile which uses less filament and a different appearance in hanging installations. The "standing" alternative eliminates the extra spacing for the wall hanging bracket, as well as the screw guide along the back.
 
 ## Code
 
