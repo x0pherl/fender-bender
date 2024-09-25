@@ -12,6 +12,7 @@ from build123d import (
     BuildPart,
     BuildSketch,
     Circle,
+    Compound,
     Cylinder,
     GridLocations,
     Location,
@@ -29,7 +30,7 @@ from build123d import (
     loft,
     offset,
 )
-from ocp_vscode import Camera, show
+from ocp_vscode import Camera, show, save_screenshot
 
 from bender_config import BenderConfig
 from hexwall import HexWall
@@ -51,6 +52,7 @@ class Walls(Partomatic):
     gwall: Part
     sidewall: Part
     reinforcedsidewall: Part
+    complete_assembly: Part
 
     def _sidewall_shape(
         self,
@@ -348,7 +350,9 @@ class Walls(Partomatic):
 
         return wall.part
 
-    def guide_wall(self, length: float, flipped=False) -> Part:
+    def guide_wall(
+        self, length: float = _config.sidewall_straight_depth, flipped=False
+    ) -> Part:
         """
         builds a wall with guides for each sidewall
         -------
@@ -416,6 +420,136 @@ class Walls(Partomatic):
         part = wall.part
         return part
 
+    def _guide_wall_assembly(self) -> Part:
+        """
+        Arranges the guide walls for display
+        """
+        bottom_guide = self.gwall
+        top_guide = self.gwall.rotate(Axis.Y, 180).move(
+            Location(
+                (
+                    0,
+                    0,
+                    self._config.sidewall_width
+                    + self._config.wall_thickness * 2
+                    + self._config.tolerance * 2,
+                )
+            )
+        )
+        bottom_guide.label = "bottom guide wall"
+        top_guide.label = "top guide wall"
+        guidespart = Compound(
+            children=[bottom_guide, top_guide], label="Guide Walls"
+        )
+        guidespart.color = "#168529"
+        return guidespart
+
+    def _side_wall_assembly(self) -> Part:
+        """
+        Arranges the guide walls for display
+        """
+        wallspart = Compound(children=[], label="Inernal Side Walls")
+        for i in range(self._config.filament_count - 1):
+            swall = self.sidewall.rotate(Axis.Y, 90).move(
+                Location(
+                    (
+                        -self._config.frame_bracket_spacing
+                        * (self._config.filament_count)
+                        / 2
+                        + self._config.frame_bracket_spacing
+                        - self._config.wall_thickness / 2
+                        + (self._config.frame_bracket_spacing * i),
+                        self._config.sidewall_straight_depth / 2,
+                        self._config.sidewall_width / 2
+                        + self._config.wall_thickness
+                        + self._config.tolerance,
+                    )
+                )
+            )
+            swall.label = f"internal side wall {i+1}"
+            swall.parent = wallspart
+
+        wallspart.color = "#8c93e9"
+        return wallspart
+
+    def _reinforced_side_wall_assembly(self) -> Part:
+        right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).move(
+            Location(
+                (
+                    self._config.frame_exterior_width / 2
+                    - self._config.minimum_structural_thickness
+                    - self._config.wall_thickness,
+                    self._config.sidewall_straight_depth / 2,
+                    self._config.sidewall_width / 2
+                    + self._config.wall_thickness
+                    + self._config.tolerance,
+                )
+            )
+        )
+        left_side = self.reinforcedsidewall.rotate(Axis.Y, -90).move(
+            Location(
+                (
+                    -self._config.frame_exterior_width / 2
+                    + self._config.minimum_structural_thickness
+                    + self._config.wall_thickness,
+                    self._config.sidewall_straight_depth / 2,
+                    self._config.sidewall_width / 2
+                    + self._config.wall_thickness
+                    + self._config.tolerance,
+                )
+            )
+        )
+        left_side.label = "left reinforced side wall"
+        right_side.label = "right reinforced side wall"
+        outerwalls = Compound(
+            label="Reinforced Side Walls", children=[left_side, right_side]
+        )
+        outerwalls.color = "#009eb0"
+        return outerwalls
+
+    def _step_one_assembly(self) -> Part:
+        bottom_guide = self.gwall
+        bottom_guide.label = "bottom guide wall"
+        bottom_guide.color = "#168529"
+        swall = self.sidewall.rotate(Axis.Y, 90).move(
+            Location(
+                (
+                    -self._config.frame_bracket_spacing / 2
+                    - self._config.wall_thickness / 2,
+                    self._config.sidewall_straight_depth / 2,
+                    self._config.sidewall_width / 2
+                    + self._config.wall_thickness
+                    + self._config.tolerance,
+                )
+            )
+        )
+        swall.label = f"internal side wall"
+        swall.color = "#8c93e9"
+
+        return Compound(
+            label="Step One Assembly", children=[bottom_guide, swall]
+        )
+
+    def _step_two_assembly(self) -> Part:
+        wall_assembly = self._step_one_assembly()
+        wall_assembly.label = "Step Two Assembly"
+        right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).move(
+            Location(
+                (
+                    self._config.frame_exterior_width / 2
+                    - self._config.minimum_structural_thickness
+                    - self._config.wall_thickness,
+                    self._config.sidewall_straight_depth / 2,
+                    self._config.sidewall_width / 2
+                    + self._config.wall_thickness
+                    + self._config.tolerance,
+                )
+            )
+        )
+        right_side.color = "#009eb0"
+        right_side.parent = wall_assembly
+        return wall_assembly
+
     def load_config(self, configuration_path: str = None):
         """
         loads the configuration file
@@ -425,7 +559,7 @@ class Walls(Partomatic):
         """
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file: str):
+    def __init__(self, configuration_file: str = None):
         """
         initializes the Partomatic walls
         -------
@@ -448,39 +582,20 @@ class Walls(Partomatic):
         self.reinforcedsidewall = self.side_wall(
             length=self._config.sidewall_section_depth, reinforce=True
         )
+        self.complete_assembly = Compound(
+            label="Wall Assembly",
+            children=[
+                self._guide_wall_assembly(),
+                self._side_wall_assembly(),
+                self._reinforced_side_wall_assembly(),
+            ],
+        )
 
     def display(self):
         """
         Shows the walls in OCP CAD Viewer
         """
-        show(
-            self.gwall.move(
-                Location((0, -self._config.sidewall_straight_depth / 2, 0))
-            ),
-            self.sidewall.move(
-                Location(
-                    (
-                        -self._config.frame_exterior_width / 2
-                        - self._config.sidewall_width / 2
-                        - 1,
-                        0,
-                        0,
-                    )
-                )
-            ),
-            self.reinforcedsidewall.move(
-                Location(
-                    (
-                        self._config.frame_exterior_width / 2
-                        + self._config.sidewall_width / 2
-                        + 1,
-                        0,
-                        0,
-                    )
-                )
-            ),
-            reset_camera=Camera.KEEP,
-        )
+        show(self.complete_assembly, reset_camera=Camera.KEEP)
 
     def export_stls(self):
         """
@@ -502,7 +617,25 @@ class Walls(Partomatic):
         """
         not yet implemented
         """
-        pass
+        output_directory = Path(__file__).parent / "../renders/documentation"
+        output_directory.mkdir(parents=True, exist_ok=True)
+
+        show(self.complete_assembly, reset_camera=Camera.RESET)
+        save_screenshot(
+            filename=str(Path(output_directory) / "step-003-wall-assembly.png")
+        )
+        show(self._step_one_assembly(), reset_camera=Camera.RESET)
+        save_screenshot(
+            filename=str(
+                Path(output_directory) / "step-001-internal-walls.png"
+            )
+        )
+        show(self._step_two_assembly(), reset_camera=Camera.RESET)
+        save_screenshot(
+            filename=str(
+                Path(output_directory) / "step-002-external-walls.png"
+            )
+        )
 
 
 if __name__ == "__main__":
