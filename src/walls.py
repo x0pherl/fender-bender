@@ -416,7 +416,7 @@ class Walls(Partomatic):
         part = wall.part
         return part
 
-    def load_config(self, configuration_path: str):
+    def load_config(self, configuration_path: str = None):
         """
         loads the configuration file
         -------
@@ -425,9 +425,7 @@ class Walls(Partomatic):
         """
         self._config.load_config(configuration_path)
 
-    def __init__(
-        self, configuration_file: str = "../build-config/reference.conf"
-    ):
+    def __init__(self, configuration_file: str):
         """
         initializes the Partomatic walls
         -------
