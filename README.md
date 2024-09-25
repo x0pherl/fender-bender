@@ -3,6 +3,7 @@
 ## Overview
 
 ![FENDER BENDER logo](logo.svg){: width="25%"}
+
 FENDER BENDER is an open-source filament buffering system. Filament buffers are necesarry for reliable operation of multi-material systems such as Prusa's MMU3 or earlier revisions of the ERCF.
 
 The 3d modeling in this project is made possible by Build123d -- a python-based, parametric, boundary representation (BREP) modeling framework for 2D and 3D CAD. You can learn more by reading the [build123d documentation](https://build123d.readthedocs.io/en/latest/).
