@@ -125,7 +125,7 @@ class FilamentWheel(Partomatic):
             )
         return fwheel.part
 
-    def load_config(self, configuration_path: str = None):
+    def load_config(self, configuration_path: str):
         """
         loads the configuration file
          -------

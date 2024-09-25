@@ -110,7 +110,7 @@ class LockPin(Partomatic):
                     )
         return lpin.part
 
-    def load_config(self, configuration_path: str = None):
+    def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
     def __init__(self, configuration_file: str):
