@@ -134,7 +134,7 @@ class FilamentWheel(Partomatic):
         """
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file: str):
+    def __init__(self, configuration_file: str = None):
         """
         initializes the Partomatic filament wheel
         -------

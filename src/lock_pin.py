@@ -113,7 +113,7 @@ class LockPin(Partomatic):
     def load_config(self, configuration_path: str):
         self._config.load_config(configuration_path)
 
-    def __init__(self, configuration_file: str):
+    def __init__(self, configuration_file: str = None):
         super(Partomatic, self).__init__()
         if configuration_file is not None:
             self.load_config(configuration_file)

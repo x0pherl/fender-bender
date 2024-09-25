@@ -642,7 +642,7 @@ class FilamentBracket(Partomatic):
         self._filamentchannels.load_config(configuration_path)
         self._lockpin.load_config(configuration_path)
 
-    def __init__(self, configuration_path: str):
+    def __init__(self, configuration_path: str = None):
         """
         initializes the Partomatic filament bracket
         -------
