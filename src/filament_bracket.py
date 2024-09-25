@@ -631,7 +631,7 @@ class FilamentBracket(Partomatic):
         part.label = "top bracket"
         return part
 
-    def load_config(self, configuration_path: str):
+    def load_config(self, configuration_path: str = None):
         """
         loads the configuration file
          -------

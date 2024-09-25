@@ -938,7 +938,7 @@ class FrameSet(Partomatic):
         screwfitting.label = "Screw Fitting"
         return screwfitting
 
-    def load_config(self, configuration_path: str):
+    def load_config(self, configuration_path: str = None):
         """
         loads the configuration file
          -------
