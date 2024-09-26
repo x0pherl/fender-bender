@@ -1054,35 +1054,45 @@ class FrameSet(Partomatic):
         if self._config.stl_folder == "NONE":
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
-        output_directory.mkdir(parents=True, exist_ok=True)
+        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
         export_stl(
-            self.hangingtopframe, str(output_directory / "frame-top.stl")
+            self.hangingtopframe, str(Path(output_directory / "frame-top.stl"))
         )
         export_stl(
             self.standingtopframe,
-            str(output_directory / "frame-top-alt-standing.stl"),
+            str(Path(output_directory / "alt" / "frame-top-standing.stl")),
         )
         export_stl(
-            self.hybridbottomframe, str(output_directory / "frame-bottom.stl")
+            self.hybridbottomframe,
+            str(Path(output_directory / "frame-bottom.stl")),
         )
         export_stl(
             self.hangingbottomframe,
-            str(output_directory / "frame-bottom-alt-hanging-no-stand.stl"),
+            str(
+                Path(
+                    output_directory
+                    / "alt"
+                    / "frame-bottom-hanging-no-stand.stl"
+                )
+            ),
         )
         export_stl(
             self.standingbottomframe,
-            str(output_directory / "frame-bottom-alt-standing.stl"),
+            str(Path(output_directory / "alt" / "frame-bottom-standing.stl")),
         )
         export_stl(
             self.hangingconnectorframe,
-            str(output_directory / "frame-connector.stl"),
+            str(Path(output_directory / "frame-connector.stl")),
         )
         export_stl(
             self.standingconnectorframe,
-            str(output_directory / "frame-connector-alt-standing.stl"),
+            str(
+                Path(output_directory / "alt" / "frame-connector-standing.stl")
+            ),
         )
         export_stl(
-            self.wallbracket, str(output_directory / "frame-wall-bracket.stl")
+            self.wallbracket,
+            str(Path(output_directory / "frame-wall-bracket.stl")),
         )
 
     def render_2d(self):
