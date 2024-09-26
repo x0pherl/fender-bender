@@ -2,7 +2,7 @@
 
 ## Overview
 
-![FENDER BENDER logo](logo.svg){: width="25%"}
+![FENDER BENDER logo](docs/assets/logo.svg){: width="25%"}
 
 FENDER BENDER is an open-source filament buffering system. Filament buffers are necessary for reliable operation of multi-material systems such as Prusa's MMU3 or earlier revisions of the ERCF.
 
