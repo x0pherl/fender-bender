@@ -27,8 +27,7 @@ copyright = "2024, x0pherl"
 author = "x0pherl"
 
 # The full version, including alpha/beta/rc tags
-# version = build123d.__version__
-release = fenderbender.__version__
+release = "latest"
 
 
 # -- General configuration ---------------------------------------------------
