@@ -622,7 +622,7 @@ class Walls(Partomatic):
         """
         renders docuemntation images to the renders folder
         """
-        output_directory = Path(__file__).parent / "../renders/documentation"
+        output_directory = Path(__file__).parent / "../docs/assets"
         output_directory.mkdir(parents=True, exist_ok=True)
 
         show(self.complete_assembly, reset_camera=Camera.RESET)
