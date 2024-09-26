@@ -16,6 +16,7 @@ from build123d import (
     BuildSketch,
     CenterArc,
     Circle,
+    Compound,
     Cone,
     Cylinder,
     GeomType,
@@ -38,11 +39,12 @@ from build123d import (
     make_face,
     offset,
 )
-from ocp_vscode import Camera, show
+from ocp_vscode import Camera, show, save_screenshot
 
 from bender_config import BenderConfig, LockStyle
 from basic_shapes import rounded_cylinder
 from filament_channels import FilamentChannels
+from filament_wheel import FilamentWheel
 from lock_pin import LockPin
 from partomatic import Partomatic
 
@@ -631,6 +633,122 @@ class FilamentBracket(Partomatic):
         part.label = "top bracket"
         return part
 
+    def _step_one_assembly(self) -> Compound:
+        """"""
+        bottom = self.bottom_brackets[0]
+        bottom.label = "bottom bracket"
+        bottom.color = "#168529"
+        with BuildPart() as bearing:
+            Cylinder(
+                radius=self._config.wheel.bearing.radius,
+                height=self._config.wheel.bearing.depth,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+            Cylinder(
+                radius=self._config.wheel.bearing.inner_radius,
+                height=self._config.wheel.bearing.depth,
+                mode=Mode.SUBTRACT,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+        bearing = bearing.part.move(
+            Location(
+                (
+                    0,
+                    0,
+                    self._config.bearing_shelf_height,
+                )
+            )
+        )
+        bearing.label = "bearing"
+        bearing.color = "#C0C0C0"
+
+        wheel = (
+            FilamentWheel()
+            .filament_wheel()
+            .move(
+                Location(
+                    (
+                        0,
+                        0,
+                        self._config.bearing_shelf_height,
+                    )
+                )
+            )
+        )
+        wheel.label = "filament wheel"
+        wheel.color = "#8c93e9"
+
+        bracket_assembly = Compound(
+            label="Filament Bracket Assembly",
+            children=[bottom, wheel, bearing],
+        )
+        return bracket_assembly
+
+    def _step_two_assembly(self) -> Compound:
+        """"""
+        bracket_assembly = self._step_one_assembly()
+        top = (
+            self.top_brackets[0]
+            .rotate(Axis.Y, 180)
+            .move(
+                Location(
+                    (
+                        0,
+                        -self._config.bracket_depth,
+                        self._config.bracket_depth,
+                    )
+                )
+            )
+        )
+        top.label = "top bracket"
+        top.color = "#009eb0"
+        top.parent = bracket_assembly
+        with BuildPart() as arrow:
+            Cylinder(
+                radius=self._config.wheel.bearing.inner_radius,
+                height=self._config.wheel.radius / 2,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+            with BuildPart(arrow.faces().sort_by(Axis.Z)[-1]):
+                Cone(
+                    bottom_radius=self._config.wheel.bearing.inner_diameter,
+                    top_radius=0,
+                    height=self._config.wheel.bearing.inner_diameter * 2,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+        up_arrow = arrow.part.move(
+            Location(
+                (
+                    0,
+                    -self._config.bracket_depth,
+                    self._config.bracket_depth * 1.5,
+                )
+            )
+        )
+        up_arrow.color = "#ebd591"
+        up_arrow.label = "up arrow"
+        up_arrow.parent = bracket_assembly
+        slide_arrow = arrow.part.rotate(Axis.X, -90).move(
+            Location((0, self._config.wheel.radius / 2, 0))
+        )
+        slide_arrow.color = "#ebd591"
+        slide_arrow.label = "slide arrow"
+        slide_arrow.parent = bracket_assembly
+        return bracket_assembly
+
+    def complete_assembly(self) -> Compound:
+        """"""
+        bracket_assembly = self._step_one_assembly()
+        top = (
+            self.top_brackets[0]
+            .rotate(Axis.Y, 180)
+            .move(Location((0, 0, self._config.bracket_depth)))
+        )
+        top.label = "top bracket"
+        top.color = "#009eb0"
+        top.parent = bracket_assembly
+        return bracket_assembly
+
     def load_config(self, configuration_path: str):
         """
         loads the configuration file
@@ -737,7 +855,26 @@ class FilamentBracket(Partomatic):
         )
 
     def render_2d(self):
-        pass
+        """
+        renders docuemntation images to the renders folder
+        """
+        output_directory = Path(__file__).parent / "../docs/assets"
+        output_directory.mkdir(parents=True, exist_ok=True)
+
+        show(self._step_one_assembly(), reset_camera=Camera.RESET)
+        save_screenshot(
+            filename=str(Path(output_directory) / "step-001-wheel-bearing.png")
+        )
+        show(self.complete_assembly(), reset_camera=Camera.RESET)
+        save_screenshot(
+            filename=str(
+                Path(output_directory) / "step-003-bracket-complete.png"
+            )
+        )
+        show(self._step_two_assembly(), reset_camera=Camera.RESET)
+        save_screenshot(
+            filename=str(Path(output_directory) / "step-002-slide-top.png")
+        )
 
 
 if __name__ == "__main__":
