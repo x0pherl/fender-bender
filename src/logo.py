@@ -54,17 +54,18 @@ def ring() -> Sketch:
 
 def logo(border=False, simplified=False) -> Sketch:
     """generate the fenderbender logo!"""
+    offset = 0 if simplified else -_config.frame_hanger_offset
     with BuildSketch() as sketch:
         with Locations(
             Location(
                 (
-                    -_config.frame_hanger_offset,
+                    offset,
                     _config.minimum_structural_thickness / 2,
                 )
             ),
             Location(
                 (
-                    -_config.frame_hanger_offset,
+                    offset,
                     -_config.minimum_structural_thickness * 2.5,
                 )
             ),
@@ -78,7 +79,7 @@ def logo(border=False, simplified=False) -> Sketch:
             with Locations(
                 Location(
                     (
-                        -_config.frame_hanger_offset,
+                        offset,
                         _config.minimum_structural_thickness / 2,
                     )
                 )
