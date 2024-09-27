@@ -1,3 +1,4 @@
+from pathlib import Path
 from build123d import (
     Align,
     Box,
@@ -21,7 +22,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bender_config import BenderConfig
+from bender_config import BenderConfig, FrameStyle
 
 ##Note: Flamente Round Bold must be installed with the context menu: "Install For all Users" to show up!!!
 
@@ -34,22 +35,24 @@ def ring() -> Sketch:
     """
     with BuildSketch() as frame:
         Rectangle(
-            _config.frame_exterior_length + 20,
-            _config.wheel_diameter + _config.frame_base_depth * 2 + 38,
+            _config.frame_exterior_length(frame_style=FrameStyle.STANDING)
+            + 20,
+            _config.wheel.diameter + _config.frame_base_depth * 2 + 38,
             align=(Align.CENTER, Align.CENTER),
         )
         fillet(frame.vertices(), _config.fillet_radius)
         with BuildSketch(mode=Mode.SUBTRACT) as cut:
             Rectangle(
-                _config.frame_exterior_length + 10,
-                _config.wheel_diameter + _config.frame_base_depth * 2 + 28,
+                _config.frame_exterior_length(frame_style=FrameStyle.STANDING)
+                + 10,
+                _config.wheel.diameter + _config.frame_base_depth * 2 + 28,
                 align=(Align.CENTER, Align.CENTER),
             )
         fillet(cut.vertices(), _config.fillet_radius)
     return frame
 
 
-def logo(border=False) -> Sketch:
+def logo(border=False, simplified=False) -> Sketch:
     """generate the fenderbender logo!"""
     with BuildSketch() as sketch:
         with Locations(
@@ -67,74 +70,79 @@ def logo(border=False) -> Sketch:
             ),
         ) as hangers:
             Rectangle(
-                _config.frame_exterior_length,
+                _config.frame_exterior_length(frame_style=FrameStyle.STANDING),
                 _config.frame_base_depth,
                 align=(Align.CENTER, Align.MIN),
             )
-        with Locations(
-            Location(
-                (
-                    -_config.frame_hanger_offset,
-                    _config.minimum_structural_thickness / 2,
+        if not simplified:
+            with Locations(
+                Location(
+                    (
+                        -_config.frame_hanger_offset,
+                        _config.minimum_structural_thickness / 2,
+                    )
                 )
-            )
-        ) as frame:
-            Rectangle(
-                _config.frame_exterior_length / 2,
-                _config.bracket_height,
-                align=(Align.MAX, Align.MIN),
-            )
+            ) as frame:
+                Rectangle(
+                    _config.frame_exterior_length(
+                        frame_style=FrameStyle.STANDING
+                    )
+                    / 2,
+                    _config.bracket_height,
+                    align=(Align.MAX, Align.MIN),
+                )
         fillet(sketch.vertices(), _config.fillet_radius)
         Circle(_config.frame_bracket_exterior_radius)
-        Circle(_config.wheel_radius, mode=Mode.SUBTRACT)
+        Circle(_config.wheel.radius, mode=Mode.SUBTRACT)
         Rectangle(
             _config.frame_bracket_exterior_diameter,
             _config.minimum_structural_thickness,
             align=(Align.CENTER, Align.CENTER),
             mode=Mode.SUBTRACT,
         )
-        with BuildLine() as toparc:
-            CenterArc(
-                (0, 0),
-                _config.frame_bracket_exterior_radius
-                - (
+        if not simplified:
+            with BuildLine() as toparc:
+                CenterArc(
+                    (0, 0),
                     _config.frame_bracket_exterior_radius
-                    - _config.wheel_radius
+                    - (
+                        _config.frame_bracket_exterior_radius
+                        - _config.wheel.radius
+                    )
+                    / 2,
+                    180,
+                    -180,
                 )
-                / 2,
-                180,
-                -180,
+            Text(
+                "FENDER BENDER",
+                12,
+                font="Flamante Round Bold",
+                font_style=FontStyle.BOLD,
+                path=toparc.wire(),
+                position_on_path=0.5,
+                mode=Mode.SUBTRACT,
             )
-        Text(
-            "FENDER BENDER",
-            12,
-            font="Flamante Round Bold",
-            font_style=FontStyle.BOLD,
-            path=toparc.wire(),
-            position_on_path=0.5,
-            mode=Mode.SUBTRACT,
-        )
-        with BuildLine() as bottomarc:
-            CenterArc(
-                (0, 0),
-                _config.frame_bracket_exterior_radius
-                - (
+            with BuildLine() as bottomarc:
+                CenterArc(
+                    (0, 0),
                     _config.frame_bracket_exterior_radius
-                    - _config.wheel_radius
+                    - (
+                        _config.frame_bracket_exterior_radius
+                        - _config.wheel.radius
+                    )
+                    / 2,
+                    360,
+                    -180,
                 )
-                / 2,
-                360,
-                -180,
+            Text(
+                "FILAMENT BUFFER",
+                12,
+                font="Flamante Round Bold",
+                font_style=FontStyle.BOLD,
+                path=bottomarc.wire(),
+                position_on_path=0.5,
+                mode=Mode.SUBTRACT,
             )
-        Text(
-            "FILAMENT BUFFER",
-            12,
-            font="Flamante Round Bold",
-            font_style=FontStyle.BOLD,
-            path=bottomarc.wire(),
-            position_on_path=0.5,
-            mode=Mode.SUBTRACT,
-        )
         add(text())
         if border:
             add(ring().sketch.move(Location((-3, 0))))
@@ -165,6 +173,9 @@ def text() -> Sketch:
     return fb2.sketch
 
 
+output_directory = Path(__file__).parent / "../docs/assets"
+output_directory.mkdir(parents=True, exist_ok=True)
+
 fb2_logo = logo(border=False).sketch
 fb2_logo.color = (23, 63, 112)
 show(fb2_logo, reset_camera=Camera.KEEP)
@@ -174,7 +185,19 @@ exporter.add_layer(
     "Layer 1", fill_color=(23, 63, 112), line_color=(255, 255, 255)
 )
 exporter.add_shape(fb2_logo, "Layer 1")
-exporter.write("../logo.svg")
+exporter.write(str(Path(output_directory / "logo.svg")))
+
+fb2_simple_logo = logo(border=False, simplified=True).sketch
+fb2_simple_logo.color = (23, 63, 112)
+show(fb2_simple_logo, reset_camera=Camera.KEEP)
+
+exporter = ExportSVG(scale=1.0)
+exporter.add_layer(
+    "Layer 1", fill_color=(23, 63, 112), line_color=(255, 255, 255)
+)
+exporter.add_shape(fb2_simple_logo, "Layer 1")
+exporter.write(str(Path(output_directory / "logo-simplified.svg")))
+
 
 # with BuildPart() as logo_blue:
 #     extrude(fb2_logo.mirror(Plane.YZ),2)
