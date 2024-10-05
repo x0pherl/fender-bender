@@ -5,6 +5,9 @@ stl/*
 step/*
 renders/*
 
+# development configuration
+../build-configs/dev.conf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

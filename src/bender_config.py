@@ -87,6 +87,10 @@ class BearingConfig:
         """
         return self.shelf_diameter / 2
 
+    def __init__(self, **kwargs):
+        for field in fields(self):
+            setattr(self, field.name, kwargs.get(field.name, field.default))
+
 
 @dataclass
 class WheelConfig:
@@ -102,6 +106,19 @@ class WheelConfig:
         returns the radius of the wheel
         """
         return self.diameter / 2
+
+    def __init__(self, **kwargs):
+        for field in fields(self):
+            if field.name == "bearing":
+                config_value = kwargs.get(field.name, field.default)
+                if isinstance(config_value, dict):
+                    self.bearing = BearingConfig(**config_value)
+                else:
+                    self.bearing = BearingConfig()
+            else:
+                setattr(
+                    self, field.name, kwargs.get(field.name, field.default)
+                )
 
 
 @dataclass
@@ -122,6 +139,10 @@ class TubeConfig:
         returnes the outer radius of the tube
         """
         return self.outer_diameter / 2
+
+    def __init__(self, **kwargs):
+        for field in fields(self):
+            setattr(self, field.name, kwargs.get(field.name, field.default))
 
 
 @dataclass
@@ -144,6 +165,19 @@ class ConnectorConfig:
         """
         return self.diameter / 2
 
+    def __init__(self, **kwargs):
+        for field in fields(self):
+            if field.name == "tube":
+                config_value = kwargs.get(field.name, field.default)
+                if isinstance(config_value, dict):
+                    self.tube = TubeConfig(**config_value)
+                else:
+                    self.tube = TubeConfig()
+            else:
+                setattr(
+                    self, field.name, kwargs.get(field.name, field.default)
+                )
+
 
 @dataclass
 class BenderConfig:
@@ -152,8 +186,6 @@ class BenderConfig:
     """
 
     stl_folder: str = "../stl/default"
-
-    bearing: BearingConfig = field(default_factory=BearingConfig)
 
     wheel: WheelConfig = field(default_factory=WheelConfig)
 
@@ -471,19 +503,22 @@ class BenderConfig:
             - self.wheel.lateral_tolerance
         ) / 2
 
-    def __init__(self, file_path: str = None, **kwargs):
-        """initialize the configuration"""
-        if file_path:
-            path = Path(file_path)
-            if not path.exists():
-                raise FileNotFoundError(
-                    f"The file {file_path} does not exist."
-                )
+    def __init__(self, configuration: str = None, **kwargs):
+        """initialize the configuration
+        -------
+        arguments:
+            - configuration: the path to the configuration file
+                OR
+              a valid yaml configuration string
+            - kwargs: specific configuration values to override as key value pairs
+        """
+        configuration = str(configuration)
+        if configuration and configuration.strip():
             try:
-                self.load_config(file_path)
+                self.load_config(configuration)
             except Exception as e:
                 raise ValueError(
-                    f"Error loading configuration from {file_path}: {e}"
+                    f"Error loading configuration from {configuration}: {e}"
                 ) from e
         else:
             for field in fields(self):
@@ -492,27 +527,29 @@ class BenderConfig:
                 )
             default_connector = ConnectorConfig()
             self.connectors = [default_connector]
-            self.wheel.bearing = BearingConfig()
             self.wheel = WheelConfig()
 
-    def load_config(self, configuration_path: str):
+    def load_config(self, configuration: str):
         """
         loads a configuration from a file
         -------
         arguments:
             - configuration_path: the path to the configuration file
         """
-        with open(configuration_path, "r") as stream:
-            config_dict = yaml.safe_load(stream)
+        configuration = str(configuration)
+        if "\n" not in configuration:
+            path = Path(configuration)
+            if path.exists() and path.is_file():
+                configuration = path.read_text()
+        config_dict = yaml.safe_load(configuration)
 
         for field in fields(BenderConfig):
             if field.name in config_dict["BenderConfig"]:
                 value = config_dict["BenderConfig"][field.name]
+                print(value)
                 if field.name == "frame_lock_style":
                     setattr(self, field.name, LockStyle[value.upper()])
                 elif field.name == "wheel":
-                    if "bearing" in value:
-                        value["bearing"] = BearingConfig(**value["bearing"])
                     self.wheel = WheelConfig(**value)
                 elif field.name == "connectors":
                     self.connectors = [
