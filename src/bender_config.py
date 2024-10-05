@@ -564,8 +564,9 @@ class BenderConfig:
 
 
 if __name__ == "__main__":
-    test = BenderConfig(Path(__file__).parent / "../build-configs/debug.conf")
-    # test = BenderConfig()
+    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+    if not config_path.exists() or not config_path.is_file():
+        config_path = Path(__file__).parent / "../build-configs/debug.conf"    test = BenderConfig(Path(__file__).parent / "../build-configs/debug.conf")
     print(test.bracket_depth, test.bracket_height, test.bracket_width)
     print(test.sidewall_width)
     for connector in test.connectors:
