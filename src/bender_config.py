@@ -36,24 +36,21 @@ def _distance_to_circle_edge(radius, point, angle) -> float:
     by the given angle
     """
     x1, y1 = point
-    theta = radians(angle)  # Convert angle to radians if it's given in degrees
+    theta = radians(angle)
 
-    # Coefficients of the quadratic equation
     a = 1
     b = 2 * (x1 * cos(theta) + y1 * sin(theta))
     c = x1**2 + y1**2 - radius**2
 
-    # Calculate the discriminant
     discriminant = b**2 - 4 * a * c
 
     if discriminant < 0:
-        return None  # No real intersection, should not happen
-
-    # Solve the quadratic equation for t
+        raise ValueError(
+            f"Error: discriminant calculated as < 0 ({discriminant})"
+        )
     t1 = (-b + sqrt(discriminant)) / (2 * a)
     t2 = (-b - sqrt(discriminant)) / (2 * a)
 
-    # We need the positive t, as we are extending outwards
     t = max(t1, t2)
 
     return t
