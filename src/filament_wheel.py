@@ -2,6 +2,8 @@
 Generates the part for the filament wheel of our filament bank design
 """
 
+import yaml
+from dataclasses import fields, asdict
 from pathlib import Path
 
 from build123d import (
@@ -26,7 +28,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bender_config import BenderConfig
+from bender_config import BenderConfig, WheelConfig, BearingConfig
 from partomatic import Partomatic
 
 
@@ -55,7 +57,7 @@ def diamond_torus(major_radius: float, minor_radius: float) -> Part:
 class FilamentWheel(Partomatic):
     """A partomatic for the filament wheel of the filament bank"""
 
-    _config = BenderConfig()
+    _config = WheelConfig()
     wheel: Part
 
     def _spoke(self) -> Sketch:
@@ -63,14 +65,14 @@ class FilamentWheel(Partomatic):
         returns the spoke Sketch for the filament wheel
         """
         spoke_outer_radius = (
-            self._config.wheel.radius
-            + self._config.wheel.bearing.radius
-            + self._config.wheel.bearing.depth
+            self._config.radius
+            + self._config.bearing.radius
+            + self._config.bearing.depth
         ) / 2
         spoke_shift = (
-            self._config.wheel.radius
-            - self._config.wheel.bearing.radius
-            - self._config.wheel.bearing.depth
+            self._config.radius
+            - self._config.bearing.radius
+            - self._config.bearing.depth
         ) / 2
         with BuildSketch() as sketch:
             with BuildLine():
@@ -82,8 +84,7 @@ class FilamentWheel(Partomatic):
                 )
                 l2 = CenterArc(
                     center=((spoke_shift, 0)),
-                    radius=spoke_outer_radius
-                    - self._config.wheel.bearing.depth,
+                    radius=spoke_outer_radius - self._config.bearing.depth,
                     start_angle=0,
                     arc_size=180,
                 )
@@ -98,53 +99,75 @@ class FilamentWheel(Partomatic):
         """
         with BuildPart() as fwheel:
             with BuildSketch():
-                Circle(radius=self._config.wheel.radius)
+                Circle(radius=self._config.radius)
                 Circle(
-                    radius=self._config.wheel.radius
-                    - self._config.wheel.bearing.depth,
+                    radius=self._config.radius - self._config.bearing.depth,
                     mode=Mode.SUBTRACT,
                 )
             with BuildSketch():
                 Circle(
-                    radius=self._config.wheel.bearing.radius
-                    + self._config.wheel.bearing.depth
+                    radius=self._config.bearing.radius
+                    + self._config.bearing.depth
                 )
                 Circle(
-                    radius=self._config.wheel.bearing.radius,
+                    radius=self._config.bearing.radius,
                     mode=Mode.SUBTRACT,
                 )
-            with PolarLocations(0, self._config.wheel.spoke_count):
+            with PolarLocations(0, self._config.spoke_count):
                 add(self._spoke())
-            extrude(amount=self._config.wheel.bearing.depth)
+            extrude(amount=self._config.bearing.depth)
             add(
                 diamond_torus(
-                    self._config.wheel.radius,
-                    self._config.wheel.bearing.depth / 2,
-                ).move(Location((0, 0, self._config.wheel.bearing.depth / 2))),
+                    self._config.radius,
+                    self._config.bearing.depth / 2,
+                ).move(Location((0, 0, self._config.bearing.depth / 2))),
                 mode=Mode.SUBTRACT,
             )
         return fwheel.part
 
-    def load_config(self, configuration_path: str):
+    def load_config(self, configuration: str):
         """
         loads the configuration file
          -------
         arguments:
             - configuration_path: the path to the configuration file
         """
-        self._config.load_config(configuration_path)
+        # self._config.load_config(configuration_path)
+        configuration = str(configuration)
+        if "\n" not in configuration:
+            path = Path(configuration)
+            if path.exists() and path.is_file():
+                configuration = path.read_text()
+        config_dict = yaml.safe_load(configuration)
 
-    def __init__(self, configuration_file: str = None):
+        for field in fields(WheelConfig):
+            if field.name in config_dict["wheel"]:
+                value = config_dict["wheel"][field.name]
+                if field.name == "bearing":
+                    self._config.bearing = BearingConfig(**value)
+                else:
+                    setattr(self._config, field.name, value)
+
+    def __init__(self, configuration: str = None, **kwargs):
         """
         initializes the Partomatic filament wheel
         -------
         arguments:
-            - configuration_file: the path to the configuration file,
-        set to None to use the default configuration
+            - configuration: the path to the configuration file
+                OR
+              a valid yaml configuration string
+            - kwargs: specific configuration values to override as key value pairs
         """
         super(Partomatic, self).__init__()
-        if configuration_file is not None:
-            self.load_config(configuration_file)
+        self._config = WheelConfig(**kwargs)
+        if configuration and configuration.strip():
+            configuration = str(configuration)
+            try:
+                self.load_config(configuration)
+            except Exception as e:
+                raise ValueError(
+                    f"Error loading configuration from {configuration}: {e}"
+                ) from e
 
     def compile(self):
         """
@@ -180,8 +203,13 @@ class FilamentWheel(Partomatic):
 
 
 if __name__ == "__main__":
-    wheel = FilamentWheel(
-        Path(__file__).parent / "../build-configs/debug.conf"
+    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+    if not config_path.exists() or not config_path.is_file():
+        config_path = Path(__file__).parent / "../build-configs/debug.conf"
+    wheel_conf = WheelConfig(config_path, yaml_tree="BenderConfig/wheel")
+    wheel = FilamentWheel(**asdict(wheel_conf))
+    print(
+        f"wheel diameter: {wheel._config.diameter}\nwheel diameter: {wheel._config.bearing.radius}"
     )
     wheel.compile()
     wheel.display()
