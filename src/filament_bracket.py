@@ -650,7 +650,7 @@ class FilamentBracket(Partomatic):
                 mode=Mode.SUBTRACT,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
-        bearing = bearing.part.move(
+        bearing = bearing.part.moved(
             Location(
                 (
                     0,
@@ -663,9 +663,9 @@ class FilamentBracket(Partomatic):
         bearing.color = "#C0C0C0"
 
         wheel = (
-            FilamentWheel()
+            FilamentWheel(self._config.wheel)
             .filament_wheel()
-            .move(
+            .moved(
                 Location(
                     (
                         0,
@@ -680,7 +680,11 @@ class FilamentBracket(Partomatic):
 
         bracket_assembly = Compound(
             label="Filament Bracket Assembly",
-            children=[bottom, wheel, bearing],
+            children=[
+                bottom.moved(Location((0, 0, 0))),
+                wheel,
+                bearing,
+            ],
         )
         return bracket_assembly
 
@@ -791,16 +795,16 @@ class FilamentBracket(Partomatic):
         Shows the filament wheel in OCP CAD Viewer
         """
         show(
-            self.bottom_brackets[0].move(
+            self.bottom_brackets[0].moved(
                 Location((self._config.bracket_width / 2 + 5, 0, 0))
             ),
-            self.top_brackets[0].move(
+            self.top_brackets[0].moved(
                 Location((-self._config.bracket_width / 2 + 5, 0, 0))
             ),
             (
                 self.bracketclips[0]
                 .rotate(Axis.X, -90)
-                .move(
+                .moved(
                     Location(
                         (
                             self._config.bracket_width / 2
@@ -864,7 +868,7 @@ class FilamentBracket(Partomatic):
             str(output_directory / "filament-bracket-top.stl"),
         )
 
-    def render_2d(self):
+    def render_2d(self, save_to_disk: bool = False):
         """
         renders docuemntation images to the renders folder
         """
@@ -872,25 +876,34 @@ class FilamentBracket(Partomatic):
         output_directory.mkdir(parents=True, exist_ok=True)
 
         show(self._step_one_assembly(), reset_camera=Camera.RESET)
-        save_screenshot(
-            filename=str(Path(output_directory) / "step-001-wheel-bearing.png")
-        )
-        show(self.complete_assembly(), reset_camera=Camera.RESET)
-        save_screenshot(
-            filename=str(
-                Path(output_directory) / "step-003-bracket-complete.png"
+        if save_to_disk:
+            save_screenshot(
+                filename=str(
+                    Path(output_directory) / "step-001-wheel-bearing.png"
+                )
             )
-        )
+        show(self.complete_assembly(), reset_camera=Camera.RESET)
+        if save_to_disk:
+            save_screenshot(
+                filename=str(
+                    Path(output_directory) / "step-003-bracket-complete.png"
+                )
+            )
         show(self._step_two_assembly(), reset_camera=Camera.RESET)
-        save_screenshot(
-            filename=str(Path(output_directory) / "step-002-slide-top.png")
-        )
+        if save_to_disk:
+            save_screenshot(
+                filename=str(Path(output_directory) / "step-002-slide-top.png")
+            )
+        show(self._step_one_assembly(), reset_camera=Camera.RESET)
 
 
 if __name__ == "__main__":
-    bracket = FilamentBracket(
-        Path(__file__).parent / "../build-configs/debug.conf"
-    )
+    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+    if not config_path.exists() or not config_path.is_file():
+        config_path = Path(__file__).parent / "../build-configs/debug.conf"
+    bracket = FilamentBracket(config_path)
+
     bracket.compile()
     bracket.display()
     bracket.export_stls()
+    bracket.render_2d(save_to_disk=False)
