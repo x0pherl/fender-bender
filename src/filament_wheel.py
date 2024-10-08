@@ -28,7 +28,8 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bender_config import BenderConfig, WheelConfig, BearingConfig
+from bender_config import BenderConfig
+from filament_wheel_config import WheelConfig, BearingConfig
 from partomatic import Partomatic
 
 
@@ -125,30 +126,20 @@ class FilamentWheel(Partomatic):
             )
         return fwheel.part
 
-    def load_config(self, configuration: str):
+    def load_config(self, configuration: str, yaml_tree="wheel"):
         """
-        loads the configuration file
-         -------
+        loads a wheel configuration from a file or valid yaml
+        -------
         arguments:
-            - configuration_path: the path to the configuration file
+            - configuration: the path to the configuration file
+                OR
+              a valid yaml configuration string
+            - yaml_tree: the yaml tree to the wheel configuration node,
+            separated by slashes (example: "BenderConfig/wheel")
         """
-        # self._config.load_config(configuration_path)
-        configuration = str(configuration)
-        if "\n" not in configuration:
-            path = Path(configuration)
-            if path.exists() and path.is_file():
-                configuration = path.read_text()
-        config_dict = yaml.safe_load(configuration)
+        self._config.load(configuration, yaml_tree)
 
-        for field in fields(WheelConfig):
-            if field.name in config_dict["wheel"]:
-                value = config_dict["wheel"][field.name]
-                if field.name == "bearing":
-                    self._config.bearing = BearingConfig(**value)
-                else:
-                    setattr(self._config, field.name, value)
-
-    def __init__(self, configuration: str = None, **kwargs):
+    def __init__(self, config: WheelConfig = None):
         """
         initializes the Partomatic filament wheel
         -------
@@ -159,15 +150,10 @@ class FilamentWheel(Partomatic):
             - kwargs: specific configuration values to override as key value pairs
         """
         super(Partomatic, self).__init__()
-        self._config = WheelConfig(**kwargs)
-        if configuration and configuration.strip():
-            configuration = str(configuration)
-            try:
-                self.load_config(configuration)
-            except Exception as e:
-                raise ValueError(
-                    f"Error loading configuration from {configuration}: {e}"
-                ) from e
+        if config:
+            self._config = config
+        else:
+            self._config = WheelConfig()
 
     def compile(self):
         """
@@ -207,7 +193,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     wheel_conf = WheelConfig(config_path, yaml_tree="BenderConfig/wheel")
-    wheel = FilamentWheel(**asdict(wheel_conf))
+    wheel = FilamentWheel(wheel_conf)
     print(
         f"wheel diameter: {wheel._config.diameter}\nwheel diameter: {wheel._config.bearing.radius}"
     )
