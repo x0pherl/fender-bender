@@ -137,7 +137,7 @@ class FilamentWheel(Partomatic):
             - yaml_tree: the yaml tree to the wheel configuration node,
             separated by slashes (example: "BenderConfig/wheel")
         """
-        self._config.load(configuration, yaml_tree)
+        self._config.load_config(configuration, yaml_tree)
 
     def __init__(self, config: WheelConfig = None):
         """
