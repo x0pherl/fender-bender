@@ -34,13 +34,15 @@ from ocp_vscode import Camera, show, save_screenshot
 
 from hexwall import HexWall
 from partomatic import Partomatic
-from walls import SidewallShape, WallConfig
+from bender_config import BenderConfig
+from walls_config import SidewallShape, WallsConfig
 
 
 class Walls(Partomatic):
     """partomatic for the chamber walls of the filament bank"""
 
-    _config = WallConfig()
+    _config = BenderConfig()
+    _sidewall_shape: SidewallShape
 
     gwall: Part
     sidewall: Part
@@ -68,9 +70,9 @@ class Walls(Partomatic):
         )
         straight_offset = -self._config.wall_thickness / 2
 
-        if shape == self.SidewallShape.REINFORCEMENT:
+        if shape == SidewallShape.REINFORCEMENT:
             straight_width -= self._config.minimum_structural_thickness * 2
-        elif shape == self.SidewallShape.POINT:
+        elif shape == SidewallShape.POINT:
             straight_width += self._config.wall_thickness
             curve_radius += self._config.wall_thickness * 0.75
             wall_length += self._config.wall_thickness * 1.25
@@ -276,25 +278,21 @@ class Walls(Partomatic):
         """
         with BuildPart() as wall:
             with BuildSketch(Plane.XY):
-                add(self._sidewall_shape(self.SidewallShape.BASE))
+                add(self._sidewall_shape(SidewallShape.BASE))
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness / 2)):
-                add(self._sidewall_shape(self.SidewallShape.POINT))
+                add(self._sidewall_shape(SidewallShape.POINT))
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness)):
-                add(self._sidewall_shape(self.SidewallShape.BASE))
+                add(self._sidewall_shape(SidewallShape.BASE))
             loft(ruled=True)
             if reinforce:
                 with BuildPart():
                     with BuildSketch():
-                        add(
-                            self._sidewall_shape(
-                                self.SidewallShape.REINFORCEMENT
-                            )
-                        )
+                        add(self._sidewall_shape(SidewallShape.REINFORCEMENT))
                         with BuildSketch(mode=Mode.SUBTRACT):
                             add(
                                 offset(
                                     self._sidewall_shape(
-                                        self.SidewallShape.REINFORCEMENT
+                                        SidewallShape.REINFORCEMENT
                                     ),
                                     -self._config.minimum_structural_thickness,
                                 )
@@ -305,9 +303,9 @@ class Walls(Partomatic):
                     )
             if not self._config.solid_walls:
                 shape = (
-                    self.SidewallShape.REINFORCEMENT
+                    SidewallShape.REINFORCEMENT
                     if reinforce
-                    else self.SidewallShape.BASE
+                    else SidewallShape.BASE
                 )
                 with BuildPart(mode=Mode.SUBTRACT):
                     with BuildSketch() as sk:
