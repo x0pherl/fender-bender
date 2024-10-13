@@ -32,22 +32,15 @@ from build123d import (
 )
 from ocp_vscode import Camera, show, save_screenshot
 
-from bender_config import BenderConfig
 from hexwall import HexWall
 from partomatic import Partomatic
+from walls import SidewallShape, WallConfig
 
 
 class Walls(Partomatic):
     """partomatic for the chamber walls of the filament bank"""
 
-    class SidewallShape(Enum):
-        """What sort of clip to have"""
-
-        BASE = auto()
-        POINT = auto()
-        REINFORCEMENT = auto()
-
-    _config = BenderConfig()
+    _config = WallConfig()
 
     gwall: Part
     sidewall: Part
@@ -425,7 +418,7 @@ class Walls(Partomatic):
         Arranges the guide walls for display
         """
         bottom_guide = self.gwall
-        top_guide = self.gwall.rotate(Axis.Y, 180).move(
+        top_guide = self.gwall.rotate(Axis.Y, 180).moved(
             Location(
                 (
                     0,
@@ -450,7 +443,7 @@ class Walls(Partomatic):
         """
         wallspart = Compound(children=[], label="Inernal Side Walls")
         for i in range(self._config.filament_count - 1):
-            swall = self.sidewall.rotate(Axis.Y, 90).move(
+            swall = self.sidewall.rotate(Axis.Y, 90).moved(
                 Location(
                     (
                         -self._config.frame_bracket_spacing
@@ -476,7 +469,7 @@ class Walls(Partomatic):
         """
         Arranges the reinforced side walls for display
         """
-        right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).move(
+        right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).moved(
             Location(
                 (
                     self._config.frame_exterior_width / 2
@@ -489,7 +482,7 @@ class Walls(Partomatic):
                 )
             )
         )
-        left_side = self.reinforcedsidewall.rotate(Axis.Y, -90).move(
+        left_side = self.reinforcedsidewall.rotate(Axis.Y, -90).moved(
             Location(
                 (
                     -self._config.frame_exterior_width / 2
@@ -515,7 +508,7 @@ class Walls(Partomatic):
         bottom_guide = self.gwall
         bottom_guide.label = "bottom guide wall"
         bottom_guide.color = "#168529"
-        swall = self.sidewall.rotate(Axis.Y, 90).move(
+        swall = self.sidewall.rotate(Axis.Y, 90).moved(
             Location(
                 (
                     -self._config.frame_bracket_spacing / 2
@@ -538,7 +531,7 @@ class Walls(Partomatic):
         """creates an assembly for documentation step two"""
         wall_assembly = self._step_one_assembly()
         wall_assembly.label = "Step Two Assembly"
-        right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).move(
+        right_side = self.reinforcedsidewall.rotate(Axis.Y, 90).moved(
             Location(
                 (
                     self._config.frame_exterior_width / 2
@@ -618,7 +611,7 @@ class Walls(Partomatic):
         )
         export_stl(self.gwall, str(output_directory / "wall-guide.stl"))
 
-    def render_2d(self):
+    def render_2d(self, save_to_disk: bool = False):
         """
         renders docuemntation images to the renders folder
         """
@@ -626,25 +619,34 @@ class Walls(Partomatic):
         output_directory.mkdir(parents=True, exist_ok=True)
 
         show(self.complete_assembly, reset_camera=Camera.RESET)
-        save_screenshot(
-            filename=str(Path(output_directory) / "step-003-wall-assembly.png")
-        )
+        if save_to_disk:
+            save_screenshot(
+                filename=str(
+                    Path(output_directory) / "step-003-wall-assembly.png"
+                )
+            )
         show(self._step_one_assembly(), reset_camera=Camera.RESET)
-        save_screenshot(
-            filename=str(
-                Path(output_directory) / "step-001-internal-walls.png"
+        if save_to_disk:
+            save_screenshot(
+                filename=str(
+                    Path(output_directory) / "step-001-internal-walls.png"
+                )
             )
-        )
         show(self._step_two_assembly(), reset_camera=Camera.RESET)
-        save_screenshot(
-            filename=str(
-                Path(output_directory) / "step-002-external-walls.png"
+        if save_to_disk:
+            save_screenshot(
+                filename=str(
+                    Path(output_directory) / "step-002-external-walls.png"
+                )
             )
-        )
 
 
 if __name__ == "__main__":
-    walls = Walls(Path(__file__).parent / "../build-configs/debug.conf")
+    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+    if not config_path.exists() or not config_path.is_file():
+        config_path = Path(__file__).parent / "../build-configs/debug.conf"
+    walls = Walls(config_path)
     walls.compile()
     walls.display()
-    walls.export_stls()
+    # walls.export_stls()
+    # walls.render_2d(save_to_disk=False)

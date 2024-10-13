@@ -12,6 +12,7 @@ from pathlib import Path
 from shapely.geometry import Point
 
 from filament_wheel_config import WheelConfig
+from walls_config import WallsConfig
 
 
 class LockStyle(Flag):
@@ -106,7 +107,9 @@ class ConnectorConfig:
         for field in fields(self):
             if field.name == "tube":
                 config_value = kwargs.get(field.name, field.default)
-                if isinstance(config_value, dict):
+                if isinstance(config_value, TubeConfig):
+                    self.tube = config_value
+                elif isinstance(config_value, dict):
                     self.tube = TubeConfig(**config_value)
                 else:
                     self.tube = TubeConfig()
@@ -455,7 +458,7 @@ class BenderConfig:
                 self.load_config(configuration)
             except Exception as e:
                 raise ValueError(
-                    f"Error loading configuration from {configuration}: {e}"
+                    f"Error loading configuration from {configuration}"
                 ) from e
         else:
             for field in fields(self):
@@ -464,9 +467,7 @@ class BenderConfig:
                 )
             default_connector = ConnectorConfig()
             self.connectors = [default_connector]
-            self.wheel = WheelConfig()
-            if self.wheel.stl_folder == "":
-                self.wheel.stl_folder = self.stl_folder
+            self.wheel = WheelConfig(stl_folder=self.stl_folder)
 
     def load_config(self, configuration: str):
         """
@@ -507,7 +508,7 @@ class BenderConfig:
 
 
 if __name__ == "__main__":
-    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+    config_path = Path(__file__).parent / "../build-configs/reference.conf"
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     test = BenderConfig(config_path)
@@ -517,3 +518,6 @@ if __name__ == "__main__":
         print(connector.tube.inner_diameter)
     print(test.default_connector.diameter)
     print(test.wheel.radius, test.wheel.bearing.depth)
+    print(test.sidewall_section_depth)
+    print(test.frame_bracket_exterior_radius)
+    print(test.wheel.radius, test.bracket_depth, test.bracket_height)
