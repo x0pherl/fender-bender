@@ -598,7 +598,7 @@ class Walls(Partomatic):
         Generates the wall STLs in the configured
         folder
         """
-        if self._config.stl_folder == "NONE":
+        if self._config.stl_folder.upper() == "NONE":
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
@@ -645,6 +645,7 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     walls = Walls(config_path)
     walls.compile()
-    walls.display()
+    walls._step_one_assembly()
+    # walls.display()
     # walls.export_stls()
     # walls.render_2d(save_to_disk=False)

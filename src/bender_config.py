@@ -12,7 +12,8 @@ from pathlib import Path
 from shapely.geometry import Point
 
 from filament_wheel_config import WheelConfig
-from walls_config import WallsConfig
+
+# from walls_config import WallsConfig
 
 
 class LockStyle(Flag):

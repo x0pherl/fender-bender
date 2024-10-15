@@ -11,6 +11,7 @@ sys.path.insert(
 from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig, BearingConfig
 from walls_config import WallsConfig
+from walls import Walls
 
 
 # @pytest.fixture
@@ -63,6 +64,79 @@ BenderConfig:
   frame_tongue_depth: 4
   frame_lock_pin_tolerance: 0.4
   frame_click_sphere_radius: .05
+  frame_clip_depth_offset: 10
+  wall_bracket_screw_radius: 2.25
+  wall_bracket_screw_head_radius: 4.5
+  wall_bracket_screw_head_sink: 1.4
+  wall_bracket_post_count: 3
+"""
+
+
+@pytest.fixture
+def complete_connector_config_yaml():
+    return """
+BenderConfig:
+  stl_folder: ../stl/reference
+  filament_count: 5
+  wall_thickness: 3
+  frame_lock_style: BOTH
+  minimum_structural_thickness: 4
+  minimum_thickness: 1
+  minimum_bracket_depth: -1
+  fillet_ratio: 4
+  tolerance: 0.2
+  wheel:
+    diameter: 70
+    spoke_count: 5
+    lateral_tolerance: 0.6
+    radial_tolerance: 0.2
+    bearing:
+      diameter: 12.1
+      inner_diameter: 6.1
+      shelf_diameter: 8.5
+      depth: 4
+  connectors:
+    - name: "3mmx6mmm tube connector"
+      threaded: False
+      thread_pitch: 1
+      thread_angle: 30
+      thread_interference: 0.4
+      diameter: 6.5
+      length: 6.7
+      tube:
+        inner_diameter: 3.6
+        outer_diameter: 6.5
+    - name: "3mmx6mmm PC6-01"
+      threaded: True
+      file_prefix: "alt/"
+      file_suffix: "-3mmx6mmm-pc6-01"
+      thread_pitch: 1
+      thread_angle: 30
+      thread_interference: 0.4
+      diameter: 10.3
+      length: 6.7
+      tube:
+        inner_diameter: 3.6
+        outer_diameter: 6.5
+    - name: "2.5mmx4mmm no connector"
+      threaded: False
+      file_prefix: "alt/"
+      file_suffix: "-2_5mmx4mmm-no-connector"
+      thread_pitch: 1
+      thread_angle: 30
+      thread_interference: 0.2
+      diameter: 4.1
+      length: 6.7
+      tube:
+        inner_diameter: 2.6
+        outer_diameter: 4.1
+  frame_chamber_depth: 370
+  solid_walls: False
+  wall_window_apothem: 8
+  wall_window_bar_thickness: 1.5
+  frame_tongue_depth: 4
+  frame_lock_pin_tolerance: 0.4
+  frame_click_sphere_radius: 1
   frame_clip_depth_offset: 10
   wall_bracket_screw_radius: 2.25
   wall_bracket_screw_head_radius: 4.5
@@ -266,3 +340,10 @@ def wheel_config():
 def bearing_config():
     cfg = BearingConfig()
     return cfg
+
+
+@pytest.fixture
+def compiled_walls():
+    wls = Walls()
+    wls.compile()
+    return wls

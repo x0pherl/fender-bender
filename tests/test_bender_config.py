@@ -2,7 +2,6 @@ from dataclasses import fields
 import pytest
 from unittest.mock import patch
 
-# from mock import patch
 from typing import List, get_origin
 from importlib.machinery import SourceFileLoader
 from importlib.util import spec_from_loader, module_from_spec
@@ -44,9 +43,7 @@ class TestBenderConfig:
                 )
 
     def test_benderconfig_tube_dict(self, bender_config_yaml_tube_dict):
-        cfg = BenderConfig(
-            configuration=bender_config_yaml_tube_dict,
-        )
+        cfg = BenderConfig(configuration=bender_config_yaml_tube_dict)
         assert cfg.default_connector.tube.outer_diameter == 4321
 
     def test_wheelconfig_load_yaml_str(self, wheel_config_yaml):
