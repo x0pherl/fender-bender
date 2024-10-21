@@ -94,12 +94,12 @@ class TestTorus:
 
 
 class TestWheel:
-    def test_partomate(self, wheel_config):
-        fw = FilamentWheel(wheel_config)
+    def test_partomate(self, wheel_config_yaml):
+        fw = FilamentWheel(WheelConfig(wheel_config_yaml))
         fw.partomate()
         assert fw.wheel.volume > 0
 
-    def test_loadconfig(self, wheel_config, wheel_config_subpath_yaml):
+    def test_loadconfig(self, wheel_config_subpath_yaml):
         fw = FilamentWheel()
         fw.load_config(
             wheel_config_subpath_yaml, yaml_tree="tree1/tree2/wheel"

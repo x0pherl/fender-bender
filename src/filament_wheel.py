@@ -151,7 +151,7 @@ class FilamentWheel(Partomatic):
         """
         super(Partomatic, self).__init__()
         if config:
-            self._config = config
+            self.load_config({"wheel": asdict(config)})
         else:
             self._config = WheelConfig()
 
