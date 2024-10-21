@@ -73,6 +73,57 @@ BenderConfig:
 
 
 @pytest.fixture
+def bender_config_yaml_threaded():
+    return """
+BenderConfig:
+  stl_folder: ../stl/test
+  filament_count: 6
+  wall_thickness: 0.2
+  frame_lock_style: BOTH
+  minimum_structural_thickness: 2
+  minimum_thickness: 0.2
+  minimum_bracket_depth: 3
+  fillet_ratio: 10
+  tolerance: 0.2
+  wheel:
+    diameter: 20
+    spoke_count: 4
+    lateral_tolerance: 1.1
+    radial_tolerance: 0.3
+    bearing:
+      diameter: 7
+      inner_diameter: 5
+      shelf_diameter: 6
+      depth: 1
+  connectors:
+    - name: "3mmx6mmm PC6-01"
+      threaded: True
+      file_prefix: "alt/"
+      file_suffix: "-3mmx6mmm-pc6-01"
+      thread_pitch: 1
+      thread_angle: 30
+      thread_interference: 0.4
+      diameter: 10.3
+      length: 6.7
+      tube:
+        inner_diameter: 3.6
+        outer_diameter: 6.5
+  frame_chamber_depth: 340
+  solid_walls: False
+  wall_window_apothem: 8
+  wall_window_bar_thickness: 1.5
+  frame_tongue_depth: 4
+  frame_lock_pin_tolerance: 0.4
+  frame_click_sphere_radius: .05
+  frame_clip_depth_offset: 10
+  wall_bracket_screw_radius: 2.25
+  wall_bracket_screw_head_radius: 4.5
+  wall_bracket_screw_head_sink: 1.4
+  wall_bracket_post_count: 3
+"""
+
+
+@pytest.fixture
 def complete_connector_config_yaml():
     return """
 BenderConfig:
