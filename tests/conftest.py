@@ -124,6 +124,54 @@ BenderConfig:
 
 
 @pytest.fixture
+def bender_config_reference_single_connector_yaml():
+    return """BenderConfig:
+  stl_folder: ../stl/reference
+  filament_count: 5
+  wall_thickness: 3
+  frame_lock_style: BOTH
+  minimum_structural_thickness: 4
+  minimum_thickness: 1
+  minimum_bracket_depth: -1
+  fillet_ratio: 4
+  tolerance: 0.2
+  wheel:
+    diameter: 70
+    spoke_count: 5
+    lateral_tolerance: 0.6
+    radial_tolerance: 0.2
+    bearing:
+      diameter: 12.1
+      inner_diameter: 6.1
+      shelf_diameter: 8.5
+      depth: 4
+  connectors:
+    - name: "3mmx6mmm tube connector"
+      threaded: False
+      thread_pitch: 1
+      thread_angle: 30
+      thread_interference: 0.4
+      diameter: 6.5
+      length: 6.7
+      tube:
+        inner_diameter: 3.6
+        outer_diameter: 6.5
+  frame_chamber_depth: 370
+  solid_walls: False
+  wall_window_apothem: 8
+  wall_window_bar_thickness: 1.5
+  frame_tongue_depth: 4
+  frame_lock_pin_tolerance: 0.4
+  frame_click_sphere_radius: 1
+  frame_clip_depth_offset: 10
+  wall_bracket_screw_radius: 2.25
+  wall_bracket_screw_head_radius: 4.5
+  wall_bracket_screw_head_sink: 1.4
+  wall_bracket_post_count: 3
+"""
+
+
+@pytest.fixture
 def complete_connector_config_yaml():
     return """
 BenderConfig:
