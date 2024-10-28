@@ -13,7 +13,8 @@ from shapely.geometry import Point
 
 from filament_wheel_config import WheelConfig
 
-# from walls_config import WallsConfig
+from guidewall_config import GuidewallConfig
+from sidewall_config import SidewallConfig
 
 
 class LockStyle(Flag):
@@ -443,6 +444,47 @@ class BenderConfig:
             - self.wheel.bearing.depth
             - self.wheel.lateral_tolerance
         ) / 2
+
+    @property
+    def sidewall_config(self) -> SidewallConfig:
+        return SidewallConfig(
+            stl_folder=self.stl_folder,
+            top_diameter=self.wheel.diameter,
+            top_extension=self.frame_base_depth,
+            straight_length=self.sidewall_section_depth
+            - self.frame_base_depth
+            - self.wheel.radius,
+            sidewall_width=self.sidewall_width,
+            wall_thickness=self.wall_thickness,
+            reinforcement_thickness=self.minimum_structural_thickness
+            + self.wall_thickness,
+            reinforcement_inset=self.minimum_structural_thickness,
+            solid_wall=self.solid_walls,
+            wall_window_apothem=self.wall_window_apothem,
+            wall_window_bar_thickness=self.wall_window_bar_thickness,
+            click_fit_radius=self.frame_click_sphere_radius,
+            end_count=1,
+        )
+
+    @property
+    def guidewall_config(self) -> SidewallConfig:
+        return GuidewallConfig(
+            stl_folder=self.stl_folder,
+            core_length=self.sidewall_straight_depth - self.wall_thickness / 2,
+            section_width=self.frame_bracket_spacing,
+            tongue_width=self.top_frame_interior_width - self.tolerance * 2,
+            tongue_depth=self.frame_tongue_depth,
+            section_count=self.filament_count,
+            wall_thickness=self.wall_thickness,
+            reinforcement_thickness=self.minimum_structural_thickness,
+            reinforcement_inset=self.minimum_structural_thickness,
+            solid_wall=self.solid_walls,
+            wall_window_apothem=self.wall_window_apothem,
+            wall_window_bar_thickness=self.wall_window_bar_thickness,
+            click_fit_radius=self.frame_click_sphere_radius,
+            tolerance=self.tolerance,
+            fillet_ratio=self.fillet_ratio,
+        )
 
     def __init__(self, configuration: str = None, **kwargs):
         """initialize the configuration

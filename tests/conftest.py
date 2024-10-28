@@ -10,8 +10,6 @@ sys.path.insert(
 
 from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig, BearingConfig
-from walls_config import WallsConfig
-from walls import Walls
 
 
 # @pytest.fixture
@@ -362,25 +360,6 @@ def default_bender_config() -> BenderConfig:
 
 
 @pytest.fixture
-def wall_config_yaml():
-    return """
-walls:
-    top_diameter: 70
-    top_extension: 10
-    sidewall_width: 110
-    wall_thickness: 3
-    reinforcement_thickness: 7
-    section_depth: 170
-"""
-
-
-@pytest.fixture
-def wall_config():
-    cfg = WallsConfig()
-    return cfg
-
-
-@pytest.fixture
 def wheel_config_yaml():
     return """
 wheel:
@@ -439,10 +418,3 @@ def wheel_config():
 def bearing_config():
     cfg = BearingConfig()
     return cfg
-
-
-@pytest.fixture
-def compiled_walls():
-    wls = Walls()
-    wls.compile()
-    return wls

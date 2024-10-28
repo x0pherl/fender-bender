@@ -3,7 +3,6 @@ from importlib.machinery import SourceFileLoader
 from importlib.util import spec_from_loader, module_from_spec
 from unittest.mock import patch
 from filament_channels import FilamentChannels
-from walls_config import WallsConfig
 from filament_bracket import FilamentBracket
 
 

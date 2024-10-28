@@ -3,7 +3,6 @@ from pathlib import Path
 from importlib.machinery import SourceFileLoader
 from importlib.util import spec_from_loader, module_from_spec
 from unittest.mock import patch
-from walls_config import WallsConfig
 from frames import FrameSet, FrameStyle
 
 
