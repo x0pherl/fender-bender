@@ -257,10 +257,7 @@ class Guidewall(Partomatic):
         initializes the Partomatic filament wheel
         -------
         arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - kwargs: specific configuration values to override as key value pairs
+            - config: a GuidewallConfig ojbect
         """
         super(Partomatic, self).__init__()
 
