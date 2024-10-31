@@ -34,7 +34,7 @@ class TestConfig:
         assert cfg.spoke_count == 25
         assert cfg.lateral_tolerance == 1.111
         assert cfg.radial_tolerance == 0.222
-        assert cfg.stl_folder == "./stls"
+        assert cfg.stl_folder == "./stl"
         assert cfg.bearing.diameter == 1.2
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
@@ -61,7 +61,7 @@ class TestConfig:
         assert cfg.spoke_count == 25
         assert cfg.lateral_tolerance == 1.111
         assert cfg.radial_tolerance == 0.222
-        assert cfg.stl_folder == "./stls"
+        assert cfg.stl_folder == "./stl"
         assert cfg.bearing.diameter == 1.2
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
@@ -79,7 +79,7 @@ class TestConfig:
         assert cfg.spoke_count == 25
         assert cfg.lateral_tolerance == 1.111
         assert cfg.radial_tolerance == 0.222
-        assert cfg.stl_folder == "./stls"
+        assert cfg.stl_folder == "./stl"
         assert cfg.bearing.diameter == 1.2
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
