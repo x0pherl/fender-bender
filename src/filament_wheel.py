@@ -38,6 +38,7 @@ class FilamentWheel(Partomatic):
     """A partomatic for the filament wheel of the filament bank"""
 
     _config = WheelConfig()
+    stl_folder: str = "../stl/default"
     wheel: Part
 
     def _spoke(self) -> Sketch:
@@ -118,7 +119,9 @@ class FilamentWheel(Partomatic):
         """
         self._config.load_config(configuration, yaml_tree)
 
-    def __init__(self, config: WheelConfig = None):
+    def __init__(
+        self, config: WheelConfig = None, stl_folder: str = "../stl/default"
+    ):
         """
         initializes the Partomatic filament wheel
         -------
@@ -129,6 +132,7 @@ class FilamentWheel(Partomatic):
             - kwargs: specific configuration values to override as key value pairs
         """
         super(Partomatic, self).__init__()
+        self.stl_folder = stl_folder
         if config:
             self.load_config({"wheel": asdict(config)})
         else:
@@ -152,9 +156,9 @@ class FilamentWheel(Partomatic):
         Generates the filament wheel STLs in the configured
         folder
         """
-        if self._config.stl_folder == "NONE":
+        if self.stl_folder == "NONE":
             return
-        output_directory = Path(__file__).parent / self._config.stl_folder
+        output_directory = Path(__file__).parent / self.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         export_stl(
             self.wheel, str(output_directory / "filament-bracket-wheel.stl")
@@ -171,8 +175,9 @@ if __name__ == "__main__":
     config_path = Path(__file__).parent / "../build-configs/dev.conf"
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
-    wheel_conf = WheelConfig(config_path, yaml_tree="BenderConfig/wheel")
-    wheel = FilamentWheel(wheel_conf)
+    bender_config = BenderConfig(config_path)
+    wheel_conf = bender_config.wheel
+    wheel = FilamentWheel(wheel_conf, bender_config.stl_folder)
     print(
         f"wheel diameter: {wheel._config.diameter}\nwheel diameter: {wheel._config.bearing.radius}"
     )

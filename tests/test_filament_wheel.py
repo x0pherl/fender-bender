@@ -4,6 +4,7 @@ from importlib.util import spec_from_loader, module_from_spec
 from pathlib import Path
 from build123d import Part
 
+from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig, BearingConfig
 from filament_wheel import FilamentWheel
 
@@ -34,7 +35,6 @@ class TestConfig:
         assert cfg.spoke_count == 25
         assert cfg.lateral_tolerance == 1.111
         assert cfg.radial_tolerance == 0.222
-        assert cfg.stl_folder == "./stl"
         assert cfg.bearing.diameter == 1.2
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
@@ -61,7 +61,6 @@ class TestConfig:
         assert cfg.spoke_count == 25
         assert cfg.lateral_tolerance == 1.111
         assert cfg.radial_tolerance == 0.222
-        assert cfg.stl_folder == "./stl"
         assert cfg.bearing.diameter == 1.2
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
@@ -79,7 +78,6 @@ class TestConfig:
         assert cfg.spoke_count == 25
         assert cfg.lateral_tolerance == 1.111
         assert cfg.radial_tolerance == 0.222
-        assert cfg.stl_folder == "./stl"
         assert cfg.bearing.diameter == 1.2
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
@@ -110,8 +108,7 @@ class TestWheel:
             fw.display()
 
     def test_NONE_export(self):
-        fw = FilamentWheel()
-        fw._config.stl_folder = "NONE"
+        fw = FilamentWheel(stl_folder="NONE")
         fw.export_stls()
 
     def test_bare_execution(self):

@@ -43,7 +43,6 @@ class WheelConfig:
     lateral_tolerance: float = 0.6
     radial_tolerance: float = 0.2
     bearing: BearingConfig = field(default_factory=BearingConfig)
-    stl_folder: str = "../stl"
 
     @property
     def radius(self) -> float:

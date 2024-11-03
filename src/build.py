@@ -50,7 +50,7 @@ for conf_file in conf_files:
     print(f"Generating parts for {conf_file.name}")
     print(f"\t connector diam is {config.default_connector.diameter}")
     iteration_start_time = time()
-    wheel = FilamentWheel(config.wheel)
+    wheel = FilamentWheel(config.wheel, config.stl_folder)
     wheel.partomate()
     bracket = FilamentBracket(conf_file)
     bracket.partomate()

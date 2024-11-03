@@ -367,7 +367,6 @@ wheel:
   spoke_count: 25
   lateral_tolerance: 1.111
   radial_tolerance: 0.222
-  stl_folder: ./stl
   bearing:
     diameter: 1.2
     inner_diameter: 0.1
@@ -384,7 +383,6 @@ wheel:
   spoke_count: 25
   lateral_tolerance: 1.111
   radial_tolerance: 0.222
-  stl_folder: ./stl
   bearing: {diameter: 1.2, inner_diameter: 0.1, shelf_diameter: 0.2, depth: 1}
 """
 
@@ -399,7 +397,6 @@ tree1:
       spoke_count: 25
       lateral_tolerance: 1.111
       radial_tolerance: 0.222
-      stl_folder: ./stl
       bearing:
         diameter: 1.2
         inner_diameter: 0.1

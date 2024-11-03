@@ -559,7 +559,7 @@ class BenderConfig:
                 )
             default_connector = ConnectorConfig()
             self.connectors = [default_connector]
-            self.wheel = WheelConfig(stl_folder=self.stl_folder)
+            self.wheel = WheelConfig()
 
     def load_config(self, configuration: str):
         """
@@ -613,3 +613,4 @@ if __name__ == "__main__":
     print(test.sidewall_section_depth)
     print(test.frame_bracket_exterior_radius)
     print(test.wheel.radius, test.bracket_depth, test.bracket_height)
+    print(test.stl_folder)
