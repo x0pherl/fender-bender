@@ -366,8 +366,35 @@ class BottomFrame(Partomatic):
         )
 
         export_stl(
-            self._standingframe,
+            self._hybridframe.rotate(Axis.X, 180).move(
+                Location(
+                    (
+                        0,
+                        0,
+                        self._config.base_depth * 2
+                        + self._config.exterior_radius,
+                    )
+                )
+            ),
             str(Path(output_directory / "alt/frame-bottom-standing.stl")),
+        )
+        export_stl(
+            self._standingframe.rotate(Axis.X, 180).move(
+                Location(
+                    (
+                        0,
+                        0,
+                        self._config.base_depth * 2
+                        + self._config.exterior_radius,
+                    )
+                )
+            ),
+            str(
+                Path(
+                    output_directory
+                    / "alt/frame-bottom-standing-without-hanger.stl"
+                )
+            ),
         )
 
     def render_2d(self):
@@ -409,5 +436,4 @@ if __name__ == "__main__":
     frame = BottomFrame(bender_config.top_frame_config)
     frame.compile()
     frame.display()
-    # show(frame._standing_screw_fitting(0), reset_camera=Camera.KEEP)
-    # frame.export_stls()
+    frame.export_stls()
