@@ -33,6 +33,7 @@ from bender_config import BenderConfig
 from hexwall import HexWall
 from partomatic import Partomatic
 from guidewall_config import GuidewallConfig
+from tongue_groove import tongue
 
 
 class Guidewall(Partomatic):
@@ -110,70 +111,6 @@ class Guidewall(Partomatic):
 
         return side.part
 
-    def _straight_wall_tongue(self) -> Part:
-        """
-        creates a tongue for locking in wall parts,
-        companion to straight_wall_groove
-        """
-        with BuildPart() as tongue:
-            Box(
-                self._config.wall_thickness,
-                self._config.tongue_width,
-                self._config.tongue_depth - self._config.wall_thickness / 2,
-                align=(Align.CENTER, Align.CENTER, Align.MIN),
-            )
-            extrude(
-                tongue.faces().sort_by(Axis.Z)[-1],
-                amount=self._config.wall_thickness / 2,
-                taper=44,
-            )
-            with BuildPart(tongue.faces().sort_by(Axis.X)[0], mode=Mode.ADD):
-                with GridLocations(
-                    0,
-                    (self._config.section_count - 1)
-                    * self._config.section_width
-                    + self._config.tolerance * 2,
-                    1,
-                    2,
-                ):
-                    Sphere(radius=self._config.click_fit_radius * 0.75)
-            with BuildPart(
-                tongue.faces().sort_by(Axis.X)[-1], mode=Mode.SUBTRACT
-            ):
-                with GridLocations(
-                    0,
-                    (self._config.section_count - 1)
-                    * self._config.section_width
-                    + self._config.tolerance * 2,
-                    1,
-                    2,
-                ):
-                    Sphere(radius=self._config.click_fit_radius)
-
-            # this center cut guides the alignment when assembling,
-            # and provides additional stability to the hold
-            with BuildPart(mode=Mode.SUBTRACT):
-                Box(
-                    self._config.wall_thickness,
-                    self._config.wall_thickness / 2 + self._config.tolerance,
-                    self._config.tongue_depth,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN),
-                )
-                with BuildPart(
-                    Location((0, 0, self._config.wall_thickness * 0.75))
-                ):
-                    Sphere(radius=self._config.wall_thickness * 0.75)
-                    Cylinder(
-                        radius=self._config.wall_thickness * 0.6,
-                        height=self._config.wall_thickness,
-                        rotation=(0, 0, 0),
-                        align=(Align.CENTER, Align.CENTER, Align.MIN),
-                    )
-
-        part = tongue.part
-        part.label = "tongue"
-        return part
-
     def _guide_set(self) -> Part:
         """
         createst the complete set of guides for the guidewall
@@ -204,8 +141,18 @@ class Guidewall(Partomatic):
                 start_angle=90,
             ):
                 add(
-                    self._straight_wall_tongue()
+                    tongue(
+                        self._config.wall_thickness,
+                        self._config.tongue_width,
+                        self._config.tongue_depth,
+                        0,
+                        (self._config.section_count - 1)
+                        * self._config.section_width
+                        + self._config.tolerance * 2,
+                        self._config.click_fit_radius,
+                    )
                     .rotate(Axis.Y, 90)
+                    .rotate(Axis.X, 180)
                     .move(Location((0, 0, self._config.wall_thickness / 2)))
                 )
         return tongues.part

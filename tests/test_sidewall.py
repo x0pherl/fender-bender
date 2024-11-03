@@ -45,3 +45,11 @@ class TestSidewall:
     def test_render_2d(self):
         sidewall = Sidewall()
         sidewall.render_2d()
+
+
+class TestTongueGroove:
+    def test_bare_execution(self):
+        loader = SourceFileLoader("__main__", "src/tongue_groove.py")
+        loader.exec_module(
+            module_from_spec(spec_from_loader(loader.name, loader))
+        )

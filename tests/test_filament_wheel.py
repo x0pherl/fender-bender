@@ -5,7 +5,7 @@ from pathlib import Path
 from build123d import Part
 
 from filament_wheel_config import WheelConfig, BearingConfig
-from filament_wheel import FilamentWheel, diamond_torus
+from filament_wheel import FilamentWheel
 
 
 class TestConfig:
@@ -84,13 +84,6 @@ class TestConfig:
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
         assert cfg.bearing.depth == 1
-
-
-class TestTorus:
-    def test_diamond_torus(self):
-        torus = diamond_torus(major_radius=10, minor_radius=1)
-        assert isinstance(torus, Part)
-        assert torus.bounding_box().size.X == 22
 
 
 class TestWheel:

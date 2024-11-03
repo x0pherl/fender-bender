@@ -54,7 +54,7 @@ class FilamentBracket(Partomatic):
 
     _config = BenderConfig()
     _filamentchannels = FilamentChannels(None)
-    _lockpin = LockPin(None)
+    _lockpin = LockPin()
 
     # bottom: Part
     # top: Part
@@ -762,7 +762,7 @@ class FilamentBracket(Partomatic):
         """
         self._config.load_config(configuration_path)
         self._filamentchannels.load_config(configuration_path)
-        self._lockpin.load_config(configuration_path)
+        self._lockpin = LockPin(self._config.lock_pin_config)
 
     def __init__(self, configuration_path: str = None):
         """
@@ -903,8 +903,8 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
 
     bracket = FilamentBracket(config_path)
-
-    bracket.compile()
-    bracket.display()
-    bracket.export_stls()
-    bracket.render_2d(save_to_disk=False)
+    show(bracket.bottom_bracket_block())
+    # bracket.compile()
+    # bracket.display()
+    # bracket.export_stls()
+    # bracket.render_2d(save_to_disk=False)

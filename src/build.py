@@ -7,9 +7,12 @@ from time import time
 from bender_config import BenderConfig, LockStyle
 from filament_bracket import FilamentBracket
 from filament_wheel import FilamentWheel
-from frames import FrameSet
+from frame_top import TopFrame
+from frame_connector import ConnectorFrame
+from frame_bottom import BottomFrame
 from lock_pin import LockPin
-from walls import Walls
+from sidewall import Sidewall
+from guidewall import Guidewall
 
 start_time = time()
 parser = ArgumentParser(description="Build part stls")
@@ -51,12 +54,14 @@ for conf_file in conf_files:
     wheel.partomate()
     bracket = FilamentBracket(conf_file)
     bracket.partomate()
-    frameset = FrameSet(conf_file)
-    frameset.partomate()
-    walls = Walls(conf_file)
-    walls.partomate()
+    topframe = TopFrame(config.top_frame_config)
+    topframe.partomate()
+    BottomFrame(config.top_frame_config).partomate()
+    connectorframe = ConnectorFrame(config.connector_frame_config).partomate()
+    Sidewall(config.sidewall_config).partomate()
+    Guidewall(config.guidewall_config).partomate()
     if LockStyle.PIN in config.frame_lock_style:
-        lockpin = LockPin(conf_file)
+        lockpin = LockPin(config.lock_pin_config)
         lockpin.partomate()
     print(
         f"\t{conf_file.stem} configuration built in {(time() - iteration_start_time):.2f} seconds"

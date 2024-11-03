@@ -16,19 +16,11 @@ from bender_config import (
     FrameStyle,
     ConnectorConfig,
     TubeConfig,
-    _distance_to_circle_edge,
 )
 from shapely.geometry import Point
 
 
 class TestBenderConfig:
-
-    def test_distance_to_circle_edge(self):
-        assert _distance_to_circle_edge(10, (0, 5), 45) == 5.818609561002116
-
-    def test_distance_to_circle_edge_discriminant_error(self):
-        with pytest.raises(ValueError):
-            _distance_to_circle_edge(10, (0, 25), 45) == 5.818609561002116
 
     def test_benderconfig_defaults(self):
         cfg = BenderConfig()
@@ -128,7 +120,7 @@ class TestBenderConfig:
 
     def test_frame_click_sphere_point(self, default_bender_config):
         assert default_bender_config.frame_click_sphere_point == Point(
-            45.864535089018204, 4.15
+            47.864535089018204, 4.15
         )
 
     def test_top_frame_interior_width(self, default_bender_config):

@@ -31,28 +31,7 @@ from ocp_vscode import Camera, show
 from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig, BearingConfig
 from partomatic import Partomatic
-
-
-def diamond_torus(major_radius: float, minor_radius: float) -> Part:
-    """
-    sweeps a regular diamond along a circle defined by major_radius
-    -------
-    arguments:
-        - major_radius: the radius of the circle to sweep the diamond along
-        - minor_radius: the radius of the diamond
-    """
-    with BuildPart() as torus:
-        with BuildLine():
-            l1 = JernArc(
-                start=(major_radius, 0),
-                tangent=(0, 1),
-                radius=major_radius,
-                arc_size=360,
-            )
-        with BuildSketch(l1 ^ 0):
-            RegularPolygon(radius=minor_radius, side_count=4)
-        sweep()
-    return torus.part
+from basic_shapes import diamond_torus
 
 
 class FilamentWheel(Partomatic):

@@ -15,6 +15,9 @@ from filament_wheel_config import WheelConfig
 
 from guidewall_config import GuidewallConfig
 from sidewall_config import SidewallConfig
+from frame_config import ConnectorFrameConfig, TopFrameConfig
+from lock_pin_config import LockPinConfig
+from basic_shapes import distance_to_circle_edge
 
 
 class LockStyle(Flag):
@@ -32,33 +35,6 @@ class FrameStyle(Flag):
     HANGING = auto()
     STANDING = auto()
     HYBRID = HANGING | STANDING
-
-
-def _distance_to_circle_edge(radius, point, angle) -> float:
-    """
-    for a circle with the given radius, find the distance from the
-    given point to the edge of the circle in the direction determined
-    by the given angle
-    """
-    x1, y1 = point
-    theta = radians(angle)
-
-    a = 1
-    b = 2 * (x1 * cos(theta) + y1 * sin(theta))
-    c = x1**2 + y1**2 - radius**2
-
-    discriminant = b**2 - 4 * a * c
-
-    if discriminant < 0:
-        raise ValueError(
-            f"Error: discriminant calculated as < 0 ({discriminant})"
-        )
-    t1 = (-b + sqrt(discriminant)) / (2 * a)
-    t2 = (-b - sqrt(discriminant)) / (2 * a)
-
-    t = max(t1, t2)
-
-    return t
 
 
 @dataclass
@@ -167,7 +143,7 @@ class BenderConfig:
         the x/y coordinates at which the center of the frame clip is positioned
         """
         return Point(
-            _distance_to_circle_edge(
+            distance_to_circle_edge(
                 self.frame_bracket_exterior_radius,
                 (0, self.frame_clip_depth_offset),
                 angle=0,
@@ -183,7 +159,7 @@ class BenderConfig:
         arguments:
             - y_value: the placement of the intersection on the y axis
         """
-        return _distance_to_circle_edge(
+        return distance_to_circle_edge(
             self.frame_bracket_exterior_radius, (0, y_value), 0
         )
 
@@ -285,7 +261,7 @@ class BenderConfig:
         """
         return Point(
             self.frame_bracket_exterior_radius
-            - self.minimum_structural_thickness * 1.5,
+            - self.minimum_structural_thickness,
             self.fillet_radius + self.frame_click_sphere_radius,
         )
 
@@ -299,6 +275,10 @@ class BenderConfig:
             * self.filament_count
         ) - self.wall_thickness
 
+    #
+    # do we want to eliminate the hanging bit given the way we are now
+    # building frames and alternate parts?
+    #
     def frame_exterior_length(self, frame_style=FrameStyle.HYBRID) -> float:
         """
         the overall interior length of the top frame
@@ -334,7 +314,7 @@ class BenderConfig:
         calculates the appropriate filament funnel height
         to clear the filament wheel
         """
-        return _distance_to_circle_edge(
+        return distance_to_circle_edge(
             radius=self.wheel.radius
             + self.wheel.radial_tolerance
             + self.minimum_thickness,
@@ -484,6 +464,75 @@ class BenderConfig:
             click_fit_radius=self.frame_click_sphere_radius,
             tolerance=self.tolerance,
             fillet_ratio=self.fillet_ratio,
+        )
+
+    @property
+    def connector_frame_config(self) -> ConnectorFrameConfig:
+        return ConnectorFrameConfig(
+            stl_folder=self.stl_folder,
+            exterior_width=self.frame_exterior_width,
+            exterior_length=self.frame_exterior_length(
+                frame_style=FrameStyle.STANDING
+            ),
+            depth=self.frame_connector_depth,
+            interior_length=self.chamber_cut_length,
+            interior_width=self.top_frame_interior_width,
+            interior_offset=self.frame_hanger_offset,
+            fillet_radius=self.fillet_radius,
+            bracket_spacing=self.frame_bracket_spacing,
+            filament_count=self.filament_count,
+            wall_thickness=self.wall_thickness,
+            tolerance=self.tolerance,
+            click_fit_radius=self.frame_click_sphere_radius,
+            groove_width=self.wall_thickness + self.tolerance,
+            groove_depth=self.frame_tongue_depth + self.tolerance,
+            groove_distance=self.sidewall_width + self.wall_thickness,
+        )
+
+    @property
+    def top_frame_config(self) -> TopFrameConfig:
+        return TopFrameConfig(
+            stl_folder=self.stl_folder,
+            exterior_width=self.frame_exterior_width,
+            exterior_length=self.frame_exterior_length(
+                frame_style=FrameStyle.STANDING
+            ),
+            depth=self.frame_connector_depth,
+            interior_length=self.chamber_cut_length,
+            interior_width=self.top_frame_interior_width,
+            interior_offset=self.frame_hanger_offset,
+            fillet_radius=self.fillet_radius,
+            bracket_spacing=self.frame_bracket_spacing,
+            bracket_width=self.bracket_width,
+            filament_count=self.filament_count,
+            wall_thickness=self.wall_thickness,
+            tolerance=self.tolerance,
+            click_fit_radius=self.frame_click_sphere_radius,
+            groove_width=self.wall_thickness + self.tolerance,
+            groove_depth=self.frame_tongue_depth + self.tolerance,
+            groove_distance=self.sidewall_width + self.wall_thickness,
+            base_depth=self.frame_base_depth,
+            bracket_height=self.bracket_height,
+            exterior_radius=self.frame_bracket_exterior_radius,
+            interior_radius=self.wheel.radius,
+            tube_radius=self.default_connector.tube.outer_radius,
+            minimum_structural_thickness=self.minimum_structural_thickness,
+            include_lock_clip=LockStyle.CLIP in self.frame_lock_style,
+            include_lock_pin=LockStyle.PIN in self.frame_lock_style,
+            wall_bracket_post_count=self.wall_bracket_post_count,
+            lock_pin_tolerance=self.frame_lock_pin_tolerance,
+            screw_head_radius=self.wall_bracket_screw_head_radius,
+            screw_head_sink=self.wall_bracket_screw_head_sink,
+            screw_shaft_radius=self.wall_bracket_screw_radius,
+        )
+
+    @property
+    def lock_pin_config(self) -> LockPinConfig:
+        return LockPinConfig(
+            stl_folder=self.stl_folder,
+            pin_length=self.frame_exterior_width,
+            tolerance=self.frame_lock_pin_tolerance,
+            height=self.minimum_structural_thickness,
         )
 
     def __init__(self, configuration: str = None, **kwargs):

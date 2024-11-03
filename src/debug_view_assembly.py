@@ -20,16 +20,23 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from filament_bracket import FilamentBracket
-from frames import FrameSet
+from frame_top import TopFrame
+from frame_bottom import BottomFrame
+from frame_connector import ConnectorFrame
 from lock_pin import LockPin
-from walls import Walls
+from sidewall import Sidewall
+from guidewall import Guidewall
+from tongue_groove import tongue_pair, groove_pair
 
 _config_file = Path(__file__).parent / "../build-configs/debug.conf"
 _config = BenderConfig(_config_file)
 filamentbracket = FilamentBracket(_config_file)
-frameset = FrameSet(_config_file)
-walls = Walls(_config_file)
-lockpin = LockPin(_config_file)
+topframe = TopFrame(_config.top_frame_config)
+bottomframe = BottomFrame(_config.top_frame_config)
+connectorframe = ConnectorFrame(_config.connector_frame_config)
+sidewall = Sidewall(_config.sidewall_config)
+guidewall = Guidewall(_config.guidewall_config)
+lockpin = LockPin(_config.lock_pin_config)
 
 
 def bracket() -> Part:
@@ -63,7 +70,7 @@ def half_top() -> Part:
     returns half of the top frame
     """
     with BuildPart() as half:
-        add(frameset.top_frame())
+        add(topframe.top_frame())
         Box(
             1000,
             1000,
@@ -80,7 +87,7 @@ def clip_test():
     the the egress side of the frame and bracket
     """
     with BuildPart() as testblock:
-        add(frameset.top_frame())
+        add(topframe.top_frame())
         with BuildPart(
             Location((_config.frame_exterior_length / 4, 0, 0)),
             mode=Mode.SUBTRACT,
@@ -186,7 +193,7 @@ def cut_frame_test():
     a view with the placement of the bracket easily visible
     """
     with BuildPart() as cutframetest:
-        add(frameset.top_frame())
+        add(topframe.top_frame())
         with BuildPart(
             Location(
                 (
@@ -222,13 +229,22 @@ def cut_frame_test():
 
 def tongue_groove_test():
     """testing the tongue and groove fitting"""
+
     with BuildPart() as tongue:
         add(
-            walls._straight_wall_tongue().move(
+            tongue_pair(
+                tongue_distance=_config.sidewall_width,
+                width=_config.wall_thickness,
+                length=_config.top_frame_interior_width,
+                depth=_config.frame_tongue_depth,
+                tolerance=_config.tolerance,
+                click_fit_distance=_config.top_frame_interior_width
+                - _config.bracket_depth,
+                click_fit_radius=_config.frame_click_sphere_radius,
+            ).move(
                 Location(
                     (
-                        -_config.sidewall_width / 2
-                        - _config.wall_thickness / 2,
+                        0,
                         0,
                         0,
                     )
@@ -236,7 +252,18 @@ def tongue_groove_test():
             )
         )
     with BuildPart() as groove:
-        add(frameset.straight_wall_grooves().mirror())
+        add(
+            groove_pair(
+                groove_distance=_config.sidewall_width,
+                width=_config.wall_thickness,
+                length=_config.top_frame_interior_width,
+                depth=_config.frame_tongue_depth,
+                tolerance=_config.tolerance,
+                click_fit_distance=_config.top_frame_interior_width
+                - _config.bracket_depth,
+                click_fit_radius=_config.frame_click_sphere_radius,
+            ).mirror()
+        )
     show(tongue.part, groove.part, reset_camera=Camera.KEEP)
 
 
@@ -274,9 +301,12 @@ def generate_funnel_test_parts():
 
 
 if __name__ == "__main__":
+    gw = Guidewall(_config.guidewall_config)
+    sw = Sidewall(_config.sidewall_config)
+    gw.compile()
+    sw.compile()
     bwall = (
-        walls.guide_wall(_config.sidewall_straight_depth)
-        .rotate(Axis.Z, 90)
+        gw.wall.rotate(Axis.Z, 90)
         .rotate(Axis.Y, 90)
         .move(
             Location(
@@ -291,8 +321,7 @@ if __name__ == "__main__":
         )
     )
     fwall = (
-        walls.guide_wall(_config.sidewall_straight_depth)
-        .rotate(Axis.Z, 90)
+        gw.wall.rotate(Axis.Z, 90)
         .rotate(Axis.Y, -90)
         .move(
             Location(
@@ -306,42 +335,41 @@ if __name__ == "__main__":
             )
         )
     )
-    swall = (
-        walls.side_wall(length=_config.sidewall_section_depth, reinforce=True)
-        .rotate(Axis.X, 90)
-        .move(
-            Location(
-                (
-                    _config.frame_hanger_offset,
-                    -_config.top_frame_interior_width / 2
-                    - _config.minimum_structural_thickness
-                    - _config.wall_thickness / 2,
-                    00,
-                )
+    swall = sw.reinforcedsidewall.rotate(Axis.X, 90).move(
+        Location(
+            (
+                _config.frame_hanger_offset,
+                -_config.top_frame_interior_width / 2
+                - _config.minimum_structural_thickness
+                - _config.wall_thickness / 2,
+                0,
             )
         )
     )
 
-    topframe = frameset.top_frame()
+    tf = TopFrame(_config.top_frame_config)
+    tf.compile()
 
-    bframe = (
-        frameset.bottom_frame()
-        .rotate(Axis.X, 180)
-        .move(
-            Location(
-                (
-                    0,
-                    0,
-                    -_config.sidewall_straight_depth
-                    - _config.frame_connector_depth
-                    - _config.sidewall_straight_depth,
-                )
+    topframe = tf._hybridframe
+
+    bf = BottomFrame(_config.top_frame_config)
+    bf.compile()
+    bframe = bf._hybridframe.rotate(Axis.X, 180).move(
+        Location(
+            (
+                0,
+                0,
+                -_config.sidewall_straight_depth
+                - _config.frame_connector_depth
+                - _config.sidewall_straight_depth,
             )
         )
     )
 
+    cf = ConnectorFrame(_config.connector_frame_config)
+    cf.compile()
     cframe = (
-        frameset.connector_frame().move(
+        cf._hanging_frame.move(
             Location(
                 (
                     0,

@@ -191,29 +191,10 @@ class wall_assembly:
         return complete_assembly
 
     def __init__(self, config: BenderConfig = None):
-        # self._sidewallconfig = SidewallConfig(
-        #     {"sidewall": asdict(sidewall_config)}
-        # )
-        # self.gwall = self.guide_wall(self._config.sidewall_straight_depth)
         if config is None:
             self._config = BenderConfig()
         else:
             self._config = config
-        # self.sidewall = Sidewall(self._config.sidewall_config)._sidewall()
-        # self.reinforcedsidewall = Sidewall(
-        #     self._config.sidewall_config
-        # )._sidewall()
-        # self.gwall = Guidewall(self._config.guidewall_config).build_guidewall()
-        # self._step_one_assembly()
-        # self._step_two_assembly()
-        # self.complete_assembly = Compound(
-        #     label="Wall Assembly",
-        #     children=[
-        #         self._guide_wall_assembly(),
-        #         self._side_wall_assembly(),
-        #         self._reinforced_side_wall_assembly(),
-        #     ],
-        # )
 
 
 if __name__ == "__main__":
