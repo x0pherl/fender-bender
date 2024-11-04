@@ -1,3 +1,5 @@
+# Fender-Bender Overview
+<!---
 ..
     fender-bender readthedocs documentation
 
@@ -16,18 +18,9 @@
 
         THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+-->
 
-
-.. highlight:: python
-
-.. image:: ./assets/logo.svg
-  :align: right
-  :alt: fender-bender logo
-
-
-########
-Summary
-########
+![Fender-Bender Logo](assets/logo.svg){ align=right loading=lazy width=33%}
 
 FENDER BENDER is an open-source filament buffering system. Filament buffers are necessary for reliable operation of multi-material systems such as Prusa's MMU3 or earlier revisions of the ERCF.
 
@@ -38,23 +31,3 @@ FENDER BENDER begins with an opinionated design for building the most effective 
 We believe the reference design represents the best choices for a buffering system. However, because FENDER BENDER was built using a flexible, parametric tool, the design can easily be modified to build buffering systems representing differing opinions on design; allowing for different tubes, connectors, and bearings to be built without having to modify the Python/Build123d source code.
 
 This flexibility comes from having as many elements as possible calculated on a few critical elements. While this approach allows for tremendous flexibility without a lot of knowledge of Python, there's no guarantee that any combination of values will work. If you're struggling to get something to work, please reach out with enough details for us to assist.
-
-
-#################
-Table Of Contents
-#################
-
-.. toctree::
-    :maxdepth: 2
-
-    introduction.rst
-    assembly.rst
-    usage.rst
-
-==================
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
