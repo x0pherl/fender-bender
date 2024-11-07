@@ -185,6 +185,3 @@ if __name__ == "__main__":
         inner_diameter * depth, inner_diameter, depth
     )
     show(ring, reset_camera=Camera.KEEP)
-    from build123d import export_stl
-
-    export_stl(ring, "bearing.stl")
