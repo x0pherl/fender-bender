@@ -1,6 +1,7 @@
 import pytest
 from importlib.machinery import SourceFileLoader
 from importlib.util import spec_from_loader, module_from_spec
+from unittest.mock import patch
 from pathlib import Path
 from build123d import Part
 
@@ -85,10 +86,16 @@ class TestConfig:
 
 
 class TestWheel:
-    def test_partomate(self, wheel_config_yaml):
-        fw = FilamentWheel(WheelConfig(wheel_config_yaml))
+    def test_partomate(self):
+        fw = FilamentWheel()
         fw.partomate()
         assert fw.wheel.volume > 0
+        assert fw.wheel.is_valid()
+        assert fw.print_in_place_wheel.is_valid
+        assert fw.wheel.bounding_box().size.Z == pytest.approx(4)
+        assert fw.print_in_place_wheel.bounding_box().size.Z == pytest.approx(
+            4
+        )
 
     def test_loadconfig(self, wheel_config_subpath_yaml):
         fw = FilamentWheel()
@@ -98,9 +105,10 @@ class TestWheel:
         assert fw._config.diameter == 12.3
 
     def test_display(self):
-        fw = FilamentWheel()
-        fw.compile()
-        fw.display()
+        with patch("ocp_vscode.show"):
+            fw = FilamentWheel()
+            fw.compile()
+            fw.display()
 
     def test_uncompiled_display(self):
         fw = FilamentWheel()
@@ -112,7 +120,15 @@ class TestWheel:
         fw.export_stls()
 
     def test_bare_execution(self):
-        loader = SourceFileLoader("__main__", "src/filament_wheel.py")
-        loader.exec_module(
-            module_from_spec(spec_from_loader(loader.name, loader))
-        )
+        with patch("build123d.export_stl"):
+            with patch("pathlib.Path.mkdir"):
+                with patch("ocp_vscode.show"):
+                    with patch("ocp_vscode.save_screenshot"):
+                        loader = SourceFileLoader(
+                            "__main__", "src/filament_wheel.py"
+                        )
+                        loader.exec_module(
+                            module_from_spec(
+                                spec_from_loader(loader.name, loader)
+                            )
+                        )

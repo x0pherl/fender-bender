@@ -7,12 +7,13 @@ from dataclasses import fields, asdict
 from pathlib import Path
 
 from build123d import (
+    Align,
     BuildLine,
     BuildPart,
     BuildSketch,
     CenterArc,
     Circle,
-    JernArc,
+    Cylinder,
     Line,
     Location,
     Mode,
@@ -32,6 +33,7 @@ from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig, BearingConfig
 from partomatic import Partomatic
 from basic_shapes import diamond_torus
+from bearing import print_in_place_bearing
 
 
 class FilamentWheel(Partomatic):
@@ -40,6 +42,7 @@ class FilamentWheel(Partomatic):
     _config = WheelConfig()
     stl_folder: str = "../stl/default"
     wheel: Part
+    print_in_place_wheel: Part
 
     def _spoke(self) -> Sketch:
         """
@@ -74,7 +77,7 @@ class FilamentWheel(Partomatic):
             make_face()
         return sketch.sketch
 
-    def filament_wheel(self) -> Part:
+    def filament_wheel(self, print_in_place=False) -> Part:
         """
         the wheel for passing the filament through the bracket
         """
@@ -104,6 +107,20 @@ class FilamentWheel(Partomatic):
                 ).move(Location((0, 0, self._config.bearing.depth / 2))),
                 mode=Mode.SUBTRACT,
             )
+            if print_in_place:
+                Cylinder(
+                    self._config.bearing.diameter,
+                    self._config.depth,
+                    mode=Mode.SUBTRACT,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+                add(
+                    print_in_place_bearing(
+                        outer_radius=self._config.bearing.diameter,
+                        inner_radius=self._config.bearing.inner_radius,
+                        height=self._config.depth,
+                    )
+                )
         return fwheel.part
 
     def load_config(self, configuration: str, yaml_tree="wheel"):
@@ -143,13 +160,23 @@ class FilamentWheel(Partomatic):
         Builds the relevant parts for the filament wheel
         """
         self.wheel = self.filament_wheel()
+        self.print_in_place_wheel = self.filament_wheel(print_in_place=True)
         self.wheel.label = "filament wheel"
+        self.print_in_place_wheel.label = "print-in-place filament wheel"
 
     def display(self):
         """
         Shows the filament wheel in OCP CAD Viewer
         """
-        show(self.wheel, reset_camera=Camera.KEEP)
+        show(
+            self.wheel,
+            self.print_in_place_wheel.move(
+                Location(
+                    (self._config.diameter + self._config.depth / 2, 0, 0)
+                )
+            ),
+            reset_camera=Camera.KEEP,
+        )
 
     def export_stls(self):
         """
@@ -162,6 +189,13 @@ class FilamentWheel(Partomatic):
         output_directory.mkdir(parents=True, exist_ok=True)
         export_stl(
             self.wheel, str(output_directory / "filament-bracket-wheel.stl")
+        )
+        export_stl(
+            self.print_in_place_wheel,
+            str(
+                output_directory
+                / "alt/filament-bracket-wheel-print-in-place.stl"
+            ),
         )
 
     def render_2d(self):
@@ -178,9 +212,6 @@ if __name__ == "__main__":
     bender_config = BenderConfig(config_path)
     wheel_conf = bender_config.wheel
     wheel = FilamentWheel(wheel_conf, bender_config.stl_folder)
-    print(
-        f"wheel diameter: {wheel._config.diameter}\nwheel diameter: {wheel._config.bearing.radius}"
-    )
     wheel.compile()
     wheel.display()
     wheel.export_stls()

@@ -51,6 +51,11 @@ class WheelConfig:
         """
         return self.diameter / 2
 
+    @property
+    def depth(self) -> float:
+        """returns the depth of the bearing"""
+        return self.bearing.depth
+
     def load_config(self, configuration: str, yaml_tree="wheel"):
         """
         loads a wheel configuration from a file or valid yaml
