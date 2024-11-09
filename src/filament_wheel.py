@@ -2,8 +2,7 @@
 Generates the part for the filament wheel of our filament bank design
 """
 
-import yaml
-from dataclasses import fields, asdict
+from dataclasses import asdict
 from pathlib import Path
 
 from build123d import (
@@ -19,18 +18,17 @@ from build123d import (
     Mode,
     Part,
     PolarLocations,
-    RegularPolygon,
     Sketch,
     add,
     export_stl,
     extrude,
     make_face,
-    sweep,
 )
+
 from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
-from filament_wheel_config import WheelConfig, BearingConfig
+from filament_wheel_config import WheelConfig
 from partomatic import Partomatic
 from basic_shapes import diamond_torus
 from bearing import print_in_place_bearing

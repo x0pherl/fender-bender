@@ -88,9 +88,7 @@ class WheelConfig:
         if configuration:
             configuration = str(configuration)
             try:
-                self.load_config(
-                    configuration, kwargs.get("yaml_tree", "wheel")
-                )
+                self.load_config(configuration, kwargs.get("yaml_tree", "wheel"))
             except Exception as e:
                 raise ValueError(
                     f"Error loading configuration from {configuration}: {e}"
@@ -104,6 +102,4 @@ class WheelConfig:
                     else:
                         self.bearing = BearingConfig()
                 else:
-                    setattr(
-                        self, field.name, kwargs.get(field.name, field.default)
-                    )
+                    setattr(self, field.name, kwargs.get(field.name, field.default))

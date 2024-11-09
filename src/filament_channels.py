@@ -54,9 +54,7 @@ class FilamentChannels(Partomatic):
                 pitch=self._config.connectors[connector_index].thread_pitch,
                 length=self._config.connectors[connector_index].length
                 - self._config.minimum_thickness / 2,
-                thread_angle=self._config.connectors[
-                    connector_index
-                ].thread_angle,
+                thread_angle=self._config.connectors[connector_index].thread_angle,
                 external=False,
                 interference=self._config.connectors[
                     connector_index
@@ -85,8 +83,7 @@ class FilamentChannels(Partomatic):
             Location(
                 (
                     0,
-                    self._config.bracket_height
-                    - self._config.minimum_thickness / 2,
+                    self._config.bracket_height - self._config.minimum_thickness / 2,
                     self._config.bracket_depth / 2,
                 ),
                 (90, 0, 0),
@@ -146,9 +143,7 @@ class FilamentChannels(Partomatic):
                         + self._config.wheel.lateral_tolerance,
                         mode=Mode.INTERSECT,
                     )
-                with BuildSketch(
-                    Plane.XY.offset(self._config.filament_funnel_height)
-                ):
+                with BuildSketch(Plane.XY.offset(self._config.filament_funnel_height)):
                     Circle(
                         radius=self._config.connectors[
                             connector_index
@@ -157,9 +152,7 @@ class FilamentChannels(Partomatic):
                 loft()
             with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
                 Cylinder(
-                    radius=self._config.connectors[
-                        connector_index
-                    ].tube.outer_radius,
+                    radius=self._config.connectors[connector_index].tube.outer_radius,
                     height=self._config.bracket_height
                     - self._config.filament_funnel_height
                     - self._config.connectors[connector_index].length,
@@ -173,8 +166,7 @@ class FilamentChannels(Partomatic):
                 )
             with BuildSketch(
                 Plane.XY.offset(
-                    self._config.bracket_height
-                    - self._config.minimum_thickness / 2
+                    self._config.bracket_height - self._config.minimum_thickness / 2
                 )
             ):
                 Circle(radius=self._config.connectors[connector_index].radius)
@@ -220,11 +212,7 @@ class FilamentChannels(Partomatic):
         with BuildPart() as path:
             add(self.straight_filament_path_solid())
             with BuildPart(mode=Mode.SUBTRACT):
-                add(
-                    self.straight_filament_path_cut(
-                        connector_index=connector_index
-                    )
-                )
+                add(self.straight_filament_path_cut(connector_index=connector_index))
             if not draft and self._config.connectors[connector_index].threaded:
                 add(
                     self.straight_filament_connector_threads(
@@ -291,43 +279,29 @@ class FilamentChannels(Partomatic):
         with BuildPart() as inlet:
             with BuildLine() as intake:
                 add(path.children[0])
-            with BuildSketch(
-                Plane(origin=intake.line @ 0, z_dir=intake.line % 0)
-            ):
+            with BuildSketch(Plane(origin=intake.line @ 0, z_dir=intake.line % 0)):
                 Circle(
-                    radius=self._config.connectors[
-                        connector_index
-                    ].tube.outer_diameter
+                    radius=self._config.connectors[connector_index].tube.outer_diameter
                     * 0.75
                 )
                 Rectangle(
-                    height=self._config.connectors[
-                        connector_index
-                    ].tube.outer_diameter
+                    height=self._config.connectors[connector_index].tube.outer_diameter
                     * 2,
                     width=self._config.wheel.bearing.depth
                     + self._config.wheel.lateral_tolerance,
                     mode=Mode.INTERSECT,
                 )
-            with BuildSketch(
-                Plane(origin=intake.line @ 1, z_dir=intake.line % 1)
-            ):
-                Circle(
-                    self._config.connectors[connector_index].tube.inner_radius
-                )
+            with BuildSketch(Plane(origin=intake.line @ 1, z_dir=intake.line % 1)):
+                Circle(self._config.connectors[connector_index].tube.inner_radius)
             loft()
-            extrude(
-                inlet.faces().sort_by(Axis.Y)[0], self._config.bracket_depth
-            )
+            extrude(inlet.faces().sort_by(Axis.Y)[0], self._config.bracket_depth)
         with BuildPart() as tube:
             with BuildLine() as tube_path:
                 add(path.children[1])
             with BuildSketch(
                 Plane(origin=tube_path.line @ 0, z_dir=tube_path.line % 0)
             ):
-                Circle(
-                    self._config.connectors[connector_index].tube.outer_radius
-                )
+                Circle(self._config.connectors[connector_index].tube.outer_radius)
             sweep()
         with BuildPart() as tube_curve:
             with BuildLine() as tube_path:
@@ -335,9 +309,7 @@ class FilamentChannels(Partomatic):
             with BuildSketch(
                 Plane(origin=tube_path.line @ 0, z_dir=tube_path.line % 0)
             ):
-                Circle(
-                    self._config.connectors[connector_index].tube.outer_radius
-                )
+                Circle(self._config.connectors[connector_index].tube.outer_radius)
             sweep()
         with BuildPart() as connector:
             with BuildLine() as connector_path:
@@ -400,9 +372,7 @@ class FilamentChannels(Partomatic):
             with BuildSketch(
                 Plane(origin=curve.line @ 0, z_dir=curve.line % 0)
             ) as path_face:
-                Rectangle(
-                    self._config.bracket_depth, self._config.bracket_depth
-                )
+                Rectangle(self._config.bracket_depth, self._config.bracket_depth)
                 fillet(path_face.vertices(), self._config.fillet_radius)
             sweep()
             if not top_exit_fillet:
@@ -419,15 +389,10 @@ class FilamentChannels(Partomatic):
                     )
                 sweep()
             fillet(
-                solid_path.faces()
-                .sort_by(Axis.Y)[0]
-                .edges()
-                .filter_by(Axis.X),
+                solid_path.faces().sort_by(Axis.Y)[0].edges().filter_by(Axis.X),
                 self._config.fillet_radius,
             )
-        part = solid_path.part.move(
-            Location((0, 0, self._config.bracket_depth / 2))
-        )
+        part = solid_path.part.move(Location((0, 0, self._config.bracket_depth / 2)))
         part.label = "curved filament path"
         return part
 
@@ -481,9 +446,9 @@ class FilamentChannels(Partomatic):
         """
         Builds the relevant parts for the filament channels
         """
-        self._straightfilamentpath = self.straight_filament_path(
-            draft=False
-        ).move(Location((-self._config.wheel.radius, 0, 0)))
+        self._straightfilamentpath = self.straight_filament_path(draft=False).move(
+            Location((-self._config.wheel.radius, 0, 0))
+        )
         self._curvedfilamentpath = self.curved_filament_path(
             top_exit_fillet=True, draft=False
         ).move(Location((self._config.wheel.radius, 0, 0)))
@@ -513,8 +478,6 @@ class FilamentChannels(Partomatic):
 
 
 if __name__ == "__main__":
-    channels = FilamentChannels(
-        Path(__file__).parent / "../build-configs/debug.conf"
-    )
+    channels = FilamentChannels(Path(__file__).parent / "../build-configs/debug.conf")
     channels.compile()
     channels.display()
