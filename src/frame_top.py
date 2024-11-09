@@ -30,9 +30,10 @@ from basic_shapes import (
     rounded_cylinder,
     rail_block_template,
     distance_to_circle_edge,
+    screw_cut,
 )
 from filament_bracket import FilamentBracket
-from frame_config import TopFrameConfig
+from frame_config import FrameConfig
 from frame_common import core_cut, wallslots
 from lock_pin import LockPin
 from lock_pin_config import LockPinConfig
@@ -46,7 +47,7 @@ class TopFrame(Partomatic):
     A Partomatic for the top frame
     """
 
-    _config: TopFrameConfig = TopFrameConfig()
+    _config: FrameConfig = FrameConfig()
 
     _standingframe: Part
     _hangingframe: Part
@@ -417,7 +418,7 @@ class TopFrame(Partomatic):
     def render_2d(self):
         pass
 
-    def load_config(self, configuration: str, yaml_tree="top-frame"):
+    def load_config(self, configuration: str, yaml_tree="frame"):
         """
         loads a sidewall configuration from a file or valid yaml
         -------
@@ -430,7 +431,7 @@ class TopFrame(Partomatic):
         """
         self._config.load_config(configuration, yaml_tree)
 
-    def __init__(self, config: TopFrameConfig = None):
+    def __init__(self, config: FrameConfig = None):
         """
         initializes the Partomatic filament wheel
         -------
@@ -440,9 +441,9 @@ class TopFrame(Partomatic):
         super(Partomatic, self).__init__()
 
         if config:
-            self.load_config({"top-frame": asdict(config)})
+            self.load_config({"frame": asdict(config)})
         else:
-            self._config = TopFrameConfig()
+            self._config = FrameConfig()
 
 
 if __name__ == "__main__":
@@ -450,7 +451,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
-    frame = TopFrame(bender_config.top_frame_config)
+    frame = TopFrame(bender_config.frame_config)
     frame.compile()
     frame.display()
     frame.export_stls()

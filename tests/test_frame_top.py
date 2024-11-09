@@ -24,7 +24,7 @@ class TestTopFrame:
         bender_config = BenderConfig(
             bender_config_reference_single_connector_yaml
         )
-        frame = TopFrame(bender_config.top_frame_config)
+        frame = TopFrame(bender_config.frame_config)
         part = frame.top_frame()
         assert part.is_valid()
 

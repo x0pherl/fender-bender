@@ -54,10 +54,10 @@ for conf_file in conf_files:
     wheel.partomate()
     bracket = FilamentBracket(conf_file)
     bracket.partomate()
-    topframe = TopFrame(config.top_frame_config)
+    topframe = TopFrame(config.frame_config)
     topframe.partomate()
-    BottomFrame(config.top_frame_config).partomate()
-    connectorframe = ConnectorFrame(config.connector_frame_config).partomate()
+    BottomFrame(config.frame_config).partomate()
+    connectorframe = ConnectorFrame(config.frame_config).partomate()
     Sidewall(config.sidewall_config).partomate()
     Guidewall(config.guidewall_config).partomate()
     if LockStyle.PIN in config.frame_lock_style:

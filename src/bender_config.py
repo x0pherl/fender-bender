@@ -15,7 +15,7 @@ from filament_wheel_config import WheelConfig
 
 from guidewall_config import GuidewallConfig
 from sidewall_config import SidewallConfig
-from frame_config import ConnectorFrameConfig, TopFrameConfig
+from frame_config import FrameConfig
 from lock_pin_config import LockPinConfig
 from basic_shapes import distance_to_circle_edge
 
@@ -467,31 +467,8 @@ class BenderConfig:
         )
 
     @property
-    def connector_frame_config(self) -> ConnectorFrameConfig:
-        return ConnectorFrameConfig(
-            stl_folder=self.stl_folder,
-            exterior_width=self.frame_exterior_width,
-            exterior_length=self.frame_exterior_length(
-                frame_style=FrameStyle.STANDING
-            ),
-            depth=self.frame_connector_depth,
-            interior_length=self.chamber_cut_length,
-            interior_width=self.top_frame_interior_width,
-            interior_offset=self.frame_hanger_offset,
-            fillet_radius=self.fillet_radius,
-            bracket_spacing=self.frame_bracket_spacing,
-            filament_count=self.filament_count,
-            wall_thickness=self.wall_thickness,
-            tolerance=self.tolerance,
-            click_fit_radius=self.frame_click_sphere_radius,
-            groove_width=self.wall_thickness + self.tolerance,
-            groove_depth=self.frame_tongue_depth + self.tolerance,
-            groove_distance=self.sidewall_width + self.wall_thickness,
-        )
-
-    @property
-    def top_frame_config(self) -> TopFrameConfig:
-        return TopFrameConfig(
+    def frame_config(self) -> FrameConfig:
+        return FrameConfig(
             stl_folder=self.stl_folder,
             exterior_width=self.frame_exterior_width,
             exterior_length=self.frame_exterior_length(

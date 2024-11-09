@@ -24,11 +24,11 @@ from bender_config import BenderConfig
 from frame_common import chamber_cuts
 from partomatic import Partomatic
 from tongue_groove import groove_pair
-from frame_config import ConnectorFrameConfig
+from frame_config import FrameConfig
 
 
 class ConnectorFrame(Partomatic):
-    _config: ConnectorFrameConfig = ConnectorFrameConfig()
+    _config: FrameConfig = FrameConfig()
     _standing_frame: Part
     _hanging_frame: Part
 
@@ -157,7 +157,7 @@ class ConnectorFrame(Partomatic):
     def render_2d(self):
         pass
 
-    def load_config(self, configuration: str, yaml_tree="connector-frame"):
+    def load_config(self, configuration: str, yaml_tree="frame"):
         """
         loads a sidewall configuration from a file or valid yaml
         -------
@@ -170,7 +170,7 @@ class ConnectorFrame(Partomatic):
         """
         self._config.load_config(configuration, yaml_tree)
 
-    def __init__(self, config: ConnectorFrameConfig = None):
+    def __init__(self, config: FrameConfig = None):
         """
         initializes the Partomatic filament wheel
         -------
@@ -180,9 +180,9 @@ class ConnectorFrame(Partomatic):
         super(Partomatic, self).__init__()
 
         if config:
-            self.load_config({"connector-frame": asdict(config)})
+            self.load_config({"frame": asdict(config)})
         else:
-            self._config = ConnectorFrameConfig()
+            self._config = FrameConfig()
 
 
 if __name__ == "__main__":
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
-    frame = ConnectorFrame(bender_config.connector_frame_config)
+    frame = ConnectorFrame(bender_config.frame_config)
     frame.compile()
     frame.display()
     frame.export_stls()

@@ -4,7 +4,7 @@ from importlib.util import module_from_spec, spec_from_loader
 
 from bender_config import BenderConfig
 from frame_connector import ConnectorFrame
-from frame_config import ConnectorFrameConfig
+from frame_config import FrameConfig
 
 
 class TestBareExecution:
@@ -20,9 +20,9 @@ class TestBareExecution:
             )
 
 
-class TestConnectorFrameConfig:
+class TestFrameConfig:
     def test_default_config(self):
-        config = ConnectorFrameConfig()
+        config = FrameConfig()
         assert config.stl_folder == "NONE"
 
 
@@ -34,7 +34,7 @@ class TestConnectorFrame:
             patch("build123d.export_stl"),
         ):
             bender_config = BenderConfig()
-            frame_config = bender_config.connector_frame_config
+            frame_config = bender_config.frame_config
             frame_config.stl_folder = "NONE"
             frame = ConnectorFrame(frame_config)
             frame.compile()

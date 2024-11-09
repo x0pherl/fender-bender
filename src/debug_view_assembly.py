@@ -31,9 +31,9 @@ from tongue_groove import tongue_pair, groove_pair
 _config_file = Path(__file__).parent / "../build-configs/debug.conf"
 _config = BenderConfig(_config_file)
 filamentbracket = FilamentBracket(_config_file)
-topframe = TopFrame(_config.top_frame_config)
-bottomframe = BottomFrame(_config.top_frame_config)
-connectorframe = ConnectorFrame(_config.connector_frame_config)
+topframe = TopFrame(_config.frame_config)
+bottomframe = BottomFrame(_config.frame_config)
+connectorframe = ConnectorFrame(_config.frame_config)
 sidewall = Sidewall(_config.sidewall_config)
 guidewall = Guidewall(_config.guidewall_config)
 lockpin = LockPin(_config.lock_pin_config)
@@ -116,7 +116,9 @@ def clip_test():
                 _config.wheel.diameter,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
-        with BuildPart(Location((_config.frame_exterior_length / 4 + 3, 0, 0))):
+        with BuildPart(
+            Location((_config.frame_exterior_length / 4 + 3, 0, 0))
+        ):
             Box(
                 _config.minimum_structural_thickness,
                 _config.frame_exterior_width,
@@ -161,7 +163,8 @@ def clip_test():
             Location(
                 (
                     0,
-                    _config.wheel.radius / 2 + _config.minimum_structural_thickness,
+                    _config.wheel.radius / 2
+                    + _config.minimum_structural_thickness,
                     0,
                 )
             ),
@@ -204,7 +207,9 @@ def cut_frame_test():
             ),
             mode=Mode.SUBTRACT,
         ):
-            Box(1000, 1000, 1000, align=(Align.CENTER, Align.MAX, Align.CENTER))
+            Box(
+                1000, 1000, 1000, align=(Align.CENTER, Align.MAX, Align.CENTER)
+            )
     show(
         cutframetest.part,
         filamentbracket.bottom_bracket()
@@ -263,8 +268,12 @@ def tongue_groove_test():
 
 
 def generate_funnel_test_parts():
-    bracket = FilamentBracket(Path(__file__).parent / "../build-configs/reference.conf")
-    with BuildPart(Location((bracket._config.wheel.radius - 5, 0, 0))) as cutcube:
+    bracket = FilamentBracket(
+        Path(__file__).parent / "../build-configs/reference.conf"
+    )
+    with BuildPart(
+        Location((bracket._config.wheel.radius - 5, 0, 0))
+    ) as cutcube:
         Box(
             bracket._config.bracket_width,
             bracket._config.bracket_width,
@@ -338,12 +347,12 @@ if __name__ == "__main__":
         )
     )
 
-    tf = TopFrame(_config.top_frame_config)
+    tf = TopFrame(_config.frame_config)
     tf.compile()
 
     topframe = tf._hybridframe
 
-    bf = BottomFrame(_config.top_frame_config)
+    bf = BottomFrame(_config.frame_config)
     bf.compile()
     bframe = bf._hybridframe.rotate(Axis.X, 180).move(
         Location(
@@ -357,7 +366,7 @@ if __name__ == "__main__":
         )
     )
 
-    cf = ConnectorFrame(_config.connector_frame_config)
+    cf = ConnectorFrame(_config.frame_config)
     cf.compile()
     cframe = (
         cf._hanging_frame.move(
@@ -365,7 +374,8 @@ if __name__ == "__main__":
                 (
                     0,
                     0,
-                    -_config.sidewall_straight_depth - _config.frame_connector_depth,
+                    -_config.sidewall_straight_depth
+                    - _config.frame_connector_depth,
                 )
             )
         ),
@@ -374,7 +384,9 @@ if __name__ == "__main__":
     bkt = (
         filamentbracket.bottom_bracket()
         .rotate(Axis.X, 90)
-        .move(Location((0, _config.bracket_depth / 2, _config.frame_base_depth)))
+        .move(
+            Location((0, _config.bracket_depth / 2, _config.frame_base_depth))
+        )
     )
 
     pin = lockpin.lock_pin(

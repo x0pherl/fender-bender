@@ -1,7 +1,7 @@
 from basic_shapes import screw_cut
 from frame_common import chamber_cuts, core_cut, wallslots
 from tongue_groove import groove_pair
-from frame_config import TopFrameConfig
+from frame_config import FrameConfig
 from partomatic import Partomatic
 from bender_config import BenderConfig
 
@@ -30,7 +30,7 @@ class BottomFrame(Partomatic):
     A Partomatic for the bottom frame
     """
 
-    _config: TopFrameConfig = TopFrameConfig()
+    _config: FrameConfig = FrameConfig()
 
     _standingframe: Part
     _hangingframe: Part
@@ -401,7 +401,7 @@ class BottomFrame(Partomatic):
         """
         self._config.load_config(configuration, yaml_tree)
 
-    def __init__(self, config: TopFrameConfig = None):
+    def __init__(self, config: FrameConfig = None):
         """
         initializes the Partomatic filament wheel
         -------
@@ -413,7 +413,7 @@ class BottomFrame(Partomatic):
         if config:
             self.load_config({"bottom-frame": asdict(config)})
         else:
-            self._config = TopFrameConfig()
+            self._config = FrameConfig()
 
 
 if __name__ == "__main__":
@@ -421,7 +421,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
-    frame = BottomFrame(bender_config.top_frame_config)
+    frame = BottomFrame(bender_config.frame_config)
     frame.compile()
     frame.display()
     frame.export_stls()
