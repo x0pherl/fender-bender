@@ -1,11 +1,9 @@
 from unittest.mock import patch
-import pytest
 from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 
 from bender_config import BenderConfig
 from frame_top import TopFrame
-from frame_config import TopFrameConfig
 
 
 class TestBareExecution:

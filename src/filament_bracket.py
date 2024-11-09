@@ -37,7 +37,6 @@ from build123d import (
     fillet,
     loft,
     make_face,
-    offset,
 )
 
 from ocp_vscode import show, Camera, save_screenshot
@@ -99,7 +98,9 @@ class FilamentBracket(Partomatic):
         """
         returns ts single spoke part for the filament wheel
         """
-        spoke_outer_radius = self._wheel_guide_inner_radius / 2 + self._spoke_thickness
+        spoke_outer_radius = (
+            self._wheel_guide_inner_radius / 2 + self._spoke_thickness
+        )
         spoke_shift = spoke_outer_radius - self._spoke_thickness
         with BuildPart() as spoke:
             with BuildPart(Location((spoke_shift, 0, 0))):
@@ -201,8 +202,14 @@ class FilamentBracket(Partomatic):
         with BuildPart() as cut:
             with BuildSketch():
                 add(self._top_cut_shape(-tolerance))
-            with BuildSketch(Plane.XY.offset(self._config.wheel_support_height)):
-                add(self._top_cut_shape(-tolerance - self._config.wheel_support_height))
+            with BuildSketch(
+                Plane.XY.offset(self._config.wheel_support_height)
+            ):
+                add(
+                    self._top_cut_shape(
+                        -tolerance - self._config.wheel_support_height
+                    )
+                )
             loft()
         return cut.part
 
@@ -218,7 +225,9 @@ class FilamentBracket(Partomatic):
             - inset: an inset amount allowing tolerance in the printed parts
             - frame_depth: how deep in the frame to place the clip
         """
-        x_intersection = self._config.frame_bracket_exterior_x_distance(frame_depth)
+        x_intersection = self._config.frame_bracket_exterior_x_distance(
+            frame_depth
+        )
         with BuildPart() as rail_block:
             with BuildPart(
                 Location((x_intersection, 0, frame_depth)), mode=Mode.ADD
@@ -230,7 +239,9 @@ class FilamentBracket(Partomatic):
                     align=(Align.CENTER, Align.CENTER, Align.CENTER),
                 )
                 with BuildPart(railbox.faces().sort_by(Axis.Z)[-1]):
-                    with GridLocations(0, self._config.frame_clip_width - inset, 1, 2):
+                    with GridLocations(
+                        0, self._config.frame_clip_width - inset, 1, 2
+                    ):
                         Box(
                             self._config.bracket_depth * 2 - inset,
                             self._config.frame_clip_rail_width - inset,
@@ -241,13 +252,15 @@ class FilamentBracket(Partomatic):
                 Box(
                     self._config.bracket_depth * 2 - inset,
                     self._config.frame_clip_width - inset,
-                    self._config.minimum_structural_thickness * 2 + abs(inset * 2),
+                    self._config.minimum_structural_thickness * 2
+                    + abs(inset * 2),
                     align=(Align.CENTER, Align.CENTER, Align.CENTER),
                     mode=Mode.INTERSECT,
                 )
             with BuildPart(railbox.faces().sort_by(Axis.X)[0]) as rounded:
                 Cylinder(
-                    radius=(self._config.minimum_structural_thickness - inset) / 2,
+                    radius=(self._config.minimum_structural_thickness - inset)
+                    / 2,
                     height=self._config.frame_clip_width - inset,
                     rotation=(90, 0, 0),
                 )
@@ -258,7 +271,9 @@ class FilamentBracket(Partomatic):
             with BuildPart(
                 Location(
                     (
-                        self._config.frame_bracket_exterior_x_distance(top_height)
+                        self._config.frame_bracket_exterior_x_distance(
+                            top_height
+                        )
                         - (
                             self._config.frame_click_sphere_radius
                             + self._config.minimum_thickness
@@ -270,16 +285,21 @@ class FilamentBracket(Partomatic):
             ):
                 with GridLocations(
                     0,
-                    self._config.frame_clip_width - inset - self._config.wall_thickness,
+                    self._config.frame_clip_width
+                    - inset
+                    - self._config.wall_thickness,
                     1,
                     2,
                 ):
                     Cylinder(
-                        radius=self._config.frame_click_sphere_radius - radial_inset,
+                        radius=self._config.frame_click_sphere_radius
+                        - radial_inset,
                         height=self._config.wall_thickness,
                         rotation=(90, 0, 0),
                     )
-            with BuildPart(rounded.faces().filter_by(Axis.Y)[-1], mode=Mode.SUBTRACT):
+            with BuildPart(
+                rounded.faces().filter_by(Axis.Y)[-1], mode=Mode.SUBTRACT
+            ):
                 Sphere(self._config.frame_click_sphere_radius + radial_inset)
                 if inset > 0:
                     Cylinder(
@@ -291,7 +311,9 @@ class FilamentBracket(Partomatic):
                         rotation=(90, 0, 0),
                         align=(Align.CENTER, Align.CENTER, Align.MIN),
                     )
-            with BuildPart(rounded.faces().filter_by(Axis.Y)[0], mode=Mode.SUBTRACT):
+            with BuildPart(
+                rounded.faces().filter_by(Axis.Y)[0], mode=Mode.SUBTRACT
+            ):
                 Sphere(self._config.frame_click_sphere_radius + radial_inset)
                 if inset > 0:
                     Cylinder(
@@ -305,7 +327,9 @@ class FilamentBracket(Partomatic):
                     )
         return rail_block.part
 
-    def bracket_clip(self, inset=0, frame_depth=_config.frame_clip_point.y) -> Part:
+    def bracket_clip(
+        self, inset=0, frame_depth=_config.frame_clip_point.y
+    ) -> Part:
         """
         the part for locking the frame bracket into the frame
         -------
@@ -340,7 +364,11 @@ class FilamentBracket(Partomatic):
                 self._config.fillet_radius,
             )
         with BuildPart() as clip:
-            add(self.bracket_clip_rail_block(inset=inset, frame_depth=frame_depth))
+            add(
+                self.bracket_clip_rail_block(
+                    inset=inset, frame_depth=frame_depth
+                )
+            )
             add(base_cylinder, mode=Mode.INTERSECT)
             add(inset_cylinder, mode=Mode.SUBTRACT)
 
@@ -350,9 +378,14 @@ class FilamentBracket(Partomatic):
                 dir=(1, 0, 0),
             )
             edge_set = (
-                clip.faces().sort_by(Axis.X)[-1].edges().filter_by(GeomType.CIRCLE)
+                clip.faces()
+                .sort_by(Axis.X)[-1]
+                .edges()
+                .filter_by(GeomType.CIRCLE)
             )
-            fillet(edge_set, clip.part.max_fillet(edge_set, max_iterations=100))
+            fillet(
+                edge_set, clip.part.max_fillet(edge_set, max_iterations=100)
+            )
             with BuildPart(
                 Location(
                     (
@@ -366,7 +399,8 @@ class FilamentBracket(Partomatic):
             ):
                 Cylinder(
                     radius=(
-                        self._config.frame_clip_width - self._config.fillet_radius * 2
+                        self._config.frame_clip_width
+                        - self._config.fillet_radius * 2
                     )
                     / 3.5,
                     height=self._config.minimum_structural_thickness + inset,
@@ -416,7 +450,9 @@ class FilamentBracket(Partomatic):
                 add(self._filamentchannels.straight_filament_path_solid())
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
-                    Location((0, 0, self._config.bracket_depth / 2), (-90, 0, 0)),
+                    Location(
+                        (0, 0, self._config.bracket_depth / 2), (-90, 0, 0)
+                    ),
                     mode=Mode.SUBTRACT,
                 ):
                     add(self.bracket_clip(inset=-self._config.tolerance / 2))
@@ -424,7 +460,8 @@ class FilamentBracket(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.wheel.radius + self._config.bracket_depth / 2,
+                            self._config.wheel.radius
+                            + self._config.bracket_depth / 2,
                             self._config.bracket_depth
                             + self._config.minimum_structural_thickness / 2,
                             0,
@@ -457,7 +494,9 @@ class FilamentBracket(Partomatic):
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             )
-            with BuildPart(Location((0, 0, -self._config.bracket_depth / 2))) as guide:
+            with BuildPart(
+                Location((0, 0, -self._config.bracket_depth / 2))
+            ) as guide:
                 Cylinder(
                     radius=self._config.bracket_depth,
                     height=base_unit * 2,
@@ -531,7 +570,9 @@ class FilamentBracket(Partomatic):
                     add(self._pin_channel())
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
-                    Location((0, 0, self._config.bracket_depth / 2), (-90, 0, 0)),
+                    Location(
+                        (0, 0, self._config.bracket_depth / 2), (-90, 0, 0)
+                    ),
                     mode=Mode.SUBTRACT,
                 ):
                     add(self.bracket_clip(inset=-self._config.tolerance / 2))
@@ -539,7 +580,8 @@ class FilamentBracket(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.wheel.radius + self._config.bracket_depth / 2,
+                            self._config.wheel.radius
+                            + self._config.bracket_depth / 2,
                             self._config.bracket_depth
                             + self._config.minimum_structural_thickness / 2,
                             0,
@@ -575,9 +617,9 @@ class FilamentBracket(Partomatic):
         """
         with BuildPart() as frame:
             add(
-                self.bottom_bracket(draft=True, connector_index=connector_index).mirror(
-                    Plane.YZ
-                )
+                self.bottom_bracket(
+                    draft=True, connector_index=connector_index
+                ).mirror(Plane.YZ)
             )
             with BuildPart(mode=Mode.INTERSECT):
                 add(self._top_cut_template(tolerance))
@@ -790,14 +832,20 @@ class FilamentBracket(Partomatic):
         output_directory.mkdir(parents=True, exist_ok=True)
         for index, connector in enumerate(self._config.connectors):
             file_prefix = (
-                connector.file_prefix if connector.file_prefix is not None else ""
+                connector.file_prefix
+                if connector.file_prefix is not None
+                else ""
             )
             file_suffix = (
-                connector.file_suffix if connector.file_suffix is not None else ""
+                connector.file_suffix
+                if connector.file_suffix is not None
+                else ""
             )
             print(
                 Path(
-                    Path(__file__).parent / self._config.stl_folder / file_prefix
+                    Path(__file__).parent
+                    / self._config.stl_folder
+                    / file_prefix
                 ).parent
             )
             Path(
@@ -830,12 +878,16 @@ class FilamentBracket(Partomatic):
         show(self._step_one_assembly(), reset_camera=Camera.RESET)
         if save_to_disk:
             save_screenshot(
-                filename=str(Path(output_directory) / "step-001-wheel-bearing.png")
+                filename=str(
+                    Path(output_directory) / "step-001-wheel-bearing.png"
+                )
             )
         show(self.complete_assembly(), reset_camera=Camera.RESET)
         if save_to_disk:
             save_screenshot(
-                filename=str(Path(output_directory) / "step-003-bracket-complete.png")
+                filename=str(
+                    Path(output_directory) / "step-003-bracket-complete.png"
+                )
             )
         show(self._step_two_assembly(), reset_camera=Camera.RESET)
         if save_to_disk:

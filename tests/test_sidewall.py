@@ -1,8 +1,6 @@
-import pytest
 from importlib.machinery import SourceFileLoader
 from importlib.util import spec_from_loader, module_from_spec
 from unittest.mock import patch
-from ocp_vscode import show, save_screenshot
 from bender_config import BenderConfig
 from pathlib import Path
 

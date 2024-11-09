@@ -1,7 +1,6 @@
 from pathlib import Path
 from build123d import (
     Align,
-    Box,
     BuildLine,
     BuildSketch,
     CenterArc,
@@ -16,8 +15,6 @@ from build123d import (
     Sketch,
     Text,
     add,
-    export_stl,
-    extrude,
     fillet,
 )
 from ocp_vscode import Camera, show

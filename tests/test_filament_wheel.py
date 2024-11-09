@@ -5,8 +5,7 @@ from unittest.mock import patch
 from pathlib import Path
 from build123d import Part
 
-from bender_config import BenderConfig
-from filament_wheel_config import WheelConfig, BearingConfig
+from filament_wheel_config import WheelConfig
 from filament_wheel import FilamentWheel
 
 

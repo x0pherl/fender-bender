@@ -11,26 +11,17 @@ from build123d import (
     Axis,
     Box,
     BuildPart,
-    BuildSketch,
-    Circle,
     Cylinder,
     GridLocations,
     Location,
-    Locations,
     Mode,
     Part,
     Plane,
     PolarLocations,
-    Rectangle,
-    RegularPolygon,
-    Sketch,
     Sphere,
     add,
     export_stl,
-    extrude,
     fillet,
-    loft,
-    scale,
 )
 from ocp_vscode import Camera, show
 
@@ -39,8 +30,6 @@ from basic_shapes import (
     rounded_cylinder,
     rail_block_template,
     distance_to_circle_edge,
-    diamond_cylinder,
-    diamond_torus,
 )
 from filament_bracket import FilamentBracket
 from frame_config import TopFrameConfig

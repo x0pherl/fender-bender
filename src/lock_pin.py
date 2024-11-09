@@ -1,7 +1,6 @@
 """a part for locking the filament brackets into the frame"""
 
 from pathlib import Path
-from dataclasses import dataclass
 
 from build123d import (
     Align,

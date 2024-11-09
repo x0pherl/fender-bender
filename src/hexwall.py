@@ -20,7 +20,6 @@ from build123d import (
     BuildPart,
     BuildSketch,
     HexLocations,
-    Location,
     Mode,
     Part,
     RegularPolygon,

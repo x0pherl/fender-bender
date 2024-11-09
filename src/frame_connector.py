@@ -14,12 +14,9 @@ from build123d import (
     export_stl,
     Box,
     scale,
-    Cylinder,
     BuildSketch,
     RegularPolygon,
     Part,
-    Sphere,
-    PolarLocations,
 )
 from ocp_vscode import Camera, show
 

@@ -5,23 +5,17 @@ Creates a bearing that is designed to be printed in place
 import math
 from build123d import (
     BuildPart,
+    BuildSketch,
+    Circle,
     Cylinder,
     Align,
     Mode,
-    Cone,
-    Axis,
-    Location,
     Plane,
     add,
-    Box,
-    chamfer,
     loft,
     PolarLocations,
-    Sphere,
 )
-from build123d.build_enums import GeomType
-from build123d.build_sketch import BuildSketch
-from build123d.objects_sketch import Circle
+
 from ocp_vscode import show, Camera
 
 

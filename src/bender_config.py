@@ -6,7 +6,7 @@ import yaml
 from dataclasses import dataclass, field, fields
 from typing import Optional, List
 from enum import Flag, auto
-from math import cos, radians, sin, sqrt
+from math import sqrt
 from pathlib import Path
 
 from shapely.geometry import Point

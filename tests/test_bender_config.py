@@ -6,16 +6,12 @@ from typing import List, get_origin
 from importlib.machinery import SourceFileLoader
 from importlib.util import spec_from_loader, module_from_spec
 from pathlib import Path
-from build123d import Part
 
-from filament_wheel_config import WheelConfig, BearingConfig
-from filament_wheel import FilamentWheel, diamond_torus
+from filament_wheel_config import WheelConfig
 
 from bender_config import (
     BenderConfig,
     FrameStyle,
-    ConnectorConfig,
-    TubeConfig,
 )
 from shapely.geometry import Point
 
