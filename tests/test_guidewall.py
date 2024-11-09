@@ -29,16 +29,32 @@ class TestConfig:
 
 class TestGuidewall:
     def test_bare_execution(self):
-        loader = SourceFileLoader("__main__", "src/guidewall.py")
-        loader.exec_module(
-            module_from_spec(spec_from_loader(loader.name, loader))
-        )
+        with (
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("build123d.export_stl"),
+        ):
+            loader = SourceFileLoader("__main__", "src/guidewall.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )
 
     def test_none_stl_folder(self):
-        sidewall = Guidewall()
-        sidewall._config.stl_folder = "NONE"
-        sidewall.export_stls()
+        with (
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("build123d.export_stl"),
+        ):
+            sidewall = Guidewall()
+            sidewall._config.stl_folder = "NONE"
+            sidewall.export_stls()
 
     def test_render_2d(self):
-        sidewall = Guidewall()
-        sidewall.render_2d()
+        with (
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+            patch("build123d.export_stl"),
+        ):
+            sidewall = Guidewall()
+            sidewall.render_2d()

@@ -39,7 +39,8 @@ from build123d import (
     make_face,
     offset,
 )
-from ocp_vscode import Camera, show, save_screenshot
+
+from ocp_vscode import show, Camera, save_screenshot
 
 from bender_config import BenderConfig, LockStyle
 from basic_shapes import rounded_cylinder
@@ -903,8 +904,7 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
 
     bracket = FilamentBracket(config_path)
-    show(bracket.bottom_bracket_block())
-    # bracket.compile()
-    # bracket.display()
-    # bracket.export_stls()
-    # bracket.render_2d(save_to_disk=False)
+    bracket.compile()
+    bracket.display()
+    bracket.export_stls()
+    bracket.render_2d(save_to_disk=False)

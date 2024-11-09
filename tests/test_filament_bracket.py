@@ -8,48 +8,35 @@ from filament_bracket import FilamentBracket
 
 class TestFilamentBracket:
     def test_bare_execution(self):
-        with patch("build123d.export_stl"):
-            with patch("pathlib.Path.mkdir"):
-                with patch("ocp_vscode.show"):
-                    with patch("ocp_vscode.save_screenshot"):
-                        loader = SourceFileLoader(
-                            "__main__", "src/filament_bracket.py"
-                        )
-                        loader.exec_module(
-                            module_from_spec(
-                                spec_from_loader(loader.name, loader)
-                            )
-                        )
-
-    # def test_bare_execution_with_missing_file(self):
-    #     with patch("build123d.export_stl"):
-    #         with patch("pathlib.Path.mkdir"):
-    #             with patch("ocp_vscode.show"):
-    #                 with patch("ocp_vscode.save_screenshot"):
-    #                     with patch("pathlib.Path.exists", return_value=False):
-    #                         loader = SourceFileLoader(
-    #                             "__main__", "src/filament_bracket.py"
-    #                         )
-    #                         loader.exec_module(
-    #                             module_from_spec(
-    #                                 spec_from_loader(loader.name, loader)
-    #                             )
-    #                         )
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.show_all"),
+            patch("ocp_vscode.show_object"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            loader = SourceFileLoader("__main__", "src/filament_bracket.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )
 
     def test_complete_connector_set(self, complete_connector_config_yaml):
-        with patch("build123d.export_stl"):
-            with patch("pathlib.Path.mkdir"):
-                with patch("ocp_vscode.show"):
-                    with patch("ocp_vscode.save_screenshot"):
-                        bracket = FilamentBracket(
-                            complete_connector_config_yaml
-                        )
-                        bracket.compile()
-                        bracket.display()
-                        bracket.export_stls()
-                        bracket._config.stl_folder = "c:/temp"
-                        bracket.export_stls()
-                        bracket.render_2d(save_to_disk=True)
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("filament_bracket.show"),
+            # patch("filament_bracket.show_all"),
+            # patch("filament_bracket.show_object"),
+            patch("filament_bracket.save_screenshot"),
+        ):
+            bracket = FilamentBracket(complete_connector_config_yaml)
+            bracket.compile()
+            bracket.display()
+            bracket.export_stls()
+            bracket._config.stl_folder = "c:/temp"
+            bracket.export_stls()
+            bracket.render_2d(save_to_disk=True)
 
     def test_bracket_block(self):
         bracket = FilamentBracket()
@@ -77,21 +64,25 @@ class TestFilamentBracket:
         assert channels._config.default_connector.thread_angle == 30
 
     def test_bare_execution(self):
-        with patch("build123d.export_stl"):
-            with patch("pathlib.Path.mkdir"):
-                with patch("ocp_vscode.show"):
-                    with patch("ocp_vscode.save_screenshot"):
-                        loader = SourceFileLoader(
-                            "__main__", "src/filament_bracket.py"
-                        )
-                        loader.exec_module(
-                            module_from_spec(
-                                spec_from_loader(loader.name, loader)
-                            )
-                        )
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            loader = SourceFileLoader("__main__", "src/filament_bracket.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )
 
     def test_channels_bare_execution(self):
-        loader = SourceFileLoader("__main__", "src/filament_channels.py")
-        loader.exec_module(
-            module_from_spec(spec_from_loader(loader.name, loader))
-        )
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            loader = SourceFileLoader("__main__", "src/filament_channels.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )

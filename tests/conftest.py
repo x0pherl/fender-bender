@@ -12,13 +12,6 @@ from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig, BearingConfig
 
 
-# @pytest.fixture
-# def mock_path_exists():
-#     config_path = Path(__file__).parent / "../build-configs/dev.conf"
-#     with patch.object(config_path, "exists", return_value=False):
-#         yield
-
-
 @pytest.fixture
 def bender_config_yaml():
     return """

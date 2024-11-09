@@ -28,28 +28,48 @@ class TestConfig:
 
 class TestSidewall:
     def test_bare_execution(self):
-        loader = SourceFileLoader("__main__", "src/sidewall.py")
-        loader.exec_module(
-            module_from_spec(spec_from_loader(loader.name, loader))
-        )
+        with (
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("build123d.export_stl"),
+        ):
+            loader = SourceFileLoader("__main__", "src/sidewall.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )
 
     def test_double_ended_sidewall(self):
         sidewall = Sidewall()
         assert sidewall._base_sidewall_shape(end_count=2).is_valid()
 
     def test_none_stl_folder(self):
-        sidewall = Sidewall()
-        sidewall._config.stl_folder = "NONE"
-        sidewall.export_stls()
+        with (
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("build123d.export_stl"),
+        ):
+            sidewall = Sidewall()
+            sidewall._config.stl_folder = "NONE"
+            sidewall.export_stls()
 
     def test_render_2d(self):
-        sidewall = Sidewall()
-        sidewall.render_2d()
+        with (
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("build123d.export_stl"),
+        ):
+            sidewall = Sidewall()
+            sidewall.render_2d()
 
 
 class TestTongueGroove:
     def test_bare_execution(self):
-        loader = SourceFileLoader("__main__", "src/tongue_groove.py")
-        loader.exec_module(
-            module_from_spec(spec_from_loader(loader.name, loader))
-        )
+        with (
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("build123d.export_stl"),
+        ):
+            loader = SourceFileLoader("__main__", "src/tongue_groove.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )

@@ -88,7 +88,12 @@ class TestConfig:
 class TestWheel:
     def test_partomate(self):
         fw = FilamentWheel()
-        fw.partomate()
+        with (
+            patch("filament_wheel.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("filament_wheel.show"),
+        ):
+            fw.partomate()
         assert fw.wheel.volume > 0
         assert fw.wheel.is_valid()
         assert fw.print_in_place_wheel.is_valid
@@ -105,7 +110,11 @@ class TestWheel:
         assert fw._config.diameter == 12.3
 
     def test_display(self):
-        with patch("ocp_vscode.show"):
+        with (
+            patch("filament_wheel.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("filament_wheel.show"),
+        ):
             fw = FilamentWheel()
             fw.compile()
             fw.display()
@@ -120,15 +129,13 @@ class TestWheel:
         fw.export_stls()
 
     def test_bare_execution(self):
-        with patch("build123d.export_stl"):
-            with patch("pathlib.Path.mkdir"):
-                with patch("ocp_vscode.show"):
-                    with patch("ocp_vscode.save_screenshot"):
-                        loader = SourceFileLoader(
-                            "__main__", "src/filament_wheel.py"
-                        )
-                        loader.exec_module(
-                            module_from_spec(
-                                spec_from_loader(loader.name, loader)
-                            )
-                        )
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            loader = SourceFileLoader("__main__", "src/filament_wheel.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )

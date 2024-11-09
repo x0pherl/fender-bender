@@ -30,24 +30,28 @@ class TestLockPinConfig:
 
 class TestLockPin:
     def test_bare_execution(self):
-        with patch("build123d.export_stl"):
-            with patch("pathlib.Path.mkdir"):
-                with patch("ocp_vscode.show"):
-                    with patch("ocp_vscode.save_screenshot"):
-                        loader = SourceFileLoader(
-                            "__main__", "src/lock_pin.py"
-                        )
-                        loader.exec_module(
-                            module_from_spec(
-                                spec_from_loader(loader.name, loader)
-                            )
-                        )
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            loader = SourceFileLoader("__main__", "src/lock_pin.py")
+            loader.exec_module(
+                module_from_spec(spec_from_loader(loader.name, loader))
+            )
 
     def test_lock_pin(self):
-        bender_config = BenderConfig(
-            Path(__file__).parent / "../build-configs/debug.conf"
-        )
-        pin = LockPin(bender_config.lock_pin_config)
-        pin.compile()
-        pin.export_stls()
-        pin.render_2d()
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            bender_config = BenderConfig(
+                Path(__file__).parent / "../build-configs/debug.conf"
+            )
+            pin = LockPin(bender_config.lock_pin_config)
+            pin.compile()
+            pin.export_stls()
+            pin.render_2d()
