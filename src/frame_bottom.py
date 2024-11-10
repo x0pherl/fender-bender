@@ -35,6 +35,8 @@ class BottomFrame(Partomatic):
     _standingframe: Part
     _hangingframe: Part
     _hybridframe: Part
+    _hybriddryframe: Part
+    _standingdryframe: Part
 
     def _bottom_base_block(
         self, offset: float = 0, extra_length: float = 0
@@ -107,7 +109,7 @@ class BottomFrame(Partomatic):
                 (
                     -self._config.exterior_length / 2 - offset,
                     0,
-                    self._config.base_depth * 2 + self._config.exterior_radius,
+                    self._config.stand_depth,
                 )
             )
         ) as fitting:
@@ -163,7 +165,7 @@ class BottomFrame(Partomatic):
             Box(
                 self._config.exterior_length + extra_length,
                 self._config.exterior_width,
-                self._config.base_depth * 2 + self._config.exterior_radius,
+                self._config.stand_depth,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
             Box(
@@ -249,7 +251,66 @@ class BottomFrame(Partomatic):
             )
         return cut.part
 
-    def bottom_frame(self, standing: bool = True, hanging=False) -> Part:
+    def _dry_box(self, extend=False) -> Part:
+        offset = self._config.interior_offset if extend else 0
+        extra_length = offset * 2
+        with BuildPart(
+            Location(
+                (
+                    -offset,
+                    0,
+                    self._config.base_depth,
+                )
+            )
+        ) as dry:
+            Box(
+                self._config.exterior_length
+                - self._config.base_depth * 2
+                + self._config.minimum_thickness * 2,
+                self._config.exterior_width - self._config.fillet_radius * 2,
+                self._config.stand_depth - self._config.base_depth,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+            with BuildPart(
+                Location(
+                    (
+                        0,
+                        0,
+                        self._config.base_depth,
+                    )
+                ),
+                mode=Mode.SUBTRACT,
+            ):
+                Box(
+                    self._config.exterior_diameter,
+                    self._config.exterior_width,
+                    self._config.base_depth,
+                    align=(Align.CENTER, Align.CENTER, Align.MAX),
+                )
+                Cylinder(
+                    radius=self._config.exterior_radius,
+                    height=self._config.exterior_width,
+                    rotation=(90, 0, 0),
+                    align=(Align.CENTER, Align.CENTER, Align.CENTER),
+                )
+            with BuildPart(mode=Mode.SUBTRACT):
+                add(
+                    chamber_cuts(
+                        count=self._config.filament_count,
+                        spacing=self._config.bracket_spacing,
+                        length=self._config.interior_length,
+                        width=self._config.bracket_spacing
+                        - self._config.wall_thickness,
+                        depth=self._config.stand_depth
+                        - self._config.minimum_thickness,
+                        fillet_radius=self._config.fillet_radius,
+                    )
+                )
+        return dry.part
+
+    def bottom_frame(
+        self, standing: bool = True, hanging=False, dry=False
+    ) -> Part:
         """
         creates the bottom frame
         -------
@@ -304,19 +365,26 @@ class BottomFrame(Partomatic):
                         self._config.click_fit_radius,
                     ).mirror()
                 )
+            if dry:
+                add(self._dry_box(extend=hanging))
             if standing and hanging:
                 add(self._standing_screw_fitting(extra_length), mode=Mode.ADD)
                 add(self._standing_screw_cut(), mode=Mode.SUBTRACT)
             elif hanging:
                 add(self._hanging_screw_fitting(extra_length))
                 add(self._hanging_screw_cut(), mode=Mode.SUBTRACT)
-
         return bframe.part
 
     def compile(self):
         self._standingframe = self.bottom_frame(standing=True, hanging=False)
         self._hangingframe = self.bottom_frame(standing=False, hanging=True)
         self._hybridframe = self.bottom_frame(standing=True, hanging=True)
+        self._drystandingframe = self.bottom_frame(
+            standing=True, hanging=False, dry=True
+        )
+        self._dryhybridframe = self.bottom_frame(
+            standing=True, hanging=True, dry=True
+        )
 
     def display(self):
         show(
@@ -330,10 +398,30 @@ class BottomFrame(Partomatic):
                     )
                 )
             ),
+            self._dryhybridframe.move(
+                Location(
+                    (
+                        self._config.exterior_length
+                        + self._config.bracket_depth,
+                        -self._config.exterior_width,
+                        0,
+                    )
+                )
+            ),
             self._standingframe.move(
                 Location(
                     (
                         0,
+                        self._config.exterior_width,
+                        0,
+                    )
+                )
+            ),
+            self._drystandingframe.move(
+                Location(
+                    (
+                        self._config.exterior_length
+                        + self._config.bracket_depth,
                         self._config.exterior_width,
                         0,
                     )
@@ -422,6 +510,7 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
     frame = BottomFrame(bender_config.frame_config)
+
     frame.compile()
     frame.display()
     frame.export_stls()

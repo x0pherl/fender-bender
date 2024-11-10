@@ -482,6 +482,7 @@ class BenderConfig:
             bracket_width=self.bracket_width,
             filament_count=self.filament_count,
             wall_thickness=self.wall_thickness,
+            minimum_thickness=self.minimum_thickness,
             tolerance=self.tolerance,
             click_fit_radius=self.frame_click_sphere_radius,
             groove_width=self.wall_thickness + self.tolerance,

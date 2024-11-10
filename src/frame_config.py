@@ -17,6 +17,7 @@ class FrameConfig:
     bracket_width: float = 96.3
     filament_count: int = 5
     wall_thickness: float = 3
+    minimum_thickness: float = 1
     tolerance: float = 0.2
     groove_width: float = 3.2
     groove_depth: float = 4.2
@@ -48,6 +49,10 @@ class FrameConfig:
     @property
     def interior_diameter(self) -> float:
         return self.interior_radius * 2
+
+    @property
+    def stand_depth(self) -> float:
+        return self.base_depth * 2 + self.exterior_radius
 
     def load_config(self, configuration: str, yaml_tree="frame"):
         """

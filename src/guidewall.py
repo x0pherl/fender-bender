@@ -93,6 +93,36 @@ class Guidewall(Partomatic):
         part.label = "wall channel guide"
         return part
 
+    def _hex_outline_cut(self) -> Part:
+        with BuildPart() as cutline:
+            outline = HexWall(
+                width=self._config.core_length
+                - self._config.reinforcement_inset * 2,
+                length=self._config.width
+                - self._config.reinforcement_inset * 2,
+                height=0.20,
+                apothem=self._config.wall_window_apothem,
+                wall_thickness=self._config.wall_window_bar_thickness,
+                inverse=False,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+            add(outline)
+            with BuildPart(mode=Mode.SUBTRACT):
+                cut = HexWall(
+                    width=self._config.core_length
+                    - self._config.reinforcement_inset * 2,
+                    length=self._config.width
+                    - self._config.reinforcement_inset * 2,
+                    height=0.20,
+                    apothem=self._config.wall_window_apothem,
+                    wall_thickness=self._config.wall_window_bar_thickness
+                    - 0.4,
+                    inverse=False,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+                add(cut)
+        return cutline.part
+
     def _guide_side(self) -> Part:
         """
         defines the outer sides of the sidewall with appropriate structural
@@ -184,32 +214,16 @@ class Guidewall(Partomatic):
                     )
                     add(hw)
             if dry:
-                hw = HexWall(
-                    width=self._config.core_length
+                Box(
+                    self._config.width - self._config.reinforcement_inset * 2,
+                    self._config.core_length
                     - self._config.reinforcement_inset * 2,
-                    length=self._config.width
-                    - self._config.reinforcement_inset * 2,
-                    height=self._config.minimum_thickness,
-                    apothem=self._config.wall_window_apothem,
-                    wall_thickness=self._config.wall_window_bar_thickness,
-                    inverse=True,
+                    self._config.minimum_thickness,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
-                add(hw)
             add(self._guide_set())
-            if dry:
-                hw2 = HexWall(
-                    width=self._config.core_length
-                    - self._config.reinforcement_inset * 2,
-                    length=self._config.width
-                    - self._config.reinforcement_inset * 2,
-                    height=0.25,
-                    apothem=self._config.wall_window_apothem,
-                    wall_thickness=0.25,
-                    inverse=False,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN),
-                )
-                add(hw2, mode=Mode.SUBTRACT)
+            if not solid:
+                add(self._hex_outline_cut(), mode=Mode.SUBTRACT)
             add(self._tongues())
         return wall.part
 
@@ -263,7 +277,7 @@ class Guidewall(Partomatic):
         )
 
     def display(self):
-        show(self.drywall, reset_camera=Camera.KEEP)
+        show(self.wall, reset_camera=Camera.KEEP)
 
     def render_2d(self):
         pass
