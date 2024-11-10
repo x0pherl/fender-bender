@@ -454,6 +454,23 @@ class BottomFrame(Partomatic):
             ),
             str(Path(output_directory / "alt/frame-bottom-standing.stl")),
         )
+
+        export_stl(
+            self._dryhybridframe.rotate(Axis.X, 180).move(
+                Location(
+                    (
+                        0,
+                        0,
+                        self._config.base_depth * 2
+                        + self._config.exterior_radius,
+                    )
+                )
+            ),
+            str(
+                Path(output_directory / "alt/frame-bottom-drybox-standing.stl")
+            ),
+        )
+
         export_stl(
             self._standingframe.rotate(Axis.X, 180).move(
                 Location(
@@ -469,6 +486,24 @@ class BottomFrame(Partomatic):
                 Path(
                     output_directory
                     / "alt/frame-bottom-standing-without-hanger.stl"
+                )
+            ),
+        )
+        export_stl(
+            self._drystandingframe.rotate(Axis.X, 180).move(
+                Location(
+                    (
+                        0,
+                        0,
+                        self._config.base_depth * 2
+                        + self._config.exterior_radius,
+                    )
+                )
+            ),
+            str(
+                Path(
+                    output_directory
+                    / "alt/frame-bottom-drybox-standing-without-hanger.stl"
                 )
             ),
         )
