@@ -19,6 +19,7 @@ from build123d import (
     Rectangle,
     Sphere,
     add,
+    chamfer,
     export_stl,
     fillet,
     loft,
@@ -37,6 +38,9 @@ class Guidewall(Partomatic):
     """partomatic for the frand and back chamber walls of the filament bank"""
 
     wall: Part
+    solidwall: Part
+    drywall: Part
+
     _config: GuidewallConfig = GuidewallConfig()
 
     def _wall_channel(self) -> Part:
@@ -154,7 +158,7 @@ class Guidewall(Partomatic):
                 )
         return tongues.part
 
-    def build_guidewall(self) -> Part:
+    def build_guidewall(self, solid=False, dry=False) -> Part:
         """
         builds the guidewall part
         """
@@ -165,7 +169,7 @@ class Guidewall(Partomatic):
                 self._config.wall_thickness,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
-            if not self._config.solid_wall:
+            if not solid:
                 with BuildPart(mode=Mode.SUBTRACT):
                     hw = HexWall(
                         width=self._config.core_length
@@ -179,7 +183,33 @@ class Guidewall(Partomatic):
                         align=(Align.CENTER, Align.CENTER, Align.MIN),
                     )
                     add(hw)
+            if dry:
+                hw = HexWall(
+                    width=self._config.core_length
+                    - self._config.reinforcement_inset * 2,
+                    length=self._config.width
+                    - self._config.reinforcement_inset * 2,
+                    height=self._config.minimum_thickness,
+                    apothem=self._config.wall_window_apothem,
+                    wall_thickness=self._config.wall_window_bar_thickness,
+                    inverse=True,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+                add(hw)
             add(self._guide_set())
+            if dry:
+                hw2 = HexWall(
+                    width=self._config.core_length
+                    - self._config.reinforcement_inset * 2,
+                    length=self._config.width
+                    - self._config.reinforcement_inset * 2,
+                    height=0.25,
+                    apothem=self._config.wall_window_apothem,
+                    wall_thickness=0.25,
+                    inverse=False,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+                add(hw2, mode=Mode.SUBTRACT)
             add(self._tongues())
         return wall.part
 
@@ -212,6 +242,8 @@ class Guidewall(Partomatic):
 
     def compile(self):
         self.wall = self.build_guidewall()
+        self.solidwall = self.build_guidewall(solid=True)
+        self.drywall = self.build_guidewall(dry=True)
 
     def export_stls(self):
         """
@@ -223,9 +255,15 @@ class Guidewall(Partomatic):
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         export_stl(self.wall, str(output_directory / "wall-guide.stl"))
+        export_stl(
+            self.solidwall, str(output_directory / "alt/wall-guide-solid.stl")
+        )
+        export_stl(
+            self.drywall, str(output_directory / "alt/wall-guide-dry.stl")
+        )
 
     def display(self):
-        show(self.wall, reset_camera=Camera.KEEP)
+        show(self.drywall, reset_camera=Camera.KEEP)
 
     def render_2d(self):
         pass

@@ -1,16 +1,6 @@
 from dataclasses import dataclass, fields
-from enum import Enum, auto
 from pathlib import Path
-
 import yaml
-
-
-class SidewallShape(Enum):
-    """What sort of shape to generate to have"""
-
-    BASE = auto()
-    POINT = auto()
-    REINFORCEMENT = auto()
 
 
 @dataclass
@@ -21,9 +11,9 @@ class SidewallConfig:
     straight_length: float = 125
     sidewall_width: float = 110
     wall_thickness: float = 3
+    minimum_thickness: float = 1
     reinforcement_thickness: float = 7
     reinforcement_inset: float = 7
-    solid_wall: bool = False
     wall_window_apothem: float = 8
     wall_window_bar_thickness: float = 1.5
     click_fit_radius: float = 1

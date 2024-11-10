@@ -1,6 +1,5 @@
 from dataclasses import dataclass, fields
 from pathlib import Path
-
 import yaml
 
 
@@ -11,11 +10,11 @@ class GuidewallConfig:
     section_width: float = 110
     section_count: int = 5
     wall_thickness: float = 3
+    minimum_thickness: float = 1
     tongue_width: float = 350
     tongue_depth: float = 3
     reinforcement_thickness: float = 7
     reinforcement_inset: float = 4
-    solid_wall: bool = False
     wall_window_apothem: float = 8
     wall_window_bar_thickness: float = 1.5
     click_fit_radius: float = 1

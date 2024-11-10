@@ -47,7 +47,7 @@ BenderConfig:
         inner_diameter: 3.6
         outer_diameter: 6.5
   frame_chamber_depth: 340
-  solid_walls: False
+  fill: "HEX"
   wall_window_apothem: 8
   wall_window_bar_thickness: 1.5
   frame_tongue_depth: 4
@@ -98,7 +98,7 @@ BenderConfig:
         inner_diameter: 3.6
         outer_diameter: 6.5
   frame_chamber_depth: 340
-  solid_walls: False
+  fill: "HEX"
   wall_window_apothem: 8
   wall_window_bar_thickness: 1.5
   frame_tongue_depth: 4
@@ -146,7 +146,7 @@ def bender_config_reference_single_connector_yaml():
         inner_diameter: 3.6
         outer_diameter: 6.5
   frame_chamber_depth: 370
-  solid_walls: False
+  fill: "HEX"
   wall_window_apothem: 8
   wall_window_bar_thickness: 1.5
   frame_tongue_depth: 4
@@ -219,7 +219,7 @@ BenderConfig:
         inner_diameter: 2.6
         outer_diameter: 4.1
   frame_chamber_depth: 370
-  solid_walls: False
+  fill: "HEX"
   wall_window_apothem: 8
   wall_window_bar_thickness: 1.5
   frame_tongue_depth: 4
@@ -282,7 +282,7 @@ BenderConfig:
         inner_diameter: 3.6
         outer_diameter: 1234
   frame_chamber_depth: 340
-  solid_walls: False
+  fill: "HEX"
   wall_window_apothem: 8
   wall_window_bar_thickness: 1.5
   frame_tongue_depth: 4
@@ -331,7 +331,7 @@ BenderConfig:
       length: 6.7
       tube: {inner_diameter: 3.6, outer_diameter: 4321}
   frame_chamber_depth: 340
-  solid_walls: False
+  fill: "HEX"
   wall_window_apothem: 8
   wall_window_bar_thickness: 1.5
   frame_tongue_depth: 4

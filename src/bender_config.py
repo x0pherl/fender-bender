@@ -5,7 +5,7 @@ module for all of the configuration required to build a filament bank
 import yaml
 from dataclasses import dataclass, field, fields
 from typing import Optional, List
-from enum import Flag, auto
+from enum import Enum, Flag, auto
 from math import sqrt
 from pathlib import Path
 
@@ -120,7 +120,6 @@ class BenderConfig:
     filament_count: int = 5
 
     frame_chamber_depth: float = 340
-    solid_walls: bool = False
     wall_window_apothem: float = 8
     wall_window_bar_thickness: float = 1.5
     wall_thickness: float = 3
@@ -436,10 +435,10 @@ class BenderConfig:
             - self.wheel.radius,
             sidewall_width=self.sidewall_width,
             wall_thickness=self.wall_thickness,
+            minimum_thickness=self.minimum_thickness,
             reinforcement_thickness=self.minimum_structural_thickness
             + self.wall_thickness,
             reinforcement_inset=self.minimum_structural_thickness,
-            solid_wall=self.solid_walls,
             wall_window_apothem=self.wall_window_apothem,
             wall_window_bar_thickness=self.wall_window_bar_thickness,
             click_fit_radius=self.frame_click_sphere_radius,
@@ -456,9 +455,9 @@ class BenderConfig:
             tongue_depth=self.frame_tongue_depth,
             section_count=self.filament_count,
             wall_thickness=self.wall_thickness,
+            minimum_thickness=self.minimum_thickness,
             reinforcement_thickness=self.minimum_structural_thickness,
             reinforcement_inset=self.minimum_structural_thickness,
-            solid_wall=self.solid_walls,
             wall_window_apothem=self.wall_window_apothem,
             wall_window_bar_thickness=self.wall_window_bar_thickness,
             click_fit_radius=self.frame_click_sphere_radius,

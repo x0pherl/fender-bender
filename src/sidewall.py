@@ -38,7 +38,10 @@ class Sidewall(Partomatic):
     _config = SidewallConfig()
 
     sidewall: Part
+    solidsidewall: Part
+    solidreinforcedsidewall: Part
     reinforcedsidewall: Part
+    dryreinforcedsidewall: Part
 
     def _base_sidewall_shape(
         self,
@@ -165,7 +168,7 @@ class Sidewall(Partomatic):
             extrude(amount=self._config.reinforcement_thickness)
         return reinforce.part
 
-    def _core_hexwall_cut(self) -> Part:
+    def _core_hexwall_cut(self, depth=_config.wall_thickness) -> Part:
         with BuildPart() as hexwall:
             with BuildSketch() as coreshape:
                 add(self._central_core_sidewall_shape())
@@ -174,7 +177,7 @@ class Sidewall(Partomatic):
                 hw = HexWall(
                     width=self._config.straight_length * 2,
                     length=self._config.sidewall_width,
-                    height=self._config.wall_thickness,
+                    height=depth,
                     apothem=self._config.wall_window_apothem,
                     wall_thickness=self._config.wall_window_bar_thickness,
                     inverse=True,
@@ -227,7 +230,7 @@ class Sidewall(Partomatic):
                 Sphere(radius=self._config.click_fit_radius)
         return divots.part
 
-    def _sidewall(self, reinforced=False) -> Part:
+    def _sidewall(self, reinforced=False, solid=False, dry=False) -> Part:
         """
         creates a sidewall part, optionally reinforced
         -------
@@ -245,8 +248,12 @@ class Sidewall(Partomatic):
             loft(ruled=True)
             with BuildPart(mode=Mode.SUBTRACT):
                 add(self._side_wall_divots())
-                if self._config.solid_wall == False:
+                if not solid:
                     add(self._core_hexwall_cut())
+            if dry and not solid:
+                with BuildSketch():
+                    add(self._central_core_sidewall_shape())
+                extrude(amount=self._config.minimum_thickness)
             if reinforced:
                 add(self._reinforcer())
         return sw.part
@@ -286,6 +293,11 @@ class Sidewall(Partomatic):
         """
         self.sidewall = self._sidewall()
         self.reinforcedsidewall = self._sidewall(reinforced=True)
+        self.solidsidewall = self._sidewall(solid=True)
+        self.solidreinforcedsidewall = self._sidewall(
+            reinforced=True, solid=True
+        )
+        self.dryreinforcedsidewall = self._sidewall(reinforced=True, dry=True)
 
     def export_stls(self):
         """
@@ -301,12 +313,27 @@ class Sidewall(Partomatic):
             self.reinforcedsidewall,
             str(output_directory / "wall-side-reinforced.stl"),
         )
+        export_stl(
+            self.solidsidewall,
+            str(output_directory / "alt/wall-side-solid.stl"),
+        )
+        export_stl(
+            self.solidreinforcedsidewall,
+            str(output_directory / "wall-side-reinforced-solid.stl"),
+        )
+        export_stl(
+            self.dryreinforcedsidewall,
+            str(output_directory / "alt/wall-side-reinforced-dry.stl"),
+        )
 
     def display(self):
         """
         Shows the walls in OCP CAD Viewer
         """
-        show(self.reinforcedsidewall, reset_camera=Camera.KEEP)
+        show(
+            self.dryreinforcedsidewall,
+            reset_camera=Camera.KEEP,
+        )
 
     def render_2d(self):
         pass
