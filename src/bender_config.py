@@ -136,6 +136,12 @@ class BenderConfig:
     wall_bracket_screw_head_sink: float = 1.4
     wall_bracket_post_count: int = 3
 
+    m4_heatsink_radius: float = 3
+    m4_heatsink_depth: float = 5
+    m4_nut_radius: float = 3.9
+    m4_nut_depth: float = 5
+    m4_shaft_radius: float = 2.1
+
     @property
     def frame_clip_point(self) -> Point:
         """
@@ -501,6 +507,11 @@ class BenderConfig:
             screw_head_radius=self.wall_bracket_screw_head_radius,
             screw_head_sink=self.wall_bracket_screw_head_sink,
             screw_shaft_radius=self.wall_bracket_screw_radius,
+            m4_heatsink_radius=self.m4_heatsink_radius,
+            m4_heatsink_depth=self.m4_heatsink_depth,
+            m4_nut_radius=self.m4_nut_radius,
+            m4_nut_depth=self.m4_nut_depth,
+            m4_shaft_radius=self.m4_shaft_radius,
         )
 
     @property

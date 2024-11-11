@@ -6,6 +6,7 @@ from build123d import Part, Align
 from basic_shapes import (
     diamond_torus,
     distance_to_circle_edge,
+    heatsink_cut,
     rounded_cylinder,
     diamond_cylinder,
     rail_block_template,
@@ -86,6 +87,13 @@ class TestScrewCut:
     def test_invalid_screw_cut(self):
         with pytest.raises(ValueError):
             screw_cut(head_radius=5, shaft_radius=6)
+
+    def test_heatsink_cut(self):
+        heatsink = heatsink_cut(10, 1, 5, 10)
+        assert heatsink.is_valid()
+        assert heatsink.bounding_box().size.X == pytest.approx(20)
+        assert heatsink.bounding_box().size.Y == pytest.approx(20)
+        assert heatsink.bounding_box().size.Z == pytest.approx(11)
 
 
 class TestBareExecution:

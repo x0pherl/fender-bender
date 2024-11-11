@@ -192,6 +192,52 @@ def rail_block_template(
     return rail_block.part
 
 
+def heatsink_cut(
+    head_radius: float = 3,
+    head_depth: float = 5,
+    shaft_radius: float = 2.1,
+    shaft_length: float = 20,
+) -> Part:
+    """
+    template for the cutout for a heatsink and bolt
+    """
+    with BuildPart() as cut:
+        Cylinder(
+            radius=head_radius,
+            height=head_depth,
+            align=(Align.CENTER, Align.CENTER, Align.MAX),
+        )
+        Cylinder(
+            radius=shaft_radius,
+            height=shaft_length,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+
+    return cut.part.move(Location((0, 0, head_depth)))
+
+
+def nut_cut(
+    head_radius: float = 3,
+    head_depth: float = 5,
+    shaft_radius: float = 2.1,
+    shaft_length: float = 20,
+) -> Part:
+    """
+    template for the cutout for a heatsink and bolt
+    """
+    with BuildPart() as cut:
+        with BuildSketch():
+            RegularPolygon(radius=head_radius, side_count=6)
+        extrude(amount=-head_depth)
+        Cylinder(
+            radius=shaft_radius,
+            height=shaft_length,
+            align=(Align.CENTER, Align.CENTER, Align.MIN),
+        )
+
+    return cut.part.move(Location((0, 0, head_depth)))
+
+
 def screw_cut(
     head_radius: float = 4.5,
     head_sink: float = 1.4,
@@ -222,4 +268,4 @@ def screw_cut(
 
 
 if __name__ == "__main__":
-    show(screw_cut(), reset_camera=Camera.KEEP)
+    show(heatsink_cut(), reset_camera=Camera.KEEP)

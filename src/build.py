@@ -14,6 +14,22 @@ from lock_pin import LockPin
 from sidewall import Sidewall
 from guidewall import Guidewall
 
+import socket
+from contextlib import closing
+
+import ocp_vscode
+
+
+def check_socket(host, port) -> bool:
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        open = sock.connect_ex((host, port)) == 0
+    return open
+
+
+if not check_socket("127.0.0.1", 3939):
+    print("OCP_VSCODE Port not open, starting standalone server")
+    ocp_vscode()
+
 start_time = time()
 parser = ArgumentParser(description="Build part stls")
 parser.add_argument(
