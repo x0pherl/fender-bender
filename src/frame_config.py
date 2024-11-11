@@ -39,7 +39,7 @@ class FrameConfig:
     screw_shaft_radius: float = 2.25
     m4_heatsink_radius: float = 3
     m4_heatsink_depth: float = 5
-    m4_nut_radius: float = 3.9
+    m4_nut_radius: float = 4.3
     m4_nut_depth: float = 5
     m4_shaft_radius: float = 2.1
 

@@ -191,8 +191,8 @@ class Brackets(Partomatic):
                     if nut_style == NutStyle.NUT:
                         add(
                             nut_cut(
-                                self._config.screw_head_radius,
-                                self._config.screw_head_sink,
+                                self._config.m4_nut_radius,
+                                self._config.m4_nut_depth,
                                 self._config.screw_shaft_radius,
                                 self._config.exterior_length,
                             ).rotate(Axis.X, 180)
