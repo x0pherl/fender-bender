@@ -308,6 +308,8 @@ class Sidewall(Partomatic):
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
+        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
+
         export_stl(self.sidewall, str(output_directory / "wall-side.stl"))
         export_stl(
             self.reinforcedsidewall,
@@ -319,7 +321,7 @@ class Sidewall(Partomatic):
         )
         export_stl(
             self.solidreinforcedsidewall,
-            str(output_directory / "wall-side-reinforced-solid.stl"),
+            str(output_directory / "alt/wall-side-reinforced-solid.stl"),
         )
         export_stl(
             self.dryreinforcedsidewall,
