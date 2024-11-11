@@ -5,6 +5,7 @@ from pathlib import Path
 from time import time
 
 from bender_config import BenderConfig, LockStyle
+from brackets import Brackets
 from filament_bracket import FilamentBracket
 from filament_wheel import FilamentWheel
 from frame_top import TopFrame
@@ -17,20 +18,27 @@ from guidewall import Guidewall
 import socket
 from contextlib import closing
 
-import ocp_vscode
+# from ocp_vscode.standalone import Viewer
 
 
-def check_socket(host, port) -> bool:
+def ocp_responding() -> bool:
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-        open = sock.connect_ex((host, port)) == 0
-    return open
+        ocp_open = sock.connect_ex(("127.0.0.1", 3939)) == 0
+    return ocp_open
 
-
-if not check_socket("127.0.0.1", 3939):
-    print("OCP_VSCODE Port not open, starting standalone server")
-    ocp_vscode()
 
 start_time = time()
+
+if not ocp_responding():
+    print("OCP_VSCODE port not open, exiting")
+    exit()
+    # need to work out how to get ocp_vscode standalone running on the gitlab runner
+    # cfg = {}
+    # cfg["host"] = '127.0.0.1'
+    # cfg["port"] = 3939
+    # Viewer(cfg).start()
+
+
 parser = ArgumentParser(description="Build part stls")
 parser.add_argument(
     "--config", type=str, help="The configuration file to run."
@@ -66,14 +74,12 @@ for conf_file in conf_files:
     print(f"Generating parts for {conf_file.name}")
     print(f"\t connector diam is {config.default_connector.diameter}")
     iteration_start_time = time()
-    wheel = FilamentWheel(config.wheel, config.stl_folder)
-    wheel.partomate()
-    bracket = FilamentBracket(conf_file)
-    bracket.partomate()
-    topframe = TopFrame(config.frame_config)
-    topframe.partomate()
+    Brackets(config.frame_config).partomate()
+    FilamentWheel(config.wheel, config.stl_folder).partomate()
+    FilamentBracket(conf_file).partomate()
+    TopFrame(config.frame_config).partomate()
     BottomFrame(config.frame_config).partomate()
-    connectorframe = ConnectorFrame(config.frame_config).partomate()
+    ConnectorFrame(config.frame_config).partomate()
     Sidewall(config.sidewall_config).partomate()
     Guidewall(config.guidewall_config).partomate()
     if LockStyle.PIN in config.frame_lock_style:
