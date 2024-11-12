@@ -841,13 +841,6 @@ class FilamentBracket(Partomatic):
                 if connector.file_suffix is not None
                 else ""
             )
-            print(
-                Path(
-                    Path(__file__).parent
-                    / self._config.stl_folder
-                    / file_prefix
-                ).parent
-            )
             Path(
                 Path(__file__).parent / self._config.stl_folder / file_prefix
             ).parent.mkdir(parents=True, exist_ok=True)

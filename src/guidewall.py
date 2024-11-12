@@ -268,6 +268,7 @@ class Guidewall(Partomatic):
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
+        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
         export_stl(self.wall, str(output_directory / "wall-guide.stl"))
         export_stl(
             self.solidwall, str(output_directory / "alt/wall-guide-solid.stl")
