@@ -906,4 +906,4 @@ if __name__ == "__main__":
     bracket.compile()
     bracket.display()
     bracket.export_stls()
-    bracket.render_2d(save_to_disk=False)
+    # bracket.render_2d(save_to_disk=False)
