@@ -6,6 +6,7 @@ the frame when the filament backs out of the MMU.
 """
 
 from pathlib import Path
+from enum import Enum, auto
 
 from build123d import (
     Align,
@@ -49,18 +50,28 @@ from lock_pin import LockPin
 from partomatic import Partomatic
 
 
+class ChannelPairDirection(Enum):
+    """a type of pair"""
+
+    LEAN_FORWARD = auto()
+    LEAN_REVERSE = auto()
+    STRAIGHT = auto()
+
+
 class FilamentBracket(Partomatic):
     """The partomatic for the filament bracket of the filament bank"""
 
     _config = BenderConfig()
     _filamentchannels = FilamentChannels(None)
+
     _lockpin = LockPin()
 
-    # bottom: Part
-    # top: Part
-    # bracketclip: Part
     bottom_brackets = {}
+    straight_bottom_brackets = {}
+    reverse_bottom_brackets = {}
     top_brackets = {}
+    straight_top_brackets = {}
+    reverse_top_brackets = {}
     bracketclips = {}
 
     @property
@@ -410,7 +421,10 @@ class FilamentBracket(Partomatic):
         part.label = "Bracket Clip"
         return part
 
-    def bottom_bracket_block(self) -> Part:
+    def bottom_bracket_block(
+        self,
+        direction: ChannelPairDirection = ChannelPairDirection.LEAN_FORWARD,
+    ) -> Part:
         """
         the basic block shape of the bottom bracket
         """
@@ -430,24 +444,44 @@ class FilamentBracket(Partomatic):
             with BuildPart(
                 Location((self._config.wheel.radius, 0, 0)), mode=Mode.SUBTRACT
             ):
-                add(
-                    self._filamentchannels.curved_filament_path_solid(
-                        top_exit_fillet=True
+                if direction == ChannelPairDirection.LEAN_FORWARD:
+                    add(
+                        self._filamentchannels.curved_filament_path_solid(
+                            top_exit_fillet=True
+                        )
                     )
-                )
+                else:
+                    add(self._filamentchannels.straight_filament_path_solid())
             with BuildPart(
                 Location((-self._config.wheel.radius, 0, 0)),
                 mode=Mode.SUBTRACT,
             ):
-                add(self._filamentchannels.straight_filament_path_solid())
-            with BuildPart(Location((self._config.wheel.radius, 0, 0))):
-                add(
-                    self._filamentchannels.curved_filament_path_solid(
-                        top_exit_fillet=True
+                if direction == ChannelPairDirection.LEAN_REVERSE:
+                    add(
+                        self._filamentchannels.curved_filament_path_solid(
+                            top_exit_fillet=True
+                        ).mirror(Plane.YZ)
                     )
-                )
+                else:
+                    add(self._filamentchannels.straight_filament_path_solid())
+            with BuildPart(Location((self._config.wheel.radius, 0, 0))):
+                if direction == ChannelPairDirection.LEAN_FORWARD:
+                    add(
+                        self._filamentchannels.curved_filament_path_solid(
+                            top_exit_fillet=True
+                        )
+                    )
+                else:
+                    add(self._filamentchannels.straight_filament_path_solid())
             with BuildPart(Location((-self._config.wheel.radius, 0, 0))):
-                add(self._filamentchannels.straight_filament_path_solid())
+                if direction == ChannelPairDirection.LEAN_REVERSE:
+                    add(
+                        self._filamentchannels.curved_filament_path_solid(
+                            top_exit_fillet=True
+                        ).mirror(Plane.YZ)
+                    )
+                else:
+                    add(self._filamentchannels.straight_filament_path_solid())
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
                     Location(
@@ -455,7 +489,18 @@ class FilamentBracket(Partomatic):
                     ),
                     mode=Mode.SUBTRACT,
                 ):
-                    add(self.bracket_clip(inset=-self._config.tolerance / 2))
+                    if direction == ChannelPairDirection.LEAN_REVERSE:
+                        add(
+                            self._filamentchannels.curved_filament_path_solid(
+                                top_exit_fillet=True
+                            ).mirror(Plane.YZ)
+                        )
+                    else:
+                        add(
+                            self.bracket_clip(
+                                inset=-self._config.tolerance / 2
+                            )
+                        )
             if LockStyle.PIN in self._config.frame_lock_style:
                 with BuildPart(
                     Location(
@@ -505,26 +550,45 @@ class FilamentBracket(Partomatic):
                 fillet(guide.edges(), base_unit - self._config.tolerance / 2)
         return channel.part
 
-    def bottom_bracket(self, draft: bool = False, connector_index=0) -> Part:
+    def bottom_bracket(
+        self,
+        draft: bool = False,
+        connector_index=0,
+        direction: ChannelPairDirection = ChannelPairDirection.LEAN_FORWARD,
+    ) -> Part:
         """
         returns the bottom (main) portion of the filament
         """
         with BuildPart() as constructed_bracket:
-            add(self.bottom_bracket_block())
+            add(self.bottom_bracket_block(direction=direction))
 
             with BuildPart(mode=Mode.SUBTRACT):
                 with BuildPart(Location((self._config.wheel.radius, 0, 0))):
-                    add(
-                        self._filamentchannels.curved_filament_path_cut(
-                            connector_index=connector_index
+                    if direction == ChannelPairDirection.LEAN_FORWARD:
+                        add(
+                            self._filamentchannels.curved_filament_path_cut(
+                                connector_index=connector_index
+                            )
                         )
-                    )
+                    else:
+                        add(
+                            self._filamentchannels.straight_filament_path_cut(
+                                connector_index=connector_index
+                            )
+                        )
                 with BuildPart(Location((-self._config.wheel.radius, 0, 0))):
-                    add(
-                        self._filamentchannels.straight_filament_path_cut(
-                            connector_index=connector_index
+                    if direction == ChannelPairDirection.LEAN_REVERSE:
+                        add(
+                            self._filamentchannels.curved_filament_path_cut(
+                                connector_index=connector_index
+                            ).mirror(Plane.YZ)
                         )
-                    )
+                    else:
+                        add(
+                            self._filamentchannels.straight_filament_path_cut(
+                                connector_index=connector_index
+                            )
+                        )
                 add(
                     self._top_cut_template(self._config.tolerance)
                     .mirror()
@@ -597,28 +661,54 @@ class FilamentBracket(Partomatic):
                         )
                     )
             if not draft and self._config.connectors[connector_index].threaded:
-                add(
-                    self._filamentchannels.straight_filament_connector_threads(
-                        connector_index=connector_index
-                    ).move(Location((-self._config.wheel.radius, 0, 0)))
-                )
-                add(
-                    self._filamentchannels.curved_filament_connector_threads(
-                        connector_index=connector_index
-                    ).move(Location((self._config.wheel.radius, 0, 0)))
-                )
+                with BuildPart(Location((-self._config.wheel.radius, 0, 0))):
+                    if direction == ChannelPairDirection.LEAN_REVERSE:
+                        add(
+                            self._filamentchannels.curved_filament_connector_threads(
+                                connector_index=connector_index
+                            ).mirror(
+                                Plane.YZ
+                            )
+                        )
+                    else:
+                        add(
+                            self._filamentchannels.straight_filament_connector_threads(
+                                connector_index=connector_index
+                            )
+                        )
+                with BuildPart(Location((self._config.wheel.radius, 0, 0))):
+                    if direction == ChannelPairDirection.LEAN_FORWARD:
+                        add(
+                            self._filamentchannels.curved_filament_connector_threads(
+                                connector_index=connector_index
+                            )
+                        )
+                    else:
+                        add(
+                            self._filamentchannels.straight_filament_connector_threads(
+                                connector_index=connector_index
+                            )
+                        )
+
         part = constructed_bracket.part
         part.label = "bottom bracket"
         return part
 
-    def top_bracket(self, tolerance: float = 0, connector_index=0) -> Part:
+    def top_bracket(
+        self,
+        tolerance: float = 0,
+        connector_index=0,
+        direction: ChannelPairDirection = ChannelPairDirection.LEAN_FORWARD,
+    ) -> Part:
         """
         returns the top slide-in part for the filament bracket
         """
         with BuildPart() as frame:
             add(
                 self.bottom_bracket(
-                    draft=True, connector_index=connector_index
+                    draft=True,
+                    connector_index=connector_index,
+                    direction=direction,
                 ).mirror(Plane.YZ)
             )
             with BuildPart(mode=Mode.INTERSECT):
@@ -782,9 +872,31 @@ class FilamentBracket(Partomatic):
         """
         for index, connector in enumerate(self._config.connectors):
             self.bottom_brackets[index] = self.bottom_bracket(
-                draft=False, connector_index=index
+                draft=False,
+                connector_index=index,
+                direction=ChannelPairDirection.LEAN_FORWARD,
             )
-            self.top_brackets[index] = self.top_bracket(connector_index=index)
+            self.reverse_bottom_brackets[index] = self.bottom_bracket(
+                draft=False,
+                connector_index=index,
+                direction=ChannelPairDirection.LEAN_REVERSE,
+            )
+            self.straight_bottom_brackets[index] = self.bottom_bracket(
+                draft=False,
+                connector_index=index,
+                direction=ChannelPairDirection.STRAIGHT,
+            )
+            self.top_brackets[index] = self.top_bracket(
+                connector_index=index,
+                direction=ChannelPairDirection.LEAN_FORWARD,
+            )
+            self.reverse_top_brackets[index] = self.top_bracket(
+                connector_index=index,
+                direction=ChannelPairDirection.LEAN_REVERSE,
+            )
+            self.straight_top_brackets[index] = self.top_bracket(
+                connector_index=index, direction=ChannelPairDirection.STRAIGHT
+            )
             if LockStyle.CLIP in self._config.frame_lock_style:
                 self.bracketclips[index] = self.bracket_clip(
                     inset=self._config.tolerance / 2
@@ -821,6 +933,14 @@ class FilamentBracket(Partomatic):
             reset_camera=Camera.KEEP,
         )
 
+    def _clean_file_prefix(
+        self,
+        file_prefix: str,
+    ):
+        if file_prefix.startswith("alt/"):
+            file_prefix = file_prefix[4:]
+        return file_prefix
+
     def export_stls(self):
         """
         Generates the filament wheel STLs in the configured
@@ -830,6 +950,16 @@ class FilamentBracket(Partomatic):
             return
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
+        straight_output_directory = (
+            Path(output_directory) / "alt/straight-filament-path-brackets/"
+        )
+
+        reverse_output_directory = (
+            Path(output_directory) / "alt/reverse-filament-path-brackets/"
+        )
+        output_directory.mkdir(parents=True, exist_ok=True)
+        straight_output_directory.mkdir(parents=True, exist_ok=True)
+        reverse_output_directory.mkdir(parents=True, exist_ok=True)
         for index, connector in enumerate(self._config.connectors):
             file_prefix = (
                 connector.file_prefix
@@ -841,8 +971,15 @@ class FilamentBracket(Partomatic):
                 if connector.file_suffix is not None
                 else ""
             )
+            Path(output_directory / file_prefix).parent.mkdir(
+                parents=True, exist_ok=True
+            )
             Path(
-                Path(__file__).parent / self._config.stl_folder / file_prefix
+                straight_output_directory
+                / self._clean_file_prefix(file_prefix)
+            ).parent.mkdir(parents=True, exist_ok=True)
+            Path(
+                reverse_output_directory / self._clean_file_prefix(file_prefix)
             ).parent.mkdir(parents=True, exist_ok=True)
             export_stl(
                 self.bottom_brackets[index],
@@ -851,15 +988,46 @@ class FilamentBracket(Partomatic):
                     / f"{file_prefix}filament-bracket-bottom{file_suffix}.stl"
                 ),
             )
+            export_stl(
+                self.top_brackets[index],
+                str(
+                    output_directory
+                    / f"{file_prefix}filament-bracket-top{file_suffix}.stl"
+                ),
+            )
+            export_stl(
+                self.straight_bottom_brackets[index],
+                str(
+                    straight_output_directory
+                    / f"{self._clean_file_prefix(file_prefix)}filament-bracket-bottom{file_suffix}.stl"
+                ),
+            )
+            export_stl(
+                self.straight_top_brackets[index],
+                str(
+                    straight_output_directory
+                    / f"{self._clean_file_prefix(file_prefix)}filament-bracket-top{file_suffix}.stl"
+                ),
+            )
+            export_stl(
+                self.reverse_bottom_brackets[index],
+                str(
+                    reverse_output_directory
+                    / f"{self._clean_file_prefix(file_prefix)}filament-bracket-bottom{file_suffix}.stl"
+                ),
+            )
+            export_stl(
+                self.reverse_top_brackets[index],
+                str(
+                    reverse_output_directory
+                    / f"{self._clean_file_prefix(file_prefix)}filament-bracket-top{file_suffix}.stl"
+                ),
+            )
         if LockStyle.CLIP in self._config.frame_lock_style:
             export_stl(
                 self.bracketclips[0],
                 str(output_directory / "filament-bracket-clip.stl"),
             )
-        export_stl(
-            self.top_brackets[0],
-            str(output_directory / "filament-bracket-top.stl"),
-        )
 
     def render_2d(self, save_to_disk: bool = False):
         """
@@ -891,7 +1059,7 @@ class FilamentBracket(Partomatic):
 
 
 if __name__ == "__main__":
-    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+    config_path = Path(__file__).parent / "../build-configs/reference.conf"
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
 
