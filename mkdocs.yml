@@ -12,6 +12,8 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      toc_depth: 3
 nav:
   - Overview: index.md
   - Components Overview: components.md
@@ -22,4 +24,9 @@ nav:
     - Frame Assembly : assembly/frame.md
   - Installation & Usage: usage.md
   - Building a Custom Configuration: config.md
-  - Developer's Overview: developers.md
+  - Developer's Overview:
+    - Build123d framework: developers_guide/build123d.md
+    - The Partomatic Philosophy: developers_guide/partomatic.md
+    - BenderConfig: developers_guide/BenderConfig.md
+    - Creating New Parts: developers_guide/newparts.md
+    - Updating build.py: developers_guide/build.md

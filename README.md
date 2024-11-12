@@ -2,7 +2,7 @@
 
 ## Overview
 
-![FENDER BENDER logo](docs/assets/logo.svg){: width="25%"}
+<img src="docs/assets/logo.svg" align="right" width=33%>
 
 FENDER BENDER is an open-source filament buffering system. Filament buffers are necessary for reliable operation of multi-material systems such as Prusa's MMU3 or earlier revisions of the ERCF.
 
@@ -14,84 +14,14 @@ We believe the reference design represents the best choices for a buffering syst
 
 This flexibility comes from having as many elements as possible calculated on a few critical elements. While this approach allows for tremendous flexibility without a lot of knowledge of Python, there's no guarantee that any combination of values will work. If you're struggling to get something to work, please reach out with enough details for us to assist.
 
-## Components
-
-### The "Filament Bracket"
-
-This bracket is the component responsible for ensuring that the filament smoothly moves through the system when feeding the extruder, and is redirected to the buffer when retracting.
-
-The system requires one filament bracket for each filament you need to buffer (on the Prusa MMU3, you'll need 5 filament brackets).
-
-#### Bottom Bracket
-
-This is the primary part of the filament bracket, supporting the PTFE tubes through the system. The filament bracket wheel mounts on top of this part.
-
-Several alternative parts exist for different tube and connector configurations. The default part is for 3mm inner diameter / 6mm outer diameter PTFE tubing without a connector. See [Resources for fittings and tubing for part sources](## Resources for fittings and tubing)
-
-#### Bracket Wheel
-
-The wheel will mount on a bearing and sit on the [bottom bracket](#bottom-bracket). When the [Filament Bracket](#the-filament-bracket) is fully assembled, the wheel should spin freely.
-
-#### Bracket Top
-
-The bracket top slides into the [bottom bracket](#bottom-bracket) and locks the wheel/bearing assembly into place.
-
-#### Bracket Clip
-
-If you've chosen a frame clip locking style, the bracket clips lock each filament bracket into place in the top frame to prevent it from coming out in the event of a printer jam.
-
-### Walls
-
-The walls form the sides of each buffering chamber. A fully assembled filament bracket will have two complete wall assemblies.
-
-#### Guide Walls
-The guide walls connect to the frame elements and hold the sidewalls in place
-
-#### Reinforced Side Walls
-Reinforced sidewalls are for the exterior of a wall assembly and provide some extra rigidity to the assembled frame.
-
-#### Side Walls
-Side walls separate each filament chamber.
-
-### Frame
-The frame holds everything together.
-
-#### Frame Top
-This is one of the most critical components of the system. Each filament bracket should snap into the frame with a satisfying click when properly assembled. One of the wall assemblies will click into the bottom of the frame. In wall mounted installations, the frame top will also connect to the wall hanger.
-
-The default part includes the cut for the wall hanger; if you prefer to print the self-standing version it will have a smoother exterior profile, but you'll have to choose alternative parts for the connector and bottom as well.
-
-#### Frame Connector
-This connects the two wall assemblies.
-
-The default part includes a thicker wall to the wall side for wall mounted installations. The alternative "standing" file will provide a straight back line when coupled with the standing top and bottom components.
-
-#### Frame Bottom
-In hanging installations, this part is not strictly necessary. In hybrid or standing installations, this includes a flat bottom for a free-standing buffer.
-
-The default part includes the stand but also has extra spacing for wall mounted installations. The "hanging-no-stand" alternative has a round bottom profile which uses less filament and a different appearance in hanging installations. The "standing" alternative eliminates the extra spacing for the wall hanging bracket, as well as the screw guide along the back.
-
-## Code
-
-The source file, `build.py` is used to generate the .stl files -- the 3d models. The other python files represent the shapes that are generated. The various parameters and tolerances are all stored in the .conf files in the build-config directory -- it's possible to generate new sets of parts by modifying those configurations and executing `python3 ./build.py`
-
-## Resources for fittings and tubing
-
-You'll need to purchase Tube Fittings, and potentially tubing. Here are some sources that I've found here in the states
-
-| Description                             | Possible Source |
-| -----------                             | --------------- |
-| PC4-M10 Straight Pneumatic Tube Fitting (for 4mm OD tubing) | [BIQU via Amazon](https://www.amazon.com/gp/product/B01IB81IHG/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) |
-| 1/8th threaded PC6-01 Through fitting (for 6mm OD tubing)| [Robot Digg](https://www.robotdigg.com/product/755/Through-fitting-PC4-M6,-PC4-01,-PC6-M6-or-PC6-01-for-PTFE-Tubing) (be sure to select PC6-01) and print the -1-8th fitting parts|
-| PTFE Teflon tubing (3mm Inner Diameter(ID) X 6mm Outer Diameter (OD)) | [uxcell via Amazon](https://www.amazon.com/gp/product/B09158R6LD)
-
-## Recommended Print Settings
-Other than where noted, the standard Prusa Slicer "structural" profiles will be fine. Some components will require supports to print properly, and we strongly recommend using organic supports. You'll get best results from hand painting areas for support and using PETG supports for PLA parts or vice-versa (although that's not strictly required)
-
+## Documentation
+Complete documentation for the Fender-Bender project is maintained in the docs folder and on the [fender-bender documentation](https://fender-bender.readthedocs.io/en/latest/) site.
 
 ## Modifying the Source
 
 The included source file relies on the build123d library. I recommend following the [build123d installation instructions](https://build123d.readthedocs.io/en/latest/installation.html).
+
+[Fender-bender developer documentation](https://fender-bender.readthedocs.io/en/latest/developers/) will walk you through the general philosophy of the fender-bender project.
 
 ## Contributing
 
