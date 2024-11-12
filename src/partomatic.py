@@ -20,12 +20,14 @@ class Partomatic(Part, ABC):
     """
 
     @abstractmethod
-    def load_config(self, configuration_path: str):
+    def load_config(self, configuration: str):
         """
-        loads the configuration file
+        loads the configuration
          -------
         arguments:
-            - configuration_path: the path to the configuration file
+            - configuration: the configuration to be loaded;
+              might be in the form of a file path, or might
+              represent the full configuration
         """
 
     @abstractmethod
@@ -51,8 +53,14 @@ class Partomatic(Part, ABC):
     def render_2d(self):
         """method to render the part to a png file"""
 
-    def partomate(self):
-        """automates the part generation, render a 2d snapshot, and export"""
+    def partomate(self, bypass_2d_render: bool = True):
+        """automates the part generation, render a 2d snapshot, and export
+         -------
+        arguments:
+            - bypass_2d_render: if true, does not display the 2d object
+              (which requires a running ocp viewer)
+        """
         self.compile()
-        self.render_2d()
+        if not bypass_2d_render:
+            self.render_2d()
         self.export_stls()
