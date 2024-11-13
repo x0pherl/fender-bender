@@ -5,7 +5,7 @@ from pathlib import Path
 from time import time
 
 from bender_config import BenderConfig, LockStyle
-from brackets import Brackets
+from hanging_brackets import HangingBrackets
 from filament_bracket import FilamentBracket
 from filament_wheel import FilamentWheel
 from frame_top import TopFrame
@@ -80,7 +80,7 @@ for conf_file in conf_files:
     print(f"Generating parts for {conf_file.name}")
     print(f"\t connector diam is {config.default_connector.diameter}")
     iteration_start_time = time()
-    Brackets(config.frame_config).partomate()
+    HangingBrackets(config.frame_config).partomate()
     FilamentWheel(config.wheel, config.stl_folder).partomate()
     FilamentBracket(conf_file).partomate()
     TopFrame(config.frame_config).partomate()

@@ -51,7 +51,7 @@ class NutStyle(Enum):
     NUT = auto()
 
 
-class Brackets(Partomatic):
+class HangingBrackets(Partomatic):
     """
     A Partomatic for the top frame
     """
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
-    brackets = Brackets(bender_config.frame_config)
+    brackets = HangingBrackets(bender_config.frame_config)
     brackets.compile()
     brackets.display()
     brackets.export_stls()

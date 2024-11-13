@@ -1,7 +1,7 @@
 from unittest.mock import patch
 from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
-from brackets import Brackets
+from hanging_brackets import HangingBrackets
 from bender_config import BenderConfig
 
 
@@ -12,7 +12,7 @@ class TestBrackets:
             patch("ocp_vscode.show"),
             patch("build123d.export_stl"),
         ):
-            loader = SourceFileLoader("__main__", "src/brackets.py")
+            loader = SourceFileLoader("__main__", "src/hanging_brackets.py")
             loader.exec_module(
                 module_from_spec(spec_from_loader(loader.name, loader))
             )
@@ -23,7 +23,7 @@ class TestBrackets:
             patch("ocp_vscode.show"),
             patch("build123d.export_stl"),
         ):
-            brackets = Brackets()
+            brackets = HangingBrackets()
             brackets._config.stl_folder = "NONE"
             brackets.compile()
             brackets.export_stls()
@@ -34,6 +34,6 @@ class TestBrackets:
             patch("ocp_vscode.show"),
             patch("build123d.export_stl"),
         ):
-            brackets = Brackets(BenderConfig().frame_config)
+            brackets = HangingBrackets(BenderConfig().frame_config)
             brackets.compile()
             brackets.render_2d()
