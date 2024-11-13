@@ -16,7 +16,6 @@ from build123d import (
     Location,
     Mode,
     Part,
-    Plane,
     PolarLocations,
     Sphere,
     add,
@@ -25,14 +24,13 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from bender_config import BenderConfig, FrameStyle, LockStyle
+from bender_config import BenderConfig
 from basic_shapes import (
     rounded_cylinder,
     rail_block_template,
     distance_to_circle_edge,
-    screw_cut,
 )
-from filament_bracket import FilamentBracket
+
 from frame_config import FrameConfig
 from frame_common import core_cut, wallslots
 from lock_pin import LockPin
@@ -139,6 +137,16 @@ class TopFrame(Partomatic):
                     arc_size=180,
                     align=(Align.CENTER, Align.MIN, Align.CENTER),
                     rotation=(90, 0, 0),
+                )
+            with BuildPart(
+                Location((-self._config.exterior_radius / 2, 0, 0))
+            ):
+                Box(
+                    self._config.exterior_radius,
+                    self._config.bracket_depth + self._config.tolerance * 2,
+                    self._config.exterior_radius + self._config.bracket_depth,
+                    align=(Align.MIN, Align.CENTER, Align.MIN),
+                    rotation=(0, -30, 0),
                 )
             with BuildPart(
                 Location(
@@ -452,6 +460,7 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
     frame = TopFrame(bender_config.frame_config)
+    # show(frame._bracket_cutblock(), reset_camera=Camera.KEEP)
     frame.compile()
     frame.display()
     frame.export_stls()
