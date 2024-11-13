@@ -951,11 +951,13 @@ class FilamentBracket(Partomatic):
         output_directory = Path(__file__).parent / self._config.stl_folder
         output_directory.mkdir(parents=True, exist_ok=True)
         straight_output_directory = (
-            Path(output_directory) / "alt/straight-filament-path-brackets/"
+            Path(output_directory)
+            / "alt/filament-bracket-straight-filament-path/"
         )
 
         reverse_output_directory = (
-            Path(output_directory) / "alt/reverse-filament-path-brackets/"
+            Path(output_directory)
+            / "alt/filament-bracket-reverse-filament-path/"
         )
         output_directory.mkdir(parents=True, exist_ok=True)
         straight_output_directory.mkdir(parents=True, exist_ok=True)

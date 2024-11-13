@@ -20,6 +20,12 @@ from contextlib import closing
 
 # from ocp_vscode.standalone import Viewer
 
+alternate_filament_counts = {
+    "single filament": 1,
+    "8-filament": 8,
+    "12-filament": 12,
+}
+
 
 def ocp_responding() -> bool:
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -85,6 +91,18 @@ for conf_file in conf_files:
     if LockStyle.PIN in config.frame_lock_style:
         lockpin = LockPin(config.lock_pin_config)
         lockpin.partomate()
+    print("Generating alternate frame parts")
+    original_stl_folder = config.stl_folder
+    for name, count in alternate_filament_counts.items():
+        print(f"{name} has {count} filaments")
+        config.stl_folder = str(
+            Path(original_stl_folder) / "alt" / f"frame-parts-{name}"
+        )
+        config.filament_count = count
+        Guidewall(config.guidewall_config).partomate()
+        TopFrame(config.frame_config).partomate()
+        BottomFrame(config.frame_config).partomate()
+        ConnectorFrame(config.frame_config).partomate()
     print(
         f"\t{conf_file.stem} configuration built in {(time() - iteration_start_time):.2f} seconds"
     )
