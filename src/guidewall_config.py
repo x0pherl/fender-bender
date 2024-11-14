@@ -31,6 +31,13 @@ class GuidewallConfig:
             + self.reinforcement_thickness * 2
         )
 
+    @property
+    def rail_length(self) -> float:
+        """
+        the length of the guiderails, allowing for tolerances
+        """
+        return self.core_length - self.tolerance * 2
+
     def load_config(self, configuration: str, yaml_tree="guidewall"):
         """
         loads a configuration from a file or valid yaml

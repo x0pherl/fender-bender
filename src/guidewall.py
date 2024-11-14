@@ -52,19 +52,19 @@ class Guidewall(Partomatic):
             with BuildPart():
                 Box(
                     self._config.wall_thickness * 3,
-                    self._config.core_length,
+                    self._config.rail_length,
                     self._config.wall_thickness,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness)):
                 Rectangle(
                     self._config.wall_thickness * 3,
-                    self._config.core_length,
+                    self._config.rail_length,
                 )
             with BuildSketch(Plane.XY.offset(self._config.wall_thickness * 3)):
                 Rectangle(
                     self._config.wall_thickness + self._config.tolerance * 2,
-                    self._config.core_length,
+                    self._config.rail_length,
                 )
             loft()
             with BuildPart(
@@ -73,7 +73,7 @@ class Guidewall(Partomatic):
             ):
                 Box(
                     self._config.wall_thickness + self._config.tolerance * 2,
-                    self._config.core_length,
+                    self._config.rail_length,
                     self._config.wall_thickness * 2,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
@@ -131,7 +131,7 @@ class Guidewall(Partomatic):
         with BuildPart() as side:
             Box(
                 self._config.reinforcement_thickness - self._config.tolerance,
-                self._config.core_length,
+                self._config.rail_length,
                 self._config.wall_thickness * 3,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )

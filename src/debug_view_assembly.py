@@ -224,7 +224,6 @@ def wall_fit_test():
             )
         )
     )
-    show(top_frame, side_wall, guide_wall, reset_camera=Camera.KEEP)
 
 
 def cut_frame_test():
@@ -339,119 +338,118 @@ def generate_funnel_test_parts():
         )
 
 
-wall_fit_test()
-# if __name__ == "__main__":
-#     gw = Guidewall(_config.guidewall_config)
-#     sw = Sidewall(_config.sidewall_config)
-#     gw.compile()
-#     sw.compile()
-#     bwall = (
-#         gw.wall.rotate(Axis.Z, 90)
-#         .rotate(Axis.Y, 90)
-#         .move(
-#             Location(
-#                 (
-#                     -_config.sidewall_width / 2
-#                     - _config.wall_thickness
-#                     + _config.frame_hanger_offset,
-#                     0,
-#                     -_config.sidewall_straight_depth / 2,
-#                 )
-#             )
-#         )
-#     )
-#     fwall = (
-#         gw.wall.rotate(Axis.Z, 90)
-#         .rotate(Axis.Y, -90)
-#         .move(
-#             Location(
-#                 (
-#                     _config.sidewall_width / 2
-#                     + _config.wall_thickness
-#                     + _config.frame_hanger_offset,
-#                     0,
-#                     -_config.sidewall_straight_depth / 2,
-#                 )
-#             )
-#         )
-#     )
-#     swall = sw.reinforcedsidewall.rotate(Axis.X, 90).move(
-#         Location(
-#             (
-#                 _config.frame_hanger_offset,
-#                 -_config.top_frame_interior_width / 2
-#                 - _config.minimum_structural_thickness
-#                 - _config.wall_thickness / 2,
-#                 0,
-#             )
-#         )
-#     )
+if __name__ == "__main__":
+    gw = Guidewall(_config.guidewall_config)
+    sw = Sidewall(_config.sidewall_config)
+    gw.compile()
+    sw.compile()
+    bwall = (
+        gw.wall.rotate(Axis.Z, 90)
+        .rotate(Axis.Y, 90)
+        .move(
+            Location(
+                (
+                    -_config.sidewall_width / 2
+                    - _config.wall_thickness
+                    + _config.frame_hanger_offset,
+                    0,
+                    -_config.sidewall_straight_depth / 2,
+                )
+            )
+        )
+    )
+    fwall = (
+        gw.wall.rotate(Axis.Z, 90)
+        .rotate(Axis.Y, -90)
+        .move(
+            Location(
+                (
+                    _config.sidewall_width / 2
+                    + _config.wall_thickness
+                    + _config.frame_hanger_offset,
+                    0,
+                    -_config.sidewall_straight_depth / 2,
+                )
+            )
+        )
+    )
+    swall = sw.reinforcedsidewall.rotate(Axis.X, 90).move(
+        Location(
+            (
+                _config.frame_hanger_offset,
+                -_config.top_frame_interior_width / 2
+                - _config.minimum_structural_thickness
+                - _config.wall_thickness / 2,
+                0,
+            )
+        )
+    )
 
-#     tf = TopFrame(_config.frame_config)
-#     tf.compile()
+    tf = TopFrame(_config.frame_config)
+    tf.compile()
 
-#     topframe = tf._hybridframe
+    topframe = tf._hybridframe
 
-#     bf = BottomFrame(_config.frame_config)
-#     bf.compile()
-#     bframe = bf._hybridframe.rotate(Axis.X, 180).move(
-#         Location(
-#             (
-#                 0,
-#                 0,
-#                 -_config.sidewall_straight_depth
-#                 - _config.frame_connector_depth
-#                 - _config.sidewall_straight_depth,
-#             )
-#         )
-#     )
+    bf = BottomFrame(_config.frame_config)
+    bf.compile()
+    bframe = bf._hybridframe.rotate(Axis.X, 180).move(
+        Location(
+            (
+                0,
+                0,
+                -_config.sidewall_straight_depth
+                - _config.frame_connector_depth
+                - _config.sidewall_straight_depth,
+            )
+        )
+    )
 
-#     cf = ConnectorFrame(_config.frame_config)
-#     cf.compile()
-#     cframe = (
-#         cf._hanging_frame.move(
-#             Location(
-#                 (
-#                     0,
-#                     0,
-#                     -_config.sidewall_straight_depth
-#                     - _config.frame_connector_depth,
-#                 )
-#             )
-#         ),
-#     )
+    cf = ConnectorFrame(_config.frame_config)
+    cf.compile()
+    cframe = (
+        cf._hanging_frame.move(
+            Location(
+                (
+                    0,
+                    0,
+                    -_config.sidewall_straight_depth
+                    - _config.frame_connector_depth,
+                )
+            )
+        ),
+    )
 
-#     bkt = (
-#         filamentbracket.bottom_bracket()
-#         .rotate(Axis.X, 90)
-#         .move(
-#             Location((0, _config.bracket_depth / 2, _config.frame_base_depth))
-#         )
-#     )
+    bkt = (
+        filamentbracket.bottom_bracket()
+        .rotate(Axis.X, 90)
+        .move(
+            Location((0, _config.bracket_depth / 2, _config.frame_base_depth))
+        )
+    )
 
-#     pin = lockpin.lock_pin(
-#         inset=_config.frame_lock_pin_tolerance / 2, tie_loop=True
-#     ).move(
-#         Location(
-#             (
-#                 _config.wheel.radius + _config.bracket_depth / 2,
-#                 _config.frame_exterior_width / 2,
-#                 _config.bracket_depth
-#                 + _config.minimum_structural_thickness / 2
-#                 + _config.frame_base_depth
-#                 + _config.frame_lock_pin_tolerance / 2,
-#             )
-#         )
-#     )
+    pin = lockpin.lock_pin(
+        inset=_config.frame_lock_pin_tolerance / 2, tie_loop=True
+    ).move(
+        Location(
+            (
+                _config.wheel.radius + _config.bracket_depth / 2,
+                _config.frame_exterior_width / 2,
+                _config.bracket_depth
+                + _config.minimum_structural_thickness / 2
+                + _config.frame_base_depth
+                + _config.frame_lock_pin_tolerance / 2,
+            )
+        )
+    )
 
-#     show(
-#         topframe,
-#         bkt,
-#         bwall,
-#         cframe,
-#         fwall,
-#         swall,
-#         pin,
-#         bframe,
-#         reset_camera=Camera.KEEP,
-#     )
+    show(
+        topframe,
+        bkt,
+        bwall,
+        cframe,
+        fwall,
+        swall,
+        pin,
+        bframe,
+        reset_camera=Camera.KEEP,
+    )
