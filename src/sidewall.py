@@ -134,9 +134,9 @@ class Sidewall(Partomatic):
                 add(
                     self._base_sidewall_shape(
                         top_radius=self._config.top_radius
-                        - self._config.wall_thickness * 0.75,
+                        - self._config.wall_thickness * 0.25,
                         extension_length=self._config.top_extension
-                        + self._config.wall_thickness * 0.75,
+                        + self._config.wall_thickness * 0.25,
                         width=self._config.sidewall_width
                         + self._config.wall_thickness
                         - self._config.reinforcement_thickness * 2,
@@ -332,7 +332,7 @@ class Sidewall(Partomatic):
         Shows the walls in OCP CAD Viewer
         """
         show(
-            self.sidewall,
+            self.dryreinforcedsidewall,
             reset_camera=Camera.KEEP,
         )
 
