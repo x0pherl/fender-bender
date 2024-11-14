@@ -83,9 +83,9 @@ class Sidewall(Partomatic):
     def _outer_sidewall_shape(self) -> Sketch:
         return self._base_sidewall_shape(
             top_radius=self._config.top_radius
-            - self._config.wall_thickness * 0.75,
+            - self._config.wall_thickness * 0.25,
             extension_length=self._config.top_extension
-            + self._config.wall_thickness * 0.75,
+            + self._config.wall_thickness * 0.25,
             width=self._config.sidewall_width - self._config.wall_thickness,
             straight_length=self._config.straight_length
             - self._config.wall_thickness,
@@ -94,15 +94,14 @@ class Sidewall(Partomatic):
 
     def _center_sidewall_shape(self) -> Sketch:
         return self._base_sidewall_shape(
-            top_radius=self._config.top_radius,
-            extension_length=self._config.top_extension,
+            top_radius=self._config.top_radius
+            + self._config.wall_thickness * 0.25,
+            extension_length=self._config.top_extension
+            - self._config.wall_thickness * 0.25,
             width=self._config.sidewall_width,
-            straight_length=self._config.straight_length
-            + self._config.wall_thickness
-            / 4,  # note this last bit feels wrong but is v1.0 exact --
-            # start here when troubleshooting
+            straight_length=self._config.straight_length,
             end_count=self._config.end_count,
-        ).move(Location((0, self._config.wall_thickness * 0.75)))
+        ).move(Location((0, self._config.wall_thickness * 0.5)))
 
     def _central_core_sidewall_shape(self) -> Sketch:
         return self._base_sidewall_shape(
@@ -333,7 +332,7 @@ class Sidewall(Partomatic):
         Shows the walls in OCP CAD Viewer
         """
         show(
-            self.dryreinforcedsidewall,
+            self.sidewall,
             reset_camera=Camera.KEEP,
         )
 
