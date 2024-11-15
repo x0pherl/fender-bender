@@ -141,6 +141,7 @@ def rail_block_template(
     radius=1,
     inset=0.2,
     rail_width=1,
+    side_divots=True,
 ) -> Part:
 
     radial_inset = inset if inset > 0 else inset * 4
@@ -169,11 +170,13 @@ def rail_block_template(
                 rotation=(90, 0, 0),
                 align=(Align.CENTER, Align.MIN, Align.CENTER),
             )
-        with BuildPart(
-            Location((-length / 2, 0, (depth - inset) / 2)), mode=Mode.SUBTRACT
-        ):
-            with GridLocations(0, width - inset, 1, 2):
-                Sphere(radius=radius + radial_inset)
+        if side_divots:
+            with BuildPart(
+                Location((-length / 2, 0, (depth - inset) / 2)),
+                mode=Mode.SUBTRACT,
+            ):
+                with GridLocations(0, width - inset, 1, 2):
+                    Sphere(radius=radius + radial_inset)
         with BuildPart(Location((-radius * 2.2, 0, (depth - inset)))):
             with PolarLocations((width - inset) / 2, 2, 90):
                 Cylinder(
@@ -268,4 +271,4 @@ def screw_cut(
 
 
 if __name__ == "__main__":
-    show(heatsink_cut(), reset_camera=Camera.KEEP)
+    show(rail_block_template(), reset_camera=Camera.KEEP)

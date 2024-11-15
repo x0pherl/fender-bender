@@ -1,12 +1,24 @@
 from dataclasses import asdict
 from pathlib import Path
 from bender_config import BenderConfig
+from filament_bracket import FilamentBracket
+from filament_wheel import FilamentWheel
 from sidewall import Sidewall
 from sidewall_config import SidewallConfig
 from guidewall import Guidewall
 from guidewall_config import GuidewallConfig
 
-from build123d import Part, Compound, Location, Axis
+from build123d import (
+    Part,
+    Compound,
+    Location,
+    Axis,
+    BuildPart,
+    Align,
+    Mode,
+    Cylinder,
+    Cone,
+)
 from ocp_vscode import Camera, show, save_screenshot
 
 
@@ -197,6 +209,141 @@ class wall_assembly:
             self._config = config
 
 
+class BracketAssembly:
+    bender_config: BenderConfig
+    _filament_bracket: FilamentBracket = FilamentBracket()
+
+    def _step_one_assembly(self) -> Compound:
+        """"""
+        bottom = self._filament_bracket.bottom_bracket()
+        bottom.label = "bottom bracket"
+        bottom.color = "#168529"
+        with BuildPart() as bearing:
+            Cylinder(
+                radius=self._config.wheel.bearing.radius,
+                height=self._config.wheel.bearing.depth,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+            Cylinder(
+                radius=self._config.wheel.bearing.inner_radius,
+                height=self._config.wheel.bearing.depth,
+                mode=Mode.SUBTRACT,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+        bearing = bearing.part.moved(
+            Location(
+                (
+                    0,
+                    0,
+                    self._config.bearing_shelf_height,
+                )
+            )
+        )
+        bearing.label = "bearing"
+        bearing.color = "#C0C0C0"
+
+        wheel = (
+            FilamentWheel(self._config.wheel)
+            .filament_wheel()
+            .moved(
+                Location(
+                    (
+                        0,
+                        0,
+                        self._config.bearing_shelf_height,
+                    )
+                )
+            )
+        )
+        wheel.label = "filament wheel"
+        wheel.color = "#8c93e9"
+
+        bracket_assembly = Compound(
+            label="Filament Bracket Assembly",
+            children=[
+                bottom.moved(Location((0, 0, 0))),
+                wheel,
+                bearing,
+            ],
+        )
+        return bracket_assembly
+
+    def _step_two_assembly(self) -> Compound:
+        """"""
+        bracket_assembly = self._step_one_assembly()
+        top = (
+            self._filament_bracket.top_bracket()
+            .rotate(Axis.Y, 180)
+            .move(
+                Location(
+                    (
+                        0,
+                        -self._config.bracket_depth,
+                        self._config.bracket_depth,
+                    )
+                )
+            )
+        )
+        top.label = "top bracket"
+        top.color = "#009eb0"
+        top.parent = bracket_assembly
+        with BuildPart() as arrow:
+            Cylinder(
+                radius=self._config.wheel.bearing.inner_radius,
+                height=self._config.wheel.radius / 2,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+            with BuildPart(arrow.faces().sort_by(Axis.Z)[-1]):
+                Cone(
+                    bottom_radius=self._config.wheel.bearing.inner_diameter,
+                    top_radius=0,
+                    height=self._config.wheel.bearing.inner_diameter * 2,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                )
+        up_arrow = arrow.part.move(
+            Location(
+                (
+                    0,
+                    -self._config.bracket_depth,
+                    self._config.bracket_depth * 1.5,
+                )
+            )
+        )
+        up_arrow.color = "#ebd591"
+        up_arrow.label = "up arrow"
+        up_arrow.parent = bracket_assembly
+        slide_arrow = arrow.part.rotate(Axis.X, -90).move(
+            Location((0, self._config.wheel.radius / 2, 0))
+        )
+        slide_arrow.color = "#ebd591"
+        slide_arrow.label = "slide arrow"
+        slide_arrow.parent = bracket_assembly
+        return bracket_assembly
+
+    def complete_assembly(self) -> Compound:
+        """"""
+        bracket_assembly = self._step_one_assembly()
+        top = (
+            self._filament_bracket.top_bracket()
+            .rotate(Axis.Y, 180)
+            .move(Location((0, 0, self._config.bracket_depth)))
+        )
+        top.label = "top bracket"
+        top.color = "#009eb0"
+        top.parent = bracket_assembly
+        return bracket_assembly
+
+    def __init__(self, config: BenderConfig = None):
+        if config is None:
+            self._config = BenderConfig()
+        else:
+            self._config = config
+        self._filament_bracket = FilamentBracket(
+            self._config.filament_bracket_config(0)
+        )
+        self._filament_bracket.compile()
+
+
 if __name__ == "__main__":
     config_path = Path(__file__).parent / "../build-configs/reference.conf"
     bender_config = BenderConfig(config_path)
@@ -216,4 +363,17 @@ if __name__ == "__main__":
     show(walls.complete_assembly(), reset_camera=Camera.RESET)
     save_screenshot(
         filename=str(Path(output_directory) / "step-003-wall-assembly.png")
+    )
+    brackets = BracketAssembly(bender_config)
+    show(brackets._step_one_assembly(), reset_camera=Camera.RESET)
+    save_screenshot(
+        filename=str(Path(output_directory) / "step-001-wheel-bearing.png")
+    )
+    show(brackets._step_two_assembly(), reset_camera=Camera.RESET)
+    save_screenshot(
+        filename=str(Path(output_directory) / "step-002-external-walls.png")
+    )
+    show(brackets.complete_assembly(), reset_camera=Camera.RESET)
+    save_screenshot(
+        filename=str(Path(output_directory) / "step-003-bracket-complete.png")
     )

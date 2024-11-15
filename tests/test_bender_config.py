@@ -127,11 +127,6 @@ class TestBenderConfig:
     def test_frame_exterior_width(self, default_bender_config):
         assert default_bender_config.frame_exterior_width == 91.0
 
-    def test_filament_funnel_height(self, default_bender_config):
-        assert (
-            default_bender_config.filament_funnel_height == 17.38900514693121
-        )
-
     def test_default_connector(self, default_bender_config):
         assert default_bender_config.default_connector.diameter == 10.1
 

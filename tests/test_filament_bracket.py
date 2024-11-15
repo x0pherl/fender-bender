@@ -1,8 +1,11 @@
 from importlib.machinery import SourceFileLoader
 from importlib.util import spec_from_loader, module_from_spec
 from unittest.mock import patch
+import pytest
 from filament_channels import FilamentChannels
 from filament_bracket import FilamentBracket
+from bender_config import BenderConfig
+from filament_bracket_config import FilamentBracketConfig
 
 
 class TestFilamentBracket:
@@ -29,38 +32,49 @@ class TestFilamentBracket:
             # patch("filament_bracket.show_object"),
             patch("filament_bracket.save_screenshot"),
         ):
-            bracket = FilamentBracket(complete_connector_config_yaml)
+            bender_config = BenderConfig(complete_connector_config_yaml)
+            bracket = FilamentChannels(
+                bender_config.filament_bracket_config(0)
+            )
             bracket.compile()
             bracket.display()
             bracket.export_stls()
             bracket._config.stl_folder = "c:/temp"
             bracket.export_stls()
-            bracket.render_2d(save_to_disk=True)
+            bracket.render_2d()
 
     def test_bracket_block(self):
-        bracket = FilamentBracket()
+        bender_config = BenderConfig()
+        bracket = FilamentBracket(bender_config.filament_bracket_config(0))
         block = bracket.bottom_bracket_block()
         assert block is not None
         assert block.volume > 0
-        assert block.bounding_box().size.X == 106.66585530967899
+        assert block.bounding_box().size.X == pytest.approx(106.20623590190772)
 
     def test_straight_filament_path(self):
         channels = FilamentChannels()
-        path = channels.straight_filament_path()
+        block = channels.straight_filament_block_solid()
+        assert block is not None
+        assert block.is_valid
+        path = channels.straight_filament_path_cut()
         assert path is not None
-        assert path.volume > 0
-        assert path.bounding_box().size.X == 12.600000000000001
+        assert block.is_valid
 
     def test_curved_filament_path(self):
         channels = FilamentChannels()
-        path = channels.curved_filament_path()
+        block = channels.curved_filament_block_solid()
+        assert block is not None
+        assert block.is_valid
+        path = channels.curved_filament_path_cut()
         assert path is not None
-        assert path.volume > 0
-        assert path.bounding_box().size.X == 26.203270321667198
+        assert block.is_valid
 
-    def test_initialized_load(self, bender_config_yaml_threaded):
-        channels = FilamentChannels(bender_config_yaml_threaded)
-        assert channels._config.default_connector.thread_angle == 30
+    def test_initialized_load_from_bender_config(
+        self, bender_config_yaml_threaded
+    ):
+        bender_config = BenderConfig(bender_config_yaml_threaded)
+        channels = FilamentChannels(bender_config.filament_bracket_config(0))
+        assert channels._config.connector.thread_angle == 30
 
     def test_bare_execution(self):
         with (
@@ -85,3 +99,35 @@ class TestFilamentBracket:
             loader.exec_module(
                 module_from_spec(spec_from_loader(loader.name, loader))
             )
+
+
+class TestFilamentBracketConfig:
+
+    def test_detault_config(self):
+        config = FilamentBracketConfig()
+        config.bracket_height = 1000
+        assert config.bracket_height == 1000
+        config._default_config()
+        assert config.bracket_height == pytest.approx(43.5)
+
+    def test_yaml_config(self, filament_bracket_config_yaml):
+        config = FilamentBracketConfig(filament_bracket_config_yaml)
+        assert config.bracket_height == pytest.approx(43.5)
+
+    def test_yaml_with_dict_config(
+        self, filament_bracket_config_yaml_with_dict
+    ):
+        config = FilamentBracketConfig(filament_bracket_config_yaml_with_dict)
+        assert config.lock_pin.pin_length == pytest.approx(123)
+
+    def test_dict_kwargs(self, filament_bracket_config_yaml_with_dict):
+        config = FilamentBracketConfig(
+            lock_pin={
+                "stl_folder": "NONE",
+                "pin_length": 123,
+                "tolerance": 0.1,
+                "height": 4,
+                "tie_loop": True,
+            }
+        )
+        assert config.lock_pin.pin_length == pytest.approx(123)

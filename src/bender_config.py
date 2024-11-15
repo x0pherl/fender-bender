@@ -11,22 +11,20 @@ from pathlib import Path
 
 from shapely.geometry import Point
 
-from filament_wheel_config import WheelConfig
+from basic_shapes import distance_to_circle_edge
 
+from filament_wheel_config import WheelConfig
 from guidewall_config import GuidewallConfig
 from sidewall_config import SidewallConfig
 from frame_config import FrameConfig
 from lock_pin_config import LockPinConfig
-from basic_shapes import distance_to_circle_edge
-
-
-class LockStyle(Flag):
-    """What sort of clip to have"""
-
-    CLIP = auto()
-    PIN = auto()
-    BOTH = CLIP | PIN
-    NONE = auto()
+from filament_bracket_config import (
+    LockStyle,
+    FilamentBracketConfig,
+    TubeConfig,
+    ConnectorConfig,
+    ChannelPairDirection,
+)
 
 
 class FrameStyle(Flag):
@@ -35,66 +33,6 @@ class FrameStyle(Flag):
     HANGING = auto()
     STANDING = auto()
     HYBRID = HANGING | STANDING
-
-
-@dataclass
-class TubeConfig:
-    inner_diameter: float = 3.55
-    outer_diameter: float = 6.5
-
-    @property
-    def inner_radius(self) -> float:
-        """
-        returnes the inner radius of the tube
-        """
-        return self.inner_diameter / 2
-
-    @property
-    def outer_radius(self) -> float:
-        """
-        returnes the outer radius of the tube
-        """
-        return self.outer_diameter / 2
-
-    def __init__(self, **kwargs):
-        for field in fields(self):
-            setattr(self, field.name, kwargs.get(field.name, field.default))
-
-
-@dataclass
-class ConnectorConfig:
-    name: str = "connector"
-    file_prefix: Optional[str] = None
-    file_suffix: Optional[str] = None
-    diameter: float = 10.1
-    length: float = 6.7
-    threaded: bool = True
-    thread_pitch: float = 1.0
-    thread_angle: float = 30.0
-    thread_interference: float = 0.4
-    tube: TubeConfig = field(default_factory=TubeConfig)
-
-    @property
-    def radius(self) -> float:
-        """
-        returns the radius of the connector
-        """
-        return self.diameter / 2
-
-    def __init__(self, **kwargs):
-        for field in fields(self):
-            if field.name == "tube":
-                config_value = kwargs.get(field.name, field.default)
-                if isinstance(config_value, TubeConfig):
-                    self.tube = config_value
-                elif isinstance(config_value, dict):
-                    self.tube = TubeConfig(**config_value)
-                else:
-                    self.tube = TubeConfig()
-            else:
-                setattr(
-                    self, field.name, kwargs.get(field.name, field.default)
-                )
 
 
 @dataclass
@@ -314,23 +252,6 @@ class BenderConfig:
         )
 
     @property
-    def filament_funnel_height(self) -> float:
-        """
-        calculates the appropriate filament funnel height
-        to clear the filament wheel
-        """
-        return distance_to_circle_edge(
-            radius=self.wheel.radius
-            + self.wheel.radial_tolerance
-            + self.minimum_thickness,
-            point=(
-                self.wheel.radius - self.default_connector.tube.outer_radius,
-                0,
-            ),
-            angle=90,
-        )
-
-    @property
     def default_connector(self) -> ConnectorConfig:
         """
         returns the default connector
@@ -379,6 +300,17 @@ class BenderConfig:
         )
 
     @property
+    def wheel_support_height(self) -> float:
+        """
+        returns the appropriate height for the bearing shelf
+        """
+        return (
+            self.bracket_depth
+            - self.wheel.bearing.depth
+            - self.wheel.lateral_tolerance
+        ) / 2
+
+    @property
     def chamber_cut_length(self) -> float:
         """
         the length to cut for each chamber in the frames
@@ -418,17 +350,6 @@ class BenderConfig:
         returns the fillet radis for bracket parts
         """
         return self.bracket_depth / self.fillet_ratio
-
-    @property
-    def wheel_support_height(self) -> float:
-        """
-        returns the appropriate height for the bearing shelf
-        """
-        return (
-            self.bracket_depth
-            - self.wheel.bearing.depth
-            - self.wheel.lateral_tolerance
-        ) / 2
 
     @property
     def sidewall_config(self) -> SidewallConfig:
@@ -514,6 +435,43 @@ class BenderConfig:
             m4_shaft_radius=self.m4_shaft_radius,
         )
 
+    def filament_bracket_config(
+        self, connector_index=0
+    ) -> FilamentBracketConfig:
+        return FilamentBracketConfig(
+            stl_folder=self.stl_folder,
+            wheel=self.wheel,
+            connector=self.connectors[connector_index],
+            bracket_depth=self.bracket_depth,
+            bracket_height=self.bracket_height,
+            bracket_width=self.bracket_width,
+            exterior_radius=self.frame_bracket_exterior_radius,
+            frame_bracket_exterior_x_distance=self.frame_bracket_exterior_x_distance(
+                self.frame_base_depth
+            ),
+            fillet_radius=self.fillet_radius,
+            frame_click_sphere_point=self.frame_click_sphere_point,
+            frame_click_sphere_radius=self.frame_click_sphere_radius,
+            frame_clip_depth_offset=self.frame_clip_depth_offset,
+            frame_clip_point=self.frame_clip_point,
+            frame_clip_rail_width=self.frame_clip_rail_width,
+            frame_clip_width=self.frame_clip_width,
+            frame_lock_pin_tolerance=self.frame_lock_pin_tolerance,
+            frame_lock_style=self.frame_lock_style,
+            lock_pin=self.lock_pin_config,
+            minimum_structural_thickness=self.minimum_structural_thickness,
+            minimum_thickness=self.minimum_thickness,
+            sidewall_section_depth=self.sidewall_section_depth,
+            sidewall_width=self.sidewall_width,
+            tolerance=self.tolerance,
+            wall_thickness=self.wall_thickness,
+            wall_window_apothem=self.wall_window_apothem,
+            wall_window_bar_thickness=self.wall_window_bar_thickness,
+            wheel_support_height=self.wheel_support_height,
+            bearing_shelf_height=self.bearing_shelf_height,
+            channel_pair_direction=ChannelPairDirection.LEAN_FORWARD,
+        )
+
     @property
     def lock_pin_config(self) -> LockPinConfig:
         return LockPinConfig(
@@ -568,8 +526,10 @@ class BenderConfig:
         for field in fields(BenderConfig):
             if field.name in config_dict["BenderConfig"]:
                 value = config_dict["BenderConfig"][field.name]
-                if field.name == "frame_lock_style":
-                    setattr(self, field.name, LockStyle[value.upper()])
+                if isinstance(field.type, type) and issubclass(
+                    field.type, (Enum, Flag)
+                ):
+                    setattr(self, field.name, field.type[value.upper()])
                 elif field.name == "wheel":
                     self.wheel = WheelConfig(**value)
                 elif field.name == "connectors":
@@ -588,7 +548,7 @@ class BenderConfig:
 
 
 if __name__ == "__main__":
-    config_path = Path(__file__).parent / "../build-configs/reference.conf"
+    config_path = Path(__file__).parent / "../build-configs/dev.conf"
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     test = BenderConfig(config_path)
@@ -602,3 +562,4 @@ if __name__ == "__main__":
     print(test.frame_bracket_exterior_radius)
     print(test.wheel.radius, test.bracket_depth, test.bracket_height)
     print(test.stl_folder)
+    print(test.frame_lock_style)
