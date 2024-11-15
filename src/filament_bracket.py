@@ -731,32 +731,7 @@ class FilamentBracket(Partomatic):
             )
 
     def render_2d(self, save_to_disk: bool = False):
-        """
-        renders docuemntation images to the renders folder
-        """
-        output_directory = Path(__file__).parent / "../docs/assets"
-        output_directory.mkdir(parents=True, exist_ok=True)
-
-        show(self._step_one_assembly(), reset_camera=Camera.RESET)
-        if save_to_disk:
-            save_screenshot(
-                filename=str(
-                    Path(output_directory) / "step-001-wheel-bearing.png"
-                )
-            )
-        show(self.complete_assembly(), reset_camera=Camera.RESET)
-        if save_to_disk:
-            save_screenshot(
-                filename=str(
-                    Path(output_directory) / "step-003-bracket-complete.png"
-                )
-            )
-        show(self._step_two_assembly(), reset_camera=Camera.RESET)
-        if save_to_disk:
-            save_screenshot(
-                filename=str(Path(output_directory) / "step-002-slide-top.png")
-            )
-        show(self._step_one_assembly(), reset_camera=Camera.RESET)
+        pass
 
 
 if __name__ == "__main__":
@@ -768,4 +743,4 @@ if __name__ == "__main__":
     bracket = FilamentBracket(bender_config.filament_bracket_config(1))
     bracket.compile()
     bracket.display()
-    # bracket.export_stls()
+    bracket.export_stls()

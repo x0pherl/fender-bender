@@ -1,6 +1,8 @@
 """ Build and export all parts required for assebly for each configuration file in the build-configs directory """
 
 from argparse import ArgumentParser
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
 from pathlib import Path
 from time import time
 
@@ -106,5 +108,9 @@ for conf_file in conf_files:
     print(
         f"\t{conf_file.stem} configuration built in {(time() - iteration_start_time):.2f} seconds"
     )
+
+    # TODO -- this is an awful hack for now, but build is not the most important bit of software
+    loader = SourceFileLoader("__main__", "assembly_documentation.py")
+    loader.exec_module(module_from_spec(spec_from_loader(loader.name, loader)))
 
 print(f"Build Complete in {(time() - start_time):.2f} seconds")
