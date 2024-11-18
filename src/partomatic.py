@@ -63,6 +63,10 @@ class PartomaticConfig:
                 configuration = path.read_text()
         bracket_dict = yaml.safe_load(configuration)
         for node in self.yaml_tree.split("/"):
+            if node not in bracket_dict:
+                raise ValueError(
+                    f"Node {node} not found in configuration file"
+                )
             bracket_dict = bracket_dict[node]
 
         for classfield in fields(self.__class__):

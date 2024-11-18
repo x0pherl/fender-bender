@@ -9,6 +9,7 @@ import yaml
 from basic_shapes import distance_to_circle_edge
 from filament_wheel_config import WheelConfig
 from lock_pin_config import LockPinConfig
+from partomatic import PartomaticConfig
 
 
 class LockStyle(Flag):
@@ -38,7 +39,7 @@ class ChannelPairDirection(Enum):
 
 
 @dataclass
-class TubeConfig:
+class TubeConfig(PartomaticConfig):
     inner_diameter: float = 3.55
     outer_diameter: float = 6.5
 
@@ -56,13 +57,12 @@ class TubeConfig:
         """
         return self.outer_diameter / 2
 
-    def __init__(self, **kwargs):
-        for field in fields(self):
-            setattr(self, field.name, kwargs.get(field.name, field.default))
+    def __init__(self, configuration: any = None, **kwargs):
+        super().__init__(configuration, **kwargs)
 
 
 @dataclass
-class ConnectorConfig:
+class ConnectorConfig(PartomaticConfig):
     name: str = "connector"
     file_prefix: Optional[str] = None
     file_suffix: Optional[str] = None
@@ -81,24 +81,14 @@ class ConnectorConfig:
         """
         return self.diameter / 2
 
-    def __init__(self, **kwargs):
-        for field in fields(self):
-            if field.name == "tube":
-                config_value = kwargs.get(field.name, field.default)
-                if isinstance(config_value, TubeConfig):
-                    self.tube = config_value
-                elif isinstance(config_value, dict):
-                    self.tube = TubeConfig(**config_value)
-                else:
-                    self.tube = TubeConfig()
-            else:
-                setattr(
-                    self, field.name, kwargs.get(field.name, field.default)
-                )
+    def __init__(self, configuration: any = None, **kwargs):
+        super().__init__(configuration, **kwargs)
 
 
 @dataclass
-class FilamentBracketConfig:
+class FilamentBracketConfig(PartomaticConfig):
+    yaml_tree: str = "FilamentBracket"
+
     stl_folder: str = "NONE"
     file_prefix: str = ""
     file_suffix: str = ""
@@ -178,63 +168,5 @@ class FilamentBracketConfig:
             else:
                 raise ValueError(f"Field {field.name} has no default value")
 
-    def load_config(self, configuration: any, yaml_tree="FilamentBracket"):
-        """
-        loads a filament bracket configuration from a file or valid yaml
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - yaml_tree: the yaml tree to the wheel configuration node,
-            separated by slashes (example: "BenderConfig/FilamentBracket")
-        """
-        if isinstance(configuration, FilamentBracketConfig):
-            for field in fields(self):
-                setattr(self, field.name, getattr(configuration, field.name))
-            return
-
-        configuration = str(configuration)
-        if "\n" not in configuration:
-            path = Path(configuration)
-            if path.exists() and path.is_file():
-                configuration = path.read_text()
-        bracket_dict = yaml.safe_load(configuration)
-        for node in yaml_tree.split("/"):
-            bracket_dict = bracket_dict[node]
-
-        for field in fields(FilamentBracketConfig):
-            if field.name in bracket_dict:
-                value = bracket_dict[field.name]
-                if isinstance(field.type, type) and issubclass(
-                    field.type, (Enum, Flag)
-                ):
-                    setattr(self, field.name, field.type[value.upper()])
-                if is_dataclass(field.type) and isinstance(value, dict):
-                    setattr(
-                        self,
-                        field.name,
-                        field.type(**value),
-                    )
-                else:
-                    setattr(self, field.name, value)
-
     def __init__(self, configuration: any = None, **kwargs):
-        if configuration is not None:
-            self.load_config(configuration, **kwargs)
-        elif kwargs:
-            self._default_config()
-            for key, value in kwargs.items():
-                if hasattr(self, key):
-                    field = next(
-                        field
-                        for field in fields(FilamentBracketConfig)
-                        if field.name == key
-                    )
-                    if is_dataclass(field.type):
-                        if isinstance(value, dict):
-                            setattr(self, key, field.type(**value))
-                        else:
-                            setattr(self, key, value)
-                    else:
-                        setattr(self, key, value)
+        super().__init__(configuration, **kwargs)

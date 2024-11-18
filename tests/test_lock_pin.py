@@ -14,14 +14,14 @@ class TestLockPinConfig:
         yaml_config = {
             "lockpin": {
                 "stl_folder": "NONE",
-                "pin_length": 100,
+                "pin_length": 123,
                 "tolerance": 0.1,
                 "height": 4,
                 "tie_loop": True,
             }
         }
         pinconfig = LockPinConfig(yaml_config)
-        assert pinconfig.pin_length == 100
+        assert pinconfig.pin_length == 123
 
     def test_invalid_config(self):
         with pytest.raises(ValueError):

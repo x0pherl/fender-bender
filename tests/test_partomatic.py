@@ -85,6 +85,10 @@ Part:
         assert config.container_field == "yaml_container_field"
         assert config.sub.sub_field == "yaml_sub_field"
 
+    def test_invalid_config(self):
+        with pytest.raises(ValueError):
+            ContainerConfig("invalid_config")
+
     def test_yaml_container_with_dict_partomat(self):
         config = ContainerConfig(
             sub={

@@ -2,9 +2,12 @@ from dataclasses import dataclass, fields
 import yaml
 from pathlib import Path
 
+from partomatic import PartomaticConfig
+
 
 @dataclass
-class FrameConfig:
+class FrameConfig(PartomaticConfig):
+    yaml_tree: str = "frame"
     stl_folder: str = "NONE"
     exterior_width: float = 91
     exterior_length: float = 120
@@ -59,42 +62,5 @@ class FrameConfig:
     def stand_depth(self) -> float:
         return self.base_depth * 2 + self.exterior_radius
 
-    def load_config(self, configuration: str, yaml_tree="frame"):
-        """
-        loads a configuration from a file or valid yaml
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-        """
-        configuration = str(configuration)
-        if "\n" not in configuration:
-            path = Path(configuration)
-            if path.exists() and path.is_file():
-                configuration = path.read_text()
-        config_dict = yaml.safe_load(configuration)
-        for node in yaml_tree.split("/"):
-            config_dict = config_dict[node]
-
-        for field in fields(FrameConfig):
-            if field.name in config_dict:
-                value = config_dict[field.name]
-                setattr(self, field.name, value)
-
-    def __init__(self, configuration: str = None, **kwargs):
-        if configuration:
-            configuration = str(configuration)
-            try:
-                self.load_config(
-                    configuration, kwargs.get("yaml_tree", "frame")
-                )
-            except Exception as e:
-                raise ValueError(
-                    f"Error loading configuration from {configuration}: {e}"
-                ) from e
-        else:
-            for field in fields(self):
-                setattr(
-                    self, field.name, kwargs.get(field.name, field.default)
-                )
+    def __init__(self, configuration: any = None, **kwargs):
+        super().__init__(configuration, **kwargs)
