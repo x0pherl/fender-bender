@@ -104,16 +104,13 @@ class LockPin(Partomatic):
                     )
         return lpin.part
 
-    def load_config(self, configuration: str):
-        self._config.load_config(configuration)
-
-    def __init__(self, configuration=None):
+    def __init__(self, configuration: any = None, **kwargs):
         super(Partomatic, self).__init__()
         if configuration is not None:
             if type(configuration) is LockPinConfig:
                 self._config = configuration
             else:
-                self.load_config(configuration)
+                self._config.load_config(configuration, **kwargs)
         else:
             self._config = LockPinConfig()
 

@@ -521,6 +521,10 @@ class BenderConfig:
             path = Path(configuration)
             if path.exists() and path.is_file():
                 configuration = path.read_text()
+        if "BenderConfig" not in configuration:
+            raise ValueError(
+                'Invalid configuration: "BenderConfig" yaml tree not found'
+            )
         config_dict = yaml.safe_load(configuration)
 
         for field in fields(BenderConfig):

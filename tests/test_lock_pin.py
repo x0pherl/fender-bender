@@ -41,6 +41,20 @@ class TestLockPin:
                 module_from_spec(spec_from_loader(loader.name, loader))
             )
 
+    def test_bare_execution_missing_file(self):
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+            patch("pathlib.Path.exists", return_value=False),
+        ):
+            with pytest.raises(ValueError):
+                loader = SourceFileLoader("__main__", "src/lock_pin.py")
+                loader.exec_module(
+                    module_from_spec(spec_from_loader(loader.name, loader))
+                )
+
     def test_lock_pin(self):
         with (
             patch("build123d.export_stl"),
@@ -52,6 +66,44 @@ class TestLockPin:
                 Path(__file__).parent / "../build-configs/debug.conf"
             )
             pin = LockPin(bender_config.lock_pin_config)
+            pin.compile()
+            pin.export_stls()
+            pin.render_2d()
+
+    def test_lock_pin_default_init(self):
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            pin = LockPin()
+            pin.compile()
+            pin.export_stls()
+            pin.render_2d()
+
+    def test_lock_pin_inited(self):
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
+        ):
+            bender_config = BenderConfig(
+                Path(__file__).parent / "../build-configs/debug.conf"
+            )
+            pin = LockPin(
+                configuration={
+                    "lockpin": {
+                        "stl_folder": "NONE",
+                        "pin_length": 123,
+                        "tolerance": 0.1,
+                        "height": 4,
+                        "tie_loop": True,
+                    }
+                },
+                yaml_tree="lockpin",
+            )
             pin.compile()
             pin.export_stls()
             pin.render_2d()
