@@ -138,6 +138,7 @@ class Widget(Partomatic):
     _config: WidgetConfig = WidgetConfig()
 
     def compile(self):
+        self.parts.clear()
         with BuildPart() as holebox:
             Box(
                 self._config.length,

@@ -1,8 +1,15 @@
 from dataclasses import dataclass, fields
+from enum import Enum, auto
 from pathlib import Path
 import yaml
 
 from partomatic import PartomaticConfig
+
+
+class WallStyle(Enum):
+    SOLID = auto()
+    DRYBOX = auto()
+    HEX = auto()
 
 
 @dataclass
@@ -21,6 +28,8 @@ class SidewallConfig(PartomaticConfig):
     wall_window_bar_thickness: float = 1.5
     click_fit_radius: float = 1
     end_count: int = 1
+    wall_style: WallStyle = WallStyle.HEX
+    block_inner_wall_generation: bool = False
 
     @property
     def top_radius(self) -> float:

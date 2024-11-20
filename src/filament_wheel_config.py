@@ -11,6 +11,7 @@ class BearingConfig(PartomaticConfig):
     inner_diameter: float = 6.1
     shelf_diameter: float = 8.5
     depth: float = 4
+    print_in_place: bool = False
 
     @property
     def radius(self) -> float:
@@ -33,9 +34,8 @@ class BearingConfig(PartomaticConfig):
         """
         return self.shelf_diameter / 2
 
-    def __init__(self, **kwargs):
-        for field in fields(self):
-            setattr(self, field.name, kwargs.get(field.name, field.default))
+    def __init__(self, configuration: any = None, **kwargs):
+        super().__init__(configuration, **kwargs)
 
 
 @dataclass

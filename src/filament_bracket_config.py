@@ -122,6 +122,7 @@ class FilamentBracketConfig(PartomaticConfig):
     channel_pair_direction: ChannelPairDirection = (
         ChannelPairDirection.LEAN_FORWARD
     )
+    block_pin_generation: bool = False
 
     @property
     def filament_funnel_height(self) -> float:

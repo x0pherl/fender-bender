@@ -32,16 +32,14 @@ def ring() -> Sketch:
     """
     with BuildSketch() as frame:
         Rectangle(
-            _config.frame_exterior_length(frame_style=FrameStyle.STANDING)
-            + 20,
+            _config.frame_exterior_length + 20,
             _config.wheel.diameter + _config.frame_base_depth * 2 + 38,
             align=(Align.CENTER, Align.CENTER),
         )
         fillet(frame.vertices(), _config.fillet_radius)
         with BuildSketch(mode=Mode.SUBTRACT) as cut:
             Rectangle(
-                _config.frame_exterior_length(frame_style=FrameStyle.STANDING)
-                + 10,
+                _config.frame_exterior_length + 10,
                 _config.wheel.diameter + _config.frame_base_depth * 2 + 28,
                 align=(Align.CENTER, Align.CENTER),
             )
@@ -68,7 +66,7 @@ def logo(border=False, simplified=False) -> Sketch:
             ),
         ) as hangers:
             Rectangle(
-                _config.frame_exterior_length(frame_style=FrameStyle.STANDING),
+                _config.frame_exterior_length,
                 _config.frame_base_depth,
                 align=(Align.CENTER, Align.MIN),
             )
@@ -82,10 +80,7 @@ def logo(border=False, simplified=False) -> Sketch:
                 )
             ) as frame:
                 Rectangle(
-                    _config.frame_exterior_length(
-                        frame_style=FrameStyle.STANDING
-                    )
-                    / 2,
+                    _config.frame_exterior_length / 2,
                     _config.bracket_height,
                     align=(Align.MAX, Align.MIN),
                 )

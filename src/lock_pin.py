@@ -20,14 +20,13 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from lock_pin_config import LockPinConfig
-from partomatic import Partomatic
+from partomatic import BuildablePart, Partomatic
 
 
 class LockPin(Partomatic):
     """a partomatic of the lock pin"""
 
     _config = LockPinConfig()
-    _lockpin: Part
 
     def lock_pin(self, inset: float = 0.3, tie_loop=False):
         """
@@ -102,36 +101,22 @@ class LockPin(Partomatic):
                         height=rail_height,
                         align=(Align.CENTER, Align.CENTER, Align.MIN),
                     )
-        return lpin.part
-
-    def __init__(self, configuration: any = None, **kwargs):
-        super(Partomatic, self).__init__()
-        if configuration is not None:
-            if type(configuration) is LockPinConfig:
-                self._config = configuration
-            else:
-                self._config.load_config(configuration, **kwargs)
-        else:
-            self._config = LockPinConfig()
+        part = lpin.part
+        part.label = "lockpin"
+        return part
 
     def compile(self):
-        self._lockpin = self.lock_pin(
-            inset=self._config.tolerance / 2, tie_loop=self._config.tie_loop
+        self.parts.clear()
+        self.parts.append(
+            BuildablePart(
+                self.lock_pin(
+                    inset=self._config.tolerance / 2,
+                    tie_loop=self._config.tie_loop,
+                ),
+                "lock-pin",
+                stl_folder=self._config.stl_folder,
+            )
         )
-        self._lockpin.label = "lockpin"
-
-    def display(self):
-        show(self._lockpin, reset_camera=Camera.KEEP)
-
-    def export_stls(self):
-        if self._config.stl_folder == "NONE":
-            return
-        output_directory = Path(__file__).parent / self._config.stl_folder
-        output_directory.mkdir(parents=True, exist_ok=True)
-        export_stl(self._lockpin, str(output_directory / "lock-pin.stl"))
-
-    def render_2d(self):
-        pass
 
 
 if __name__ == "__main__":

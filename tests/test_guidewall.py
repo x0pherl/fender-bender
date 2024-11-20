@@ -46,13 +46,3 @@ class TestGuidewall:
             sidewall = Guidewall()
             sidewall._config.stl_folder = "NONE"
             sidewall.export_stls()
-
-    def test_render_2d(self):
-        with (
-            patch("pathlib.Path.mkdir"),
-            patch("ocp_vscode.show"),
-            patch("ocp_vscode.save_screenshot"),
-            patch("build123d.export_stl"),
-        ):
-            sidewall = Guidewall()
-            sidewall.render_2d()

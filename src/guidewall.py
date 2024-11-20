@@ -29,17 +29,14 @@ from build123d.objects_part import Cylinder
 from ocp_vscode import Camera, show
 from bender_config import BenderConfig
 from hexwall import HexWall
-from partomatic import Partomatic
+from partomatic import Partomatic, BuildablePart
 from guidewall_config import GuidewallConfig
 from tongue_groove import tongue
+from sidewall_config import WallStyle
 
 
 class Guidewall(Partomatic):
     """partomatic for the frand and back chamber walls of the filament bank"""
-
-    wall: Part
-    solidwall: Part
-    drywall: Part
 
     _config: GuidewallConfig = GuidewallConfig()
 
@@ -188,7 +185,7 @@ class Guidewall(Partomatic):
                 )
         return tongues.part
 
-    def build_guidewall(self, solid=False, dry=False) -> Part:
+    def build_guidewall(self) -> Part:
         """
         builds the guidewall part
         """
@@ -199,7 +196,7 @@ class Guidewall(Partomatic):
                 self._config.wall_thickness,
                 align=(Align.CENTER, Align.CENTER, Align.MIN),
             )
-            if not solid:
+            if not self._config.wall_style == WallStyle.SOLID:
                 with BuildPart(mode=Mode.SUBTRACT):
                     hw = HexWall(
                         width=self._config.core_length
@@ -213,7 +210,7 @@ class Guidewall(Partomatic):
                         align=(Align.CENTER, Align.CENTER, Align.MIN),
                     )
                     add(hw)
-            if dry:
+            if self._config.wall_style == WallStyle.DRYBOX:
                 Box(
                     self._config.width - self._config.reinforcement_inset * 2,
                     self._config.core_length
@@ -222,66 +219,20 @@ class Guidewall(Partomatic):
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             add(self._guide_set())
-            if not solid:
+            if not not self._config.wall_style == WallStyle.SOLID:
                 add(self._hex_outline_cut(), mode=Mode.SUBTRACT)
             add(self._tongues())
         return wall.part
 
-    def load_config(self, configuration: str, yaml_tree="guidewall"):
-        """
-        loads a sidewall configuration from a file or valid yaml
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - yaml_tree: the yaml tree to the wheel configuration node,
-            separated by slashes (example: "BenderConfig/Sidewall")
-        """
-        self._config.load_config(configuration, yaml_tree)
-
-    def __init__(self, config: GuidewallConfig = None):
-        """
-        initializes the Partomatic filament wheel
-        -------
-        arguments:
-            - config: a GuidewallConfig ojbect
-        """
-        super(Partomatic, self).__init__()
-
-        if config:
-            self.load_config({"guidewall": asdict(config)})
-        else:
-            self._config = GuidewallConfig()
-
     def compile(self):
-        self.wall = self.build_guidewall()
-        self.solidwall = self.build_guidewall(solid=True)
-        self.drywall = self.build_guidewall(dry=True)
-
-    def export_stls(self):
-        """
-        Generates the wall STLs in the configured
-        folder
-        """
-        if self._config.stl_folder.upper() == "NONE":
-            return
-        output_directory = Path(__file__).parent / self._config.stl_folder
-        output_directory.mkdir(parents=True, exist_ok=True)
-        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
-        export_stl(self.wall, str(output_directory / "wall-guide.stl"))
-        export_stl(
-            self.solidwall, str(output_directory / "alt/wall-guide-solid.stl")
+        self.parts.clear()
+        self.parts.append(
+            BuildablePart(
+                self.build_guidewall(),
+                "wall-guide",
+                stl_folder=self._config.stl_folder,
+            )
         )
-        export_stl(
-            self.drywall, str(output_directory / "alt/wall-guide-dry.stl")
-        )
-
-    def display(self):
-        show(self.wall, reset_camera=Camera.KEEP)
-
-    def render_2d(self):
-        pass
 
 
 if __name__ == "__main__":

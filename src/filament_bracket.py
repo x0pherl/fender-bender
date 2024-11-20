@@ -45,9 +45,8 @@ from ocp_vscode import show, Camera, save_screenshot
 from basic_shapes import rail_block_template, rounded_cylinder
 from bender_config import BenderConfig
 from filament_channels import ChannelMode, FilamentChannels
-from filament_wheel import FilamentWheel
 from lock_pin import LockPin
-from partomatic import Partomatic
+from partomatic import BuildablePart, Partomatic
 from filament_bracket_config import (
     LockStyle,
     FilamentBracketConfig,
@@ -59,12 +58,6 @@ class FilamentBracket(Partomatic):
     """The partomatic for the filament bracket of the filament bank"""
 
     _config: FilamentBracketConfig = FilamentBracketConfig()
-    _filamentchannels: FilamentChannels = FilamentChannels(None)
-
-    _lockpin: LockPin = LockPin()
-
-    _bottom_bracket: Part = Part()
-    _top_bracket: Part = Part()
 
     def _wheel_guide_cut(self) -> Part:
         """
@@ -230,97 +223,6 @@ class FilamentBracket(Partomatic):
                         side_divots=side_divots,
                     )
                 )
-            #     Box(
-            #         self._config.bracket_depth * 2 - inset,
-            #         self._config.frame_clip_width - inset,
-            #         self._config.minimum_structural_thickness - inset,
-            #         align=(Align.CENTER, Align.CENTER, Align.CENTER),
-            #     )
-            #     with BuildPart(railbox.faces().sort_by(Axis.Z)[-1]):
-            #         with GridLocations(
-            #             0, self._config.frame_clip_width - inset, 1, 2
-            #         ):
-            #             Box(
-            #                 self._config.bracket_depth * 2 - inset,
-            #                 self._config.frame_clip_rail_width - inset,
-            #                 self._config.frame_clip_rail_width - inset,
-            #                 rotation=(45, 0, 0),
-            #                 align=(Align.CENTER, Align.CENTER, Align.CENTER),
-            #             )
-            #     Box(
-            #         self._config.bracket_depth * 2 - inset,
-            #         self._config.frame_clip_width - inset,
-            #         self._config.minimum_structural_thickness * 2
-            #         + abs(inset * 2),
-            #         align=(Align.CENTER, Align.CENTER, Align.CENTER),
-            #         mode=Mode.INTERSECT,
-            #     )
-            # with BuildPart(railbox.faces().sort_by(Axis.X)[0]) as rounded:
-            #     Cylinder(
-            #         radius=(self._config.minimum_structural_thickness - inset)
-            #         / 2,
-            #         height=self._config.frame_clip_width - inset,
-            #         rotation=(90, 0, 0),
-            #     )
-            # top_height = frame_depth + (
-            #     (self._config.minimum_structural_thickness - inset) / 2
-            # )
-            # radial_inset = inset if inset > 0 else inset * 4
-            # with BuildPart(
-            #     Location(
-            #         (
-            #             self._config.frame_bracket_exterior_x_distance
-            #             - (
-            #                 self._config.frame_click_sphere_radius
-            #                 + self._config.minimum_thickness
-            #             ),
-            #             0,
-            #             top_height,
-            #         )
-            #     )
-            # ):
-            #     with GridLocations(
-            #         0,
-            #         self._config.frame_clip_width
-            #         - inset
-            #         - self._config.wall_thickness,
-            #         1,
-            #         2,
-            #     ):
-            #         Cylinder(
-            #             radius=self._config.frame_click_sphere_radius
-            #             - radial_inset,
-            #             height=self._config.wall_thickness,
-            #             rotation=(90, 0, 0),
-            #         )
-            # with BuildPart(
-            #     rounded.faces().filter_by(Axis.Y)[-1], mode=Mode.SUBTRACT
-            # ):
-            #     Sphere(self._config.frame_click_sphere_radius + radial_inset)
-            #     if inset > 0:
-            #         Cylinder(
-            #             radius=max(
-            #                 self._config.frame_click_sphere_radius / 2 + inset,
-            #                 0,
-            #             ),
-            #             height=self._config.minimum_structural_thickness,
-            #             rotation=(90, 0, 0),
-            #             align=(Align.CENTER, Align.CENTER, Align.MIN),
-            #         )
-            # with BuildPart(
-            #     rounded.faces().filter_by(Axis.Y)[0], mode=Mode.SUBTRACT
-            # ):
-            #     Sphere(self._config.frame_click_sphere_radius + radial_inset)
-            #     if inset > 0:
-            #         Cylinder(
-            #             radius=max(
-            #                 self._config.frame_click_sphere_radius / 2 + inset,
-            #                 0,
-            #             ),
-            #             height=self._config.minimum_structural_thickness,
-            #             rotation=(90, 0, 0),
-            #             align=(Align.CENTER, Align.CENTER, Align.MAX),
-            #         )
         return rail_block.part
 
     def bracket_clip(
@@ -405,7 +307,7 @@ class FilamentBracket(Partomatic):
                     align=(Align.MIN, Align.CENTER, Align.CENTER),
                 )
         part = clip.part
-        part.label = "Bracket Clip"
+        part.label = "bracket clip"
         return part
 
     def bottom_bracket_block(self) -> Part:
@@ -429,8 +331,8 @@ class FilamentBracket(Partomatic):
             blockchannels = FilamentChannels(self._config)
             blockchannels.channel_mode = ChannelMode.SOLID
             blockchannels.compile()
-            add(blockchannels.part, mode=Mode.SUBTRACT)
-            add(blockchannels.part)
+            add(blockchannels.parts[0].part, mode=Mode.SUBTRACT)
+            add(blockchannels.parts[0].part)
             if LockStyle.CLIP in self._config.frame_lock_style:
                 with BuildPart(
                     Location(
@@ -445,6 +347,7 @@ class FilamentBracket(Partomatic):
                         )
                     )
             if LockStyle.PIN in self._config.frame_lock_style:
+
                 with BuildPart(
                     Location(
                         (
@@ -459,7 +362,7 @@ class FilamentBracket(Partomatic):
                     mode=Mode.SUBTRACT,
                 ):
                     add(
-                        self._lockpin.lock_pin(
+                        LockPin(self._config.lock_pin).lock_pin(
                             inset=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
@@ -503,9 +406,9 @@ class FilamentBracket(Partomatic):
             with BuildPart(mode=Mode.SUBTRACT):
                 cutchannels = FilamentChannels(self._config)
                 cutchannels.channel_mode = ChannelMode.CUT_PATH
-                cutchannels.render_threads = force_draft
+                cutchannels.render_threads = not force_draft
                 cutchannels.compile()
-                add(cutchannels.part)
+                add(cutchannels.parts[0].part)
                 add(
                     self._top_cut_template(self._config.tolerance)
                     .mirror()
@@ -572,7 +475,7 @@ class FilamentBracket(Partomatic):
                     mode=Mode.SUBTRACT,
                 ):
                     add(
-                        self._lockpin.lock_pin(
+                        LockPin(self._config.lock_pin).lock_pin(
                             inset=-self._config.frame_lock_pin_tolerance / 2,
                             tie_loop=False,
                         )
@@ -608,130 +511,52 @@ class FilamentBracket(Partomatic):
         part.label = "top bracket"
         return part
 
-    def load_config(self, configuration: any):
-        """
-        loads the configuration file
-         -------
-        arguments:
-        configuration_path: the path to the configuration file
-        """
-        self._config.load_config(configuration)
-        self._filamentchannels.load_config(configuration)
-        self._lockpin = LockPin(self._config.lock_pin)
-
-    def __init__(self, configuration_path: str = None):
-        """
-        initializes the Partomatic filament bracket
-        -------
-        arguments:
-        configuration_file: the path to the configuration file,
-        set to None to use the default configuration
-        """
-        super(Partomatic, self).__init__()
-        if configuration_path is not None:
-            self.load_config(configuration_path)
-
     def compile(self):
         """
         Builds the relevant parts for the filament bracket
         """
-        self._bottom_bracket = self.bottom_bracket()
-        self._top_bracket = self.top_bracket()
-        if LockStyle.CLIP in self._config.frame_lock_style:
-            self.bracketclip = self.bracket_clip(
-                inset=self._config.tolerance / 2
+        self.parts.clear()
+        self.parts.append(
+            BuildablePart(
+                self.bottom_bracket(),
+                "filament-bracket-bottom",
+                stl_folder=self._config.stl_folder,
             )
-
-    def display(self):
-        """
-        Shows the filament wheel in OCP CAD Viewer
-        """
-        show(
-            self._bottom_bracket,
-            (
-                self.bracketclip.rotate(Axis.X, -90).moved(
-                    Location(
-                        (
-                            0,
-                            0,
-                            self._config.bracket_depth / 2,
-                        )
+        )
+        self.parts.append(
+            BuildablePart(
+                self.top_bracket(),
+                f"filament-bracket-top",
+                display_location=Location(
+                    (
+                        -self._config.bracket_width
+                        - self._config.bracket_depth / 2,
+                        0,
+                        0,
                     )
-                )
-                if LockStyle.CLIP in self._config.frame_lock_style
-                else None
-            ),
-            reset_camera=Camera.KEEP,
-        )
-
-    def _clean_file_prefix(
-        self,
-        file_prefix: str,
-    ):
-        if file_prefix.startswith("alt/"):
-            file_prefix = file_prefix[4:]
-        return file_prefix
-
-    def export_stls(self):
-        """
-        Generates the filament wheel STLs in the configured
-        folder
-        """
-        if self._config.stl_folder.upper() == "NONE":
-            return
-        output_directory = Path(__file__).parent / self._config.stl_folder
-        output_directory.mkdir(parents=True, exist_ok=True)
-        straight_output_directory = (
-            Path(output_directory)
-            / "alt/filament-bracket-straight-filament-path/"
-        )
-
-        reverse_output_directory = (
-            Path(output_directory)
-            / "alt/filament-bracket-reverse-filament-path/"
-        )
-        output_directory.mkdir(parents=True, exist_ok=True)
-        file_prefix = (
-            self._config.file_prefix
-            if self._config.file_prefix is not None
-            else ""
-        )
-        file_suffix = (
-            self._config.file_suffix
-            if self._config.file_suffix is not None
-            else ""
-        )
-        Path(output_directory / file_prefix).parent.mkdir(
-            parents=True, exist_ok=True
-        )
-        Path(
-            straight_output_directory / self._clean_file_prefix(file_prefix)
-        ).parent.mkdir(parents=True, exist_ok=True)
-        Path(
-            reverse_output_directory / self._clean_file_prefix(file_prefix)
-        ).parent.mkdir(parents=True, exist_ok=True)
-        export_stl(
-            self._bottom_bracket,
-            str(
-                output_directory
-                / f"{file_prefix}filament-bracket-bottom{file_suffix}.stl"
-            ),
-        )
-        export_stl(
-            self._top_bracket,
-            str(
-                output_directory
-                / f"{file_prefix}filament-bracket-top{file_suffix}.stl"
-            ),
-        )
-        if LockStyle.CLIP in self._config.frame_lock_style:
-            export_stl(
-                self.bracketclip,
-                str(output_directory / "filament-bracket-clip.stl"),
+                ),
+                stl_folder=self._config.stl_folder,
             )
+        )
 
-    def render_2d(self, save_to_disk: bool = False):
-        pass
+        if (
+            LockStyle.CLIP in self._config.frame_lock_style
+            and not self._config.block_pin_generation
+        ):
+            self.parts.append(
+                BuildablePart(
+                    self.bracket_clip(inset=self._config.tolerance / 2),
+                    "filament-bracket-clip",
+                    display_location=Location(
+                        (
+                            self._config.bracket_depth * 2,
+                            0,
+                            -self._config.frame_clip_point.y,
+                        )
+                    ),
+                    stl_folder=self._config.stl_folder,
+                )
+            )
 
 
 if __name__ == "__main__":
@@ -741,6 +566,7 @@ if __name__ == "__main__":
     bender_config = BenderConfig(config_path)
 
     bracket = FilamentBracket(bender_config.filament_bracket_config(1))
+    bracket._config.channel_pair_direction = ChannelPairDirection.LEAN_REVERSE
     bracket.compile()
     bracket.display()
     bracket.export_stls()

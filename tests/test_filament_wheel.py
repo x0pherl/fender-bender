@@ -93,13 +93,9 @@ class TestWheel:
             patch("filament_wheel.show"),
         ):
             fw.partomate()
-        assert fw.wheel.volume > 0
-        assert fw.wheel.is_valid()
-        assert fw.print_in_place_wheel.is_valid
-        assert fw.wheel.bounding_box().size.Z == pytest.approx(4)
-        assert fw.print_in_place_wheel.bounding_box().size.Z == pytest.approx(
-            4
-        )
+        assert fw.parts[0].part.volume > 0
+        assert fw.parts[0].part.is_valid()
+        assert fw.parts[0].part.bounding_box().size.Z == pytest.approx(4)
 
     def test_loadconfig(self, wheel_config_subpath_yaml):
         fw = FilamentWheel()
@@ -118,11 +114,6 @@ class TestWheel:
             fw.compile()
             fw.display()
 
-    def test_uncompiled_display(self):
-        fw = FilamentWheel()
-        with pytest.raises(AttributeError):
-            fw.display()
-
     def test_NONE_export(self):
         fw = FilamentWheel(stl_folder="NONE")
         fw.export_stls()
@@ -131,6 +122,8 @@ class TestWheel:
         with (
             patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("ocp_vscode.show"),
             patch("ocp_vscode.save_screenshot"),
         ):

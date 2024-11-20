@@ -13,9 +13,9 @@ class TestFilamentBracket:
         with (
             patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("ocp_vscode.show"),
-            patch("ocp_vscode.show_all"),
-            patch("ocp_vscode.show_object"),
             patch("ocp_vscode.save_screenshot"),
         ):
             loader = SourceFileLoader("__main__", "src/filament_bracket.py")
@@ -27,21 +27,18 @@ class TestFilamentBracket:
         with (
             patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
-            patch("filament_bracket.show"),
-            # patch("filament_bracket.show_all"),
-            # patch("filament_bracket.show_object"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
+            patch("ocp_vscode.show"),
             patch("filament_bracket.save_screenshot"),
         ):
             bender_config = BenderConfig(complete_connector_config_yaml)
-            bracket = FilamentChannels(
-                bender_config.filament_bracket_config(0)
-            )
+            bracket = FilamentBracket(bender_config.filament_bracket_config(0))
             bracket.compile()
             bracket.display()
             bracket.export_stls()
             bracket._config.stl_folder = "c:/temp"
             bracket.export_stls()
-            bracket.render_2d()
 
     def test_bracket_block(self):
         bender_config = BenderConfig()
@@ -80,6 +77,8 @@ class TestFilamentBracket:
         with (
             patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("ocp_vscode.show"),
             patch("ocp_vscode.save_screenshot"),
         ):
@@ -92,6 +91,8 @@ class TestFilamentBracket:
         with (
             patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("ocp_vscode.show"),
             patch("ocp_vscode.save_screenshot"),
         ):

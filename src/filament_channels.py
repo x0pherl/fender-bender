@@ -34,7 +34,7 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from filament_bracket_config import FilamentBracketConfig, ChannelPairDirection
-from partomatic import Partomatic
+from partomatic import BuildablePart, Partomatic
 
 
 class ChannelMode(Enum):
@@ -54,10 +54,8 @@ class ChannelMode(Enum):
 class FilamentChannels(Partomatic):
     """a partomatic for the filament ingress and egress channels"""
 
-    part: Part
     _config = FilamentBracketConfig()
-    _right: Part
-    _left: Part
+
     channel_mode: ChannelMode = ChannelMode.COMPLETE
     render_threads: bool = True
 
@@ -387,101 +385,60 @@ class FilamentChannels(Partomatic):
             if self.channel_mode == ChannelMode.COMPLETE:
                 with BuildPart(mode=Mode.SUBTRACT):
                     add(self.curved_filament_path_cut())
-            # if self.render_threads and self._config.connector.threaded:
-            #     add(self.curved_filament_connector_threads())
         part = path.part
         part.label = "filament path"
         return part
-
-    def load_config(self, configuration_path: str):
-        """
-        loads the configuration file
-        -------
-        arguments:
-            - configuration_path: the path to the configuration file
-        """
-        self._config.load_config(configuration_path)
-
-    def __init__(self, configuration_file: str = None):
-        """
-        initializes the Partomatic filament channels
-        -------
-        arguments:
-            - configuration_file: the path to the configuration file,
-                    set to None to use the default configuration
-        """
-        super(Partomatic, self).__init__()
-        if configuration_file is not None:
-            self.load_config(configuration_file)
 
     def compile(self):
         """
         Builds the relevant parts for the filament channels
         """
+        left: Part
+        right: Part
 
-        # TODO - handle the whole mode thing here
-
+        self.parts.clear()
         if (
             self._config.channel_pair_direction
             == ChannelPairDirection.LEAN_REVERSE
         ):
             if self.channel_mode == ChannelMode.CUT_PATH:
-                self._left = self.curved_filament_path_cut().mirror(Plane.YZ)
+                left = self.curved_filament_path_cut().mirror(Plane.YZ)
             else:
-                self._left = self.curved_filament_block().mirror(Plane.YZ)
+                left = self.curved_filament_block(top_exit_fillet=True).mirror(
+                    Plane.YZ
+                )
         else:
             if self.channel_mode == ChannelMode.CUT_PATH:
-                self._left = self.straight_filament_path_cut()
-
+                left = self.straight_filament_path_cut()
             else:
-                self._left = self.straight_filament_block()
-        self._left = self._left.move(
-            Location((-self._config.wheel.radius, 0, 0))
-        )
+                left = self.straight_filament_block()
+        left = left.move(Location((-self._config.wheel.radius, 0, 0)))
         if (
             self._config.channel_pair_direction
             == ChannelPairDirection.LEAN_FORWARD
         ):
             if self.channel_mode == ChannelMode.CUT_PATH:
-                self._right = self.curved_filament_path_cut()
+                right = self.curved_filament_path_cut()
             else:
-                self._right = self.curved_filament_block(top_exit_fillet=True)
+                right = self.curved_filament_block(top_exit_fillet=True)
         else:
             if self.channel_mode == ChannelMode.CUT_PATH:
-                self._right = self.straight_filament_path_cut()
+                right = self.straight_filament_path_cut()
             else:
-                self._right = self.straight_filament_block()
+                right = self.straight_filament_block()
 
-        self._right = self._right.move(
-            Location((self._config.wheel.radius, 0, 0))
-        )
+        right = right.move(Location((self._config.wheel.radius, 0, 0)))
         with BuildPart() as channels:
-            add(self._left)
-            add(self._right)
-        self.part = channels.part
-        self.part.label = "Filament Channels"
-
-    def display(self):
-        """
-        Shows the filament channels in OCP CAD Viewer
-        """
-        show(
-            self.part,
-            reset_camera=Camera.KEEP,
+            add(left)
+            add(right)
+        channels.part.label = "filament channels"
+        self.parts.append(
+            BuildablePart(
+                channels.part,
+                "filament-bracket-channels",
+                stl_folder="NONE",
+            )
         )
-
-    def export_stls(self):
-        """
-        Required for partomatic, although there are no
-        STLs to export for the filament channels
-        """
-        pass
-
-    def render_2d(self):
-        """
-        not yet implemented
-        """
-        pass
 
 
 if __name__ == "__main__":
@@ -490,7 +447,6 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
     bracket_config = bender_config.filament_bracket_config(1)
-    bracket_config.channel_pair_direction = ChannelPairDirection.LEAN_REVERSE
     channels = FilamentChannels(bracket_config)
     channels.channel_mode = ChannelMode.COMPLETE
     channels.compile()

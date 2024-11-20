@@ -15,8 +15,9 @@ from basic_shapes import distance_to_circle_edge
 
 from filament_wheel_config import WheelConfig
 from guidewall_config import GuidewallConfig
-from sidewall_config import SidewallConfig
-from frame_config import FrameConfig
+from hanging_bracket_config import HangingBracketConfig, HangingBracketStyle
+from sidewall_config import SidewallConfig, WallStyle
+from frame_config import FrameConfig, FrameStyle
 from lock_pin_config import LockPinConfig
 from filament_bracket_config import (
     LockStyle,
@@ -27,14 +28,6 @@ from filament_bracket_config import (
 )
 
 
-class FrameStyle(Flag):
-    """What sort of frame to have"""
-
-    HANGING = auto()
-    STANDING = auto()
-    HYBRID = HANGING | STANDING
-
-
 @dataclass
 class BenderConfig:
     """
@@ -42,6 +35,8 @@ class BenderConfig:
     """
 
     stl_folder: str = "../stl/default"
+
+    skip_alt_file_generation: bool = True
 
     wheel: WheelConfig = field(default_factory=WheelConfig)
 
@@ -52,15 +47,21 @@ class BenderConfig:
     minimum_bracket_width: float = -1
     minimum_bracket_height: float = -1
 
+    bracket_direction: ChannelPairDirection = ChannelPairDirection.LEAN_FORWARD
+
     connectors: List[ConnectorConfig] = field(default_factory=list)
     fillet_ratio: float = 4
     tolerance: float = 0.2
     filament_count: int = 5
+    alternate_filament_counts: List[int] = field(default_factory=list)
 
     frame_chamber_depth: float = 340
     wall_window_apothem: float = 8
     wall_window_bar_thickness: float = 1.5
     wall_thickness: float = 3
+    wall_style: WallStyle = WallStyle.HEX
+
+    frame_style: FrameStyle = FrameStyle.HANGING
 
     frame_tongue_depth: float = 4
     frame_lock_pin_tolerance: float = 0.4
@@ -218,11 +219,8 @@ class BenderConfig:
             * self.filament_count
         ) - self.wall_thickness
 
-    #
-    # do we want to eliminate the hanging bit given the way we are now
-    # building frames and alternate parts?
-    #
-    def frame_exterior_length(self, frame_style=FrameStyle.HYBRID) -> float:
+    @property
+    def frame_exterior_length(self) -> float:
         """
         the overall interior length of the top frame
         """
@@ -231,7 +229,7 @@ class BenderConfig:
             + self.wall_thickness * 2
             + self.minimum_structural_thickness * 2.5
         )
-        if FrameStyle.HANGING in frame_style:
+        if FrameStyle.HANGING in self.frame_style:
             length += self.frame_hanger_offset * 2
         return length
 
@@ -370,6 +368,8 @@ class BenderConfig:
             wall_window_bar_thickness=self.wall_window_bar_thickness,
             click_fit_radius=self.frame_click_sphere_radius,
             end_count=1,
+            wall_style=self.wall_style,
+            block_inner_wall_generation=False,
         )
 
     @property
@@ -397,9 +397,8 @@ class BenderConfig:
         return FrameConfig(
             stl_folder=self.stl_folder,
             exterior_width=self.frame_exterior_width,
-            exterior_length=self.frame_exterior_length(
-                frame_style=FrameStyle.STANDING
-            ),
+            frame_style=self.frame_style,
+            exterior_length=self.frame_exterior_length,
             depth=self.frame_connector_depth,
             interior_length=self.chamber_cut_length,
             interior_width=self.top_frame_interior_width,
@@ -428,11 +427,7 @@ class BenderConfig:
             screw_head_radius=self.wall_bracket_screw_head_radius,
             screw_head_sink=self.wall_bracket_screw_head_sink,
             screw_shaft_radius=self.wall_bracket_screw_radius,
-            m4_heatsink_radius=self.m4_heatsink_radius,
-            m4_heatsink_depth=self.m4_heatsink_depth,
-            m4_nut_radius=self.m4_nut_radius,
-            m4_nut_depth=self.m4_nut_depth,
-            m4_shaft_radius=self.m4_shaft_radius,
+            drybox=self.wall_style == WallStyle.DRYBOX,
         )
 
     def filament_bracket_config(
@@ -470,6 +465,31 @@ class BenderConfig:
             wheel_support_height=self.wheel_support_height,
             bearing_shelf_height=self.bearing_shelf_height,
             channel_pair_direction=ChannelPairDirection.LEAN_FORWARD,
+            block_pin_generation=False,
+        )
+
+    @property
+    def hanging_bracket_config(self) -> HangingBracketConfig:
+        return HangingBracketConfig(
+            stl_folder=self.stl_folder,
+            yaml_tree="hanging-bracket",
+            bracket_style=HangingBracketStyle.WALL_MOUNT,
+            width=self.frame_exterior_width,
+            height=self.bracket_height,
+            arm_thickness=self.frame_base_depth,
+            fillet_radius=self.fillet_radius,
+            bracket_inset=self.minimum_structural_thickness,
+            tolerance=self.tolerance,
+            post_count=self.wall_bracket_post_count,
+            screw_head_radius=self.wall_bracket_screw_head_radius,
+            screw_head_sink=self.wall_bracket_screw_head_sink,
+            screw_shaft_radius=self.wall_bracket_screw_radius,
+            m4_heatsink_radius=self.m4_heatsink_radius,
+            m4_heatsink_depth=self.m4_heatsink_depth,
+            m4_nut_radius=self.m4_nut_radius,
+            m4_nut_depth=self.m4_nut_depth,
+            m4_shaft_radius=self.m4_shaft_radius,
+            heatsink_desk_nut=False,
         )
 
     @property
@@ -536,6 +556,9 @@ class BenderConfig:
                     setattr(self, field.name, field.type[value.upper()])
                 elif field.name == "wheel":
                     self.wheel = WheelConfig(**value)
+                    self.wheel.stl_folder = self.stl_folder
+                elif field.name == "alternate_filament_counts":
+                    self.alternate_filament_counts = value
                 elif field.name == "connectors":
                     self.connectors = [
                         ConnectorConfig(

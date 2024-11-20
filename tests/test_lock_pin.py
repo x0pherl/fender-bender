@@ -33,6 +33,8 @@ class TestLockPin:
         with (
             patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("ocp_vscode.show"),
             patch("ocp_vscode.save_screenshot"),
         ):
@@ -59,16 +61,15 @@ class TestLockPin:
         with (
             patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
             patch("ocp_vscode.show"),
             patch("ocp_vscode.save_screenshot"),
         ):
-            bender_config = BenderConfig(
-                Path(__file__).parent / "../build-configs/debug.conf"
-            )
+            bender_config = BenderConfig()
             pin = LockPin(bender_config.lock_pin_config)
+            pin._config.stl_folder = "NONE"
             pin.compile()
             pin.export_stls()
-            pin.render_2d()
 
     def test_lock_pin_default_init(self):
         with (
@@ -80,7 +81,6 @@ class TestLockPin:
             pin = LockPin()
             pin.compile()
             pin.export_stls()
-            pin.render_2d()
 
     def test_lock_pin_inited(self):
         with (
@@ -89,9 +89,6 @@ class TestLockPin:
             patch("ocp_vscode.show"),
             patch("ocp_vscode.save_screenshot"),
         ):
-            bender_config = BenderConfig(
-                Path(__file__).parent / "../build-configs/debug.conf"
-            )
             pin = LockPin(
                 configuration={
                     "lockpin": {
@@ -106,4 +103,3 @@ class TestLockPin:
             )
             pin.compile()
             pin.export_stls()
-            pin.render_2d()

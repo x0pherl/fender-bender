@@ -1,14 +1,24 @@
 from dataclasses import dataclass, fields
+from enum import Flag, auto
 import yaml
 from pathlib import Path
 
 from partomatic import PartomaticConfig
 
 
+class FrameStyle(Flag):
+    """What sort of frame to have"""
+
+    HANGING = auto()
+    STANDING = auto()
+    HYBRID = HANGING | STANDING
+
+
 @dataclass
 class FrameConfig(PartomaticConfig):
     yaml_tree: str = "frame"
     stl_folder: str = "NONE"
+    frame_style: FrameStyle = FrameStyle.HYBRID
     exterior_width: float = 91
     exterior_length: float = 120
     depth: float = 9
@@ -40,11 +50,7 @@ class FrameConfig(PartomaticConfig):
     screw_head_radius: float = 4.5
     screw_head_sink: float = 1.4
     screw_shaft_radius: float = 2.25
-    m4_heatsink_radius: float = 3
-    m4_heatsink_depth: float = 5
-    m4_nut_radius: float = 4.3
-    m4_nut_depth: float = 5
-    m4_shaft_radius: float = 2.1
+    drybox: bool = False
 
     @property
     def bracket_depth(self) -> float:

@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 
 from partomatic import PartomaticConfig
+from sidewall_config import WallStyle
 
 
 @dataclass
@@ -22,6 +23,7 @@ class GuidewallConfig(PartomaticConfig):
     click_fit_radius: float = 1
     tolerance: float = 0.2
     fillet_ratio: float = 4.0
+    wall_style: WallStyle = WallStyle.HEX
 
     @property
     def width(self) -> float:

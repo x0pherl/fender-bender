@@ -202,16 +202,13 @@ class TestBenderConfig:
 
     def test_frame_length(self, default_bender_config):
         assert (
-            default_bender_config.frame_exterior_length() == 123.72907017803641
+            default_bender_config.frame_exterior_length == 123.72907017803641
         )
 
     def test_frame_length_standing(self, default_bender_config):
-        assert (
-            default_bender_config.frame_exterior_length(
-                frame_style=FrameStyle.STANDING
-            )
-            == 119.72907017803641
-        )
+        x = default_bender_config
+        x.frame_style = FrameStyle.STANDING
+        assert x.frame_exterior_length == 119.72907017803641
 
     def test_default_connector_config(self, bender_config_yaml_default_second):
         cfg = BenderConfig(bender_config_yaml_default_second)

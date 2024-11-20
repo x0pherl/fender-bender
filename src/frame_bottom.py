@@ -1,8 +1,8 @@
 from basic_shapes import screw_cut
 from frame_common import chamber_cuts, core_cut, wallslots
 from tongue_groove import groove_pair
-from frame_config import FrameConfig
-from partomatic import Partomatic
+from frame_config import FrameConfig, FrameStyle
+from partomatic import BuildablePart, Partomatic
 from bender_config import BenderConfig
 
 from dataclasses import asdict
@@ -31,12 +31,6 @@ class BottomFrame(Partomatic):
     """
 
     _config: FrameConfig = FrameConfig()
-
-    _standingframe: Part
-    _hangingframe: Part
-    _hybridframe: Part
-    _hybriddryframe: Part
-    _standingdryframe: Part
 
     def _bottom_base_block(
         self, offset: float = 0, extra_length: float = 0
@@ -308,21 +302,27 @@ class BottomFrame(Partomatic):
                 )
         return dry.part
 
-    def bottom_frame(
-        self, standing: bool = True, hanging=False, dry=False
-    ) -> Part:
+    def bottom_frame(self) -> Part:
         """
         creates the bottom frame
         -------
         arguments:
             - standing: whether the frame is standing or hanging
         """
-        offset = self._config.interior_offset if hanging else 0
+        offset = (
+            self._config.interior_offset
+            if FrameStyle.HANGING in self._config.frame_style
+            else 0
+        )
         extra_length = offset * 2
         with BuildPart() as bframe:
             add(self._bottom_base_block(offset, extra_length))
-            if standing:
-                add(self._bottom_frame_stand(extend=hanging))
+            if FrameStyle.STANDING in self._config.frame_style:
+                add(
+                    self._bottom_frame_stand(
+                        extend=FrameStyle.HANGING in self._config.frame_style
+                    )
+                )
             with BuildPart(Location((0, 0, 0)), mode=Mode.SUBTRACT):
                 add(
                     core_cut(
@@ -365,178 +365,32 @@ class BottomFrame(Partomatic):
                         self._config.click_fit_radius,
                     ).mirror()
                 )
-            if dry:
-                add(self._dry_box(extend=hanging))
-            if standing and hanging:
+            if self._config.drybox:
+                add(
+                    self._dry_box(
+                        extend=FrameStyle.HANGING in self._config.frame_style
+                    )
+                )
+            if (
+                FrameStyle.STANDING in self._config.frame_style
+                and FrameStyle.HANGING in self._config.frame_style
+            ):
                 add(self._standing_screw_fitting(extra_length), mode=Mode.ADD)
                 add(self._standing_screw_cut(), mode=Mode.SUBTRACT)
-            elif hanging:
+            elif FrameStyle.HANGING in self._config.frame_style:
                 add(self._hanging_screw_fitting(extra_length))
                 add(self._hanging_screw_cut(), mode=Mode.SUBTRACT)
         return bframe.part
 
     def compile(self):
-        self._standingframe = self.bottom_frame(standing=True, hanging=False)
-        self._hangingframe = self.bottom_frame(standing=False, hanging=True)
-        self._hybridframe = self.bottom_frame(standing=True, hanging=True)
-        self._drystandingframe = self.bottom_frame(
-            standing=True, hanging=False, dry=True
+        self.parts.clear()
+        self.parts.append(
+            BuildablePart(
+                self.bottom_frame(),
+                "frame-bottom",
+                stl_folder=self._config.stl_folder,
+            )
         )
-        self._dryhybridframe = self.bottom_frame(
-            standing=True, hanging=True, dry=True
-        )
-
-    def display(self):
-        show(
-            self._hangingframe,
-            self._hybridframe.move(
-                Location(
-                    (
-                        0,
-                        -self._config.exterior_width,
-                        0,
-                    )
-                )
-            ),
-            self._dryhybridframe.move(
-                Location(
-                    (
-                        self._config.exterior_length
-                        + self._config.bracket_depth,
-                        -self._config.exterior_width,
-                        0,
-                    )
-                )
-            ),
-            self._standingframe.move(
-                Location(
-                    (
-                        0,
-                        self._config.exterior_width,
-                        0,
-                    )
-                )
-            ),
-            self._drystandingframe.move(
-                Location(
-                    (
-                        self._config.exterior_length
-                        + self._config.bracket_depth,
-                        self._config.exterior_width,
-                        0,
-                    )
-                )
-            ),
-            reset_camera=Camera.KEEP,
-        )
-
-    def export_stls(self):
-        if self._config.stl_folder == "NONE":
-            return
-        output_directory = Path(__file__).parent / self._config.stl_folder
-        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
-
-        export_stl(
-            self._hangingframe,
-            str(Path(output_directory / "frame-bottom.stl")),
-        )
-
-        export_stl(
-            self._hybridframe.rotate(Axis.X, 180).move(
-                Location(
-                    (
-                        0,
-                        0,
-                        self._config.base_depth * 2
-                        + self._config.exterior_radius,
-                    )
-                )
-            ),
-            str(Path(output_directory / "alt/frame-bottom-standing.stl")),
-        )
-
-        export_stl(
-            self._dryhybridframe.rotate(Axis.X, 180).move(
-                Location(
-                    (
-                        0,
-                        0,
-                        self._config.base_depth * 2
-                        + self._config.exterior_radius,
-                    )
-                )
-            ),
-            str(
-                Path(output_directory / "alt/frame-bottom-drybox-standing.stl")
-            ),
-        )
-
-        export_stl(
-            self._standingframe.rotate(Axis.X, 180).move(
-                Location(
-                    (
-                        0,
-                        0,
-                        self._config.base_depth * 2
-                        + self._config.exterior_radius,
-                    )
-                )
-            ),
-            str(
-                Path(
-                    output_directory
-                    / "alt/frame-bottom-standing-without-hanger.stl"
-                )
-            ),
-        )
-        export_stl(
-            self._drystandingframe.rotate(Axis.X, 180).move(
-                Location(
-                    (
-                        0,
-                        0,
-                        self._config.base_depth * 2
-                        + self._config.exterior_radius,
-                    )
-                )
-            ),
-            str(
-                Path(
-                    output_directory
-                    / "alt/frame-bottom-drybox-standing-without-hanger.stl"
-                )
-            ),
-        )
-
-    def render_2d(self):
-        pass
-
-    def load_config(self, configuration: str, yaml_tree="bottom-frame"):
-        """
-        loads a sidewall configuration from a file or valid yaml
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - yaml_tree: the yaml tree to the wheel configuration node,
-            separated by slashes (example: "BenderConfig/ConnectorFrame")
-        """
-        self._config.load_config(configuration, yaml_tree)
-
-    def __init__(self, config: FrameConfig = None):
-        """
-        initializes the Partomatic filament wheel
-        -------
-        arguments:
-            - config: a GuidewallConfig ojbect
-        """
-        super(Partomatic, self).__init__()
-
-        if config:
-            self.load_config({"bottom-frame": asdict(config)})
-        else:
-            self._config = FrameConfig()
 
 
 if __name__ == "__main__":

@@ -22,35 +22,13 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from frame_common import chamber_cuts
-from partomatic import Partomatic
+from partomatic import BuildablePart, Partomatic
 from tongue_groove import groove_pair
-from frame_config import FrameConfig
+from frame_config import FrameConfig, FrameStyle
 
 
 class ConnectorFrame(Partomatic):
     _config: FrameConfig = FrameConfig()
-    _standing_frame: Part
-    _hanging_frame: Part
-
-    # def _chamber_cut(self) -> Part:
-    #     """
-    #     a filleted box for each chamber in the lower connectors
-    #     -------
-    #     arguments:
-    #         - height: the height of the chamber cut
-    #     """
-    #     with BuildPart() as cut:
-    #         Box(
-    #             self._config.interior_length,
-    #             self._config.bracket_spacing - self._config.wall_thickness,
-    #             self._config.depth,
-    #             align=(Align.CENTER, Align.CENTER, Align.MIN),
-    #         )
-    #         fillet(
-    #             cut.edges().filter_by(Axis.Z),
-    #             radius=self._config.fillet_radius,
-    #         )
-    #     return cut.part
 
     def _frame_flat_sidewall_cut(self) -> Part:
         """
@@ -64,11 +42,12 @@ class ConnectorFrame(Partomatic):
             scale(by=(2, 1, 1))
         return cut.part.move(Location((0, 0, -length / 2))).rotate(Axis.Y, 90)
 
-    def connector_frame(self, standing=True) -> Part:
+    def connector_frame(self) -> Part:
         """
         the connecting frame for supporting the walls of the top and extension
         sections
         """
+        standing = FrameStyle.STANDING in self._config.frame_style
         extra_length = 0 if standing else self._config.interior_offset
         with BuildPart() as cframe:
             with BuildPart():
@@ -120,69 +99,14 @@ class ConnectorFrame(Partomatic):
         return cframe.part
 
     def compile(self):
-        self._standing_frame = self.connector_frame()
-        self._hanging_frame = self.connector_frame(standing=False)
-
-    def display(self):
-        show(
-            self._hanging_frame,
-            self._standing_frame.move(
-                Location(
-                    (
-                        self._config.interior_offset,
-                        self._config.exterior_width,
-                        0,
-                    )
-                )
-            ),
-            reset_camera=Camera.KEEP,
+        self.parts.clear()
+        self.parts.append(
+            BuildablePart(
+                self.connector_frame(),
+                "frame-connector",
+                stl_folder=self._config.stl_folder,
+            )
         )
-
-    def export_stls(self):
-        if self._config.stl_folder == "NONE":
-            return
-        output_directory = Path(__file__).parent / self._config.stl_folder
-        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
-
-        export_stl(
-            self._hanging_frame,
-            str(Path(output_directory / "frame-connector.stl")),
-        )
-
-        export_stl(
-            self._standing_frame,
-            str(Path(output_directory / "alt/frame-connector-standing.stl")),
-        )
-
-    def render_2d(self):
-        pass
-
-    def load_config(self, configuration: str, yaml_tree="frame"):
-        """
-        loads a sidewall configuration from a file or valid yaml
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - yaml_tree: the yaml tree to the wheel configuration node,
-            separated by slashes (example: "BenderConfig/ConnectorFrame")
-        """
-        self._config.load_config(configuration, yaml_tree)
-
-    def __init__(self, config: FrameConfig = None):
-        """
-        initializes the Partomatic filament wheel
-        -------
-        arguments:
-            - config: a GuidewallConfig ojbect
-        """
-        super(Partomatic, self).__init__()
-
-        if config:
-            self.load_config({"frame": asdict(config)})
-        else:
-            self._config = FrameConfig()
 
 
 if __name__ == "__main__":

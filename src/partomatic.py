@@ -17,11 +17,11 @@ import yaml
 
 @dataclass
 class PartomaticConfig:
+    yaml_tree: str = "Part"
     stl_folder: str = "NONE"
     file_prefix: str = ""
     file_suffix: str = ""
     create_folders_if_missing: bool = True
-    yaml_tree: str = "Part"
 
     def _default_config(self):
         """
@@ -35,7 +35,7 @@ class PartomaticConfig:
             else:
                 raise ValueError(f"Field {field.name} has no default value")
 
-    def load_config(self, configuration: any, yaml_tree="Part"):
+    def load_config(self, configuration: any, **kwargs):
         """
         loads a partomatic configuration from a file or valid yaml
         -------
@@ -50,42 +50,47 @@ class PartomaticConfig:
             within the yaml tree, following the node names separated by slashes
             (example: "BigObject/Partomatic")
         """
-        self.yaml_tree = yaml_tree
+        if "yaml_tree" in kwargs:
+            self.yaml_tree = kwargs["yaml_tree"]
         if isinstance(configuration, self.__class__):
             for field in fields(self):
                 setattr(self, field.name, getattr(configuration, field.name))
             return
-
-        configuration = str(configuration)
-        if "\n" not in configuration:
-            path = Path(configuration)
-            if path.exists() and path.is_file():
-                configuration = path.read_text()
-        bracket_dict = yaml.safe_load(configuration)
-        for node in self.yaml_tree.split("/"):
-            if node not in bracket_dict:
-                raise ValueError(
-                    f"Node {node} not found in configuration file"
-                )
-            bracket_dict = bracket_dict[node]
-
-        for classfield in fields(self.__class__):
-            if classfield.name in bracket_dict:
-                value = bracket_dict[classfield.name]
-                if isinstance(classfield.type, type) and issubclass(
-                    classfield.type, (Enum, Flag)
-                ):
-                    setattr(
-                        self, classfield.name, classfield.type[value.upper()]
+        if configuration is not None:
+            configuration = str(configuration)
+            if "\n" not in configuration:
+                path = Path(configuration)
+                if path.exists() and path.is_file():
+                    configuration = path.read_text()
+            bracket_dict = yaml.safe_load(configuration)
+            for node in self.yaml_tree.split("/"):
+                if node not in bracket_dict:
+                    raise ValueError(
+                        f"Node {node} not found in configuration file"
                     )
-                elif is_dataclass(classfield.type) and isinstance(value, dict):
-                    setattr(
-                        self,
-                        classfield.name,
-                        classfield.type(**value),
-                    )
-                else:
-                    setattr(self, classfield.name, value)
+                bracket_dict = bracket_dict[node]
+
+            for classfield in fields(self.__class__):
+                if classfield.name in bracket_dict:
+                    value = bracket_dict[classfield.name]
+                    if isinstance(classfield.type, type) and issubclass(
+                        classfield.type, (Enum, Flag)
+                    ):
+                        setattr(
+                            self,
+                            classfield.name,
+                            classfield.type[value.upper()],
+                        )
+                    elif is_dataclass(classfield.type) and isinstance(
+                        value, dict
+                    ):
+                        setattr(
+                            self,
+                            classfield.name,
+                            classfield.type(**value),
+                        )
+                    else:
+                        setattr(self, classfield.name, value)
 
     def __init__(self, configuration: any = None, **kwargs):
         """
@@ -130,7 +135,7 @@ class PartomaticConfig:
 
 @dataclass
 class BuildablePart(Part):
-    part: Part
+    part: Part = field(default_factory=Part)
     display_location: Location = field(default_factory=Location)
     stl_folder: str = getcwd()
     # step_folder: str = getcwd()
@@ -217,6 +222,9 @@ class Partomatic(ABC):
         if self._config.stl_folder == "NONE":
             return
         for part in self.parts:
+            print(
+                f"generating {Path(self.complete_stl_file_path(part)).resolve()}"
+            )
             Path(self.complete_stl_file_path(part)).parent.mkdir(
                 parents=True, exist_ok=self._config.create_folders_if_missing
             )
@@ -250,7 +258,7 @@ class Partomatic(ABC):
         #         )
         #     export_step(part.part, self.complete_step_file_path(part))
 
-    def load_config(self, configuration: any, yaml_tree="Part", **kwargs):
+    def load_config(self, configuration: any, **kwargs):
         """
         loads a partomatic configuration from a file or valid yaml
         -------
@@ -265,7 +273,7 @@ class Partomatic(ABC):
             within the yaml tree, following the node names separated by slashes
             (example: "BigObject/Partomatic")
         """
-        self._config.load_config(configuration, yaml_tree)
+        self._config.load_config(configuration, **kwargs)
 
     # def __init_subclass__(cls, **kwargs):
     #     super().__init_subclass__(**kwargs)
@@ -295,8 +303,8 @@ class Partomatic(ABC):
             (example: "BigObject/Partomatic")
         """
         self.parts = []
+        self._config = self.__class__._config
         self.load_config(configuration, **kwargs)
-        print(self._config)
 
     def partomate(self):
         """automates the part generation and exports stl and step models

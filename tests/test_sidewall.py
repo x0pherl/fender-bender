@@ -29,6 +29,8 @@ class TestSidewall:
         with (
             patch("pathlib.Path.mkdir"),
             patch("ocp_vscode.show"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("build123d.export_stl"),
         ):
             loader = SourceFileLoader("__main__", "src/sidewall.py")
@@ -50,21 +52,14 @@ class TestSidewall:
             sidewall._config.stl_folder = "NONE"
             sidewall.export_stls()
 
-    def test_render_2d(self):
-        with (
-            patch("pathlib.Path.mkdir"),
-            patch("ocp_vscode.show"),
-            patch("build123d.export_stl"),
-        ):
-            sidewall = Sidewall()
-            sidewall.render_2d()
-
 
 class TestTongueGroove:
     def test_bare_execution(self):
         with (
             patch("pathlib.Path.mkdir"),
             patch("ocp_vscode.show"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("build123d.export_stl"),
         ):
             loader = SourceFileLoader("__main__", "src/tongue_groove.py")

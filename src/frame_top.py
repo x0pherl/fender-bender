@@ -31,11 +31,11 @@ from basic_shapes import (
     distance_to_circle_edge,
 )
 
-from frame_config import FrameConfig
+from frame_config import FrameConfig, FrameStyle
 from frame_common import core_cut, wallslots
 from lock_pin import LockPin
 from lock_pin_config import LockPinConfig
-from partomatic import Partomatic
+from partomatic import BuildablePart, Partomatic
 from tongue_groove import groove_pair
 from wall_hanger_cut_template import wall_hanger_cut_template
 
@@ -46,10 +46,6 @@ class TopFrame(Partomatic):
     """
 
     _config: FrameConfig = FrameConfig()
-
-    _standingframe: Part
-    _hangingframe: Part
-    _hybridframe: Part
 
     def _lock_clip_cut(self) -> Part:
         """creates the cutout for the lock clip"""
@@ -320,12 +316,20 @@ class TopFrame(Partomatic):
                 )
         return cuts.part
 
-    def top_frame(self, standing=False, hanging=False) -> Part:
+    def top_frame(self) -> Part:
         """
         the top frame for fitting the filament brackets and hanging the walls
         """
-        extra_length = 0 if standing else self._config.interior_offset * 2
-        offset = 0 if standing else self._config.interior_offset
+        extra_length = (
+            0
+            if FrameStyle.STANDING in self._config.frame_style
+            else self._config.interior_offset * 2
+        )
+        offset = (
+            0
+            if FrameStyle.STANDING in self._config.frame_style
+            else self._config.interior_offset
+        )
         with BuildPart() as tframe:
             add(self._top_base_block(offset, extra_length))
             with BuildPart(
@@ -370,7 +374,7 @@ class TopFrame(Partomatic):
                     ).mirror()
                 )
 
-            if hanging:
+            if FrameStyle.HANGING in self._config.frame_style:
                 add(self._hanger_cut(), mode=Mode.SUBTRACT)
             if self._config.include_lock_pin:
                 add(self._pin_cuts(offset=offset), mode=Mode.SUBTRACT)
@@ -379,79 +383,14 @@ class TopFrame(Partomatic):
         return part
 
     def compile(self):
-        self._standingframe = self.top_frame(standing=True, hanging=False)
-        self._hangingframe = self.top_frame(standing=False, hanging=True)
-        self._hybridframe = self.top_frame(standing=False, hanging=False)
-
-    def display(self):
-        show(
-            self._hangingframe,
-            self._standingframe.move(
-                Location(
-                    (
-                        self._config.interior_offset,
-                        self._config.exterior_width,
-                        0,
-                    )
-                )
-            ),
-            self._hybridframe.move(
-                Location(
-                    (
-                        0,
-                        -self._config.exterior_width,
-                        0,
-                    )
-                )
-            ),
-            reset_camera=Camera.KEEP,
+        self.parts.clear()
+        self.parts.append(
+            BuildablePart(
+                self.top_frame(),
+                "frame-top",
+                stl_folder=self._config.stl_folder,
+            )
         )
-
-    def export_stls(self):
-        if self._config.stl_folder == "NONE":
-            return
-        output_directory = Path(__file__).parent / self._config.stl_folder
-        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
-
-        export_stl(
-            self._hangingframe,
-            str(Path(output_directory / "frame-top.stl")),
-        )
-
-        export_stl(
-            self._standingframe,
-            str(Path(output_directory / "alt/frame-top-standing.stl")),
-        )
-
-    def render_2d(self):
-        pass
-
-    def load_config(self, configuration: str, yaml_tree="frame"):
-        """
-        loads a sidewall configuration from a file or valid yaml
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - yaml_tree: the yaml tree to the wheel configuration node,
-            separated by slashes (example: "BenderConfig/ConnectorFrame")
-        """
-        self._config.load_config(configuration, yaml_tree)
-
-    def __init__(self, config: FrameConfig = None):
-        """
-        initializes the Partomatic filament wheel
-        -------
-        arguments:
-            - config: a GuidewallConfig ojbect
-        """
-        super(Partomatic, self).__init__()
-
-        if config:
-            self.load_config({"frame": asdict(config)})
-        else:
-            self._config = FrameConfig()
 
 
 if __name__ == "__main__":
@@ -463,4 +402,4 @@ if __name__ == "__main__":
     # show(frame._bracket_cutblock(), reset_camera=Camera.KEEP)
     frame.compile()
     frame.display()
-    frame.export_stls()
+    # frame.export_stls()

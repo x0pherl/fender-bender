@@ -11,6 +11,8 @@ class TestBareExecution:
     def test_bare_execution(self):
         with (
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("ocp_vscode.show"),
             patch("build123d.export_stl"),
         ):
@@ -38,13 +40,12 @@ class TestConnectorFrame:
             frame_config.stl_folder = "NONE"
             frame = ConnectorFrame(frame_config)
             frame.compile()
-            assert frame._hanging_frame.is_valid()
-            assert frame._standing_frame.is_valid()
+            assert frame.parts[0].part.is_valid()
+            assert frame.parts[0].part.is_valid()
             frame.export_stls()
-            frame.render_2d()
 
     def test_default_config(self):
         frame = ConnectorFrame()
         frame.compile()
-        assert frame._hanging_frame.is_valid()
-        assert frame._standing_frame.is_valid()
+        assert frame.parts[0].part.is_valid()
+        assert frame.parts[0].part.is_valid()

@@ -28,20 +28,14 @@ from ocp_vscode import Camera, show, save_screenshot
 
 from bender_config import BenderConfig
 from hexwall import HexWall
-from partomatic import Partomatic
-from sidewall_config import SidewallConfig
+from partomatic import BuildablePart, Partomatic
+from sidewall_config import SidewallConfig, WallStyle
 
 
 class Sidewall(Partomatic):
     """partomatic for the chamber walls of the filament bank"""
 
     _config = SidewallConfig()
-
-    sidewall: Part
-    solidsidewall: Part
-    solidreinforcedsidewall: Part
-    reinforcedsidewall: Part
-    dryreinforcedsidewall: Part
 
     def _base_sidewall_shape(
         self,
@@ -255,89 +249,62 @@ class Sidewall(Partomatic):
                 extrude(amount=self._config.minimum_thickness)
             if reinforced:
                 add(self._reinforcer())
-        return sw.part
 
-    def load_config(self, configuration: str, yaml_tree="sidewall"):
-        """
-        loads a sidewall configuration from a file or valid yaml
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - yaml_tree: the yaml tree to the sidewall configuration node,
-            separated by slashes (example: "BenderConfig/Sidewall")
-        """
-        self._config.load_config(configuration, yaml_tree)
+        part = sw.part
+        part.label = f"-sidewall{"-reinforced" if reinforced else ""}{"-solid" if solid else ""}{"-drybox" if dry else ""}"
+        return part
 
-    def __init__(self, config: SidewallConfig = None):
-        """
-        initializes the Partomatic sidewall
-        -------
-        arguments:
-            - configuration: the path to the configuration file
-                OR
-              a valid yaml configuration string
-            - kwargs: specific configuration values to override as key value pairs
-        """
-        super(Partomatic, self).__init__()
-        if config:
-            self.load_config({"sidewall": asdict(config)})
-        else:
-            self._config = SidewallConfig()
+    def _filename(self) -> str:
+        prefix = ""
+        if self._config.reinforced:
+            prefix = "{prefix}reinforced "
+        prefix = "{prefix}sidewall"
 
     def compile(self):
         """
         Builds the internal sidewall parts
         """
-        self.sidewall = self._sidewall()
-        self.reinforcedsidewall = self._sidewall(reinforced=True)
-        self.solidsidewall = self._sidewall(solid=True)
-        self.solidreinforcedsidewall = self._sidewall(
-            reinforced=True, solid=True
-        )
-        self.dryreinforcedsidewall = self._sidewall(reinforced=True, dry=True)
+        self.parts.clear()
 
-    def export_stls(self):
-        """
-        Generates the wall STLs in the configured
-        folder
-        """
-        if self._config.stl_folder.upper() == "NONE":
-            return
-        output_directory = Path(__file__).parent / self._config.stl_folder
-        output_directory.mkdir(parents=True, exist_ok=True)
-        Path(output_directory / "alt").mkdir(parents=True, exist_ok=True)
-
-        export_stl(self.sidewall, str(output_directory / "wall-side.stl"))
-        export_stl(
-            self.reinforcedsidewall,
-            str(output_directory / "wall-side-reinforced.stl"),
+        self.parts.append(
+            BuildablePart(
+                self._sidewall(
+                    reinforced=True,
+                    solid=self._config.wall_style == WallStyle.SOLID,
+                    dry=self._config.wall_style == WallStyle.DRYBOX,
+                ),
+                "wall-side-reinforced",
+                display_location=Location(
+                    (
+                        self._config.sidewall_width / 2
+                        + self._config.reinforcement_thickness / 2,
+                        0,
+                        0,
+                    )
+                ),
+                stl_folder=self._config.stl_folder,
+            )
         )
-        export_stl(
-            self.solidsidewall,
-            str(output_directory / "alt/wall-side-solid.stl"),
-        )
-        export_stl(
-            self.solidreinforcedsidewall,
-            str(output_directory / "alt/wall-side-reinforced-solid.stl"),
-        )
-        export_stl(
-            self.dryreinforcedsidewall,
-            str(output_directory / "alt/wall-side-reinforced-dry.stl"),
-        )
-
-    def display(self):
-        """
-        Shows the walls in OCP CAD Viewer
-        """
-        show(
-            self.dryreinforcedsidewall,
-            reset_camera=Camera.KEEP,
-        )
-
-    def render_2d(self):
-        pass
+        if not self._config.block_inner_wall_generation:
+            self.parts.append(
+                BuildablePart(
+                    self._sidewall(
+                        reinforced=False,
+                        solid=self._config.wall_style == WallStyle.SOLID,
+                        dry=False,
+                    ),
+                    "wall-side",
+                    display_location=Location(
+                        (
+                            -self._config.sidewall_width / 2
+                            - self._config.reinforcement_thickness / 2,
+                            0,
+                            0,
+                        )
+                    ),
+                    stl_folder=self._config.stl_folder,
+                )
+            )
 
 
 if __name__ == "__main__":
