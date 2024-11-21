@@ -222,9 +222,6 @@ class Partomatic(ABC):
         if self._config.stl_folder == "NONE":
             return
         for part in self.parts:
-            print(
-                f"generating {Path(self.complete_stl_file_path(part)).resolve()}"
-            )
             Path(self.complete_stl_file_path(part)).parent.mkdir(
                 parents=True, exist_ok=self._config.create_folders_if_missing
             )
