@@ -11,7 +11,7 @@ from pathlib import Path
 
 from shapely.geometry import Point
 
-from basic_shapes import distance_to_circle_edge
+from basic_shapes import distance_to_circle_edge, circular_intersection
 
 from filament_wheel_config import WheelConfig
 from guidewall_config import GuidewallConfig
@@ -94,6 +94,19 @@ class BenderConfig:
             ),
             self.frame_clip_depth_offset,
         )
+
+    @property
+    def lock_pin_point(self) -> Point:
+        mid_radius = (
+            self.frame_bracket_exterior_radius
+            - (self.frame_bracket_exterior_radius - self.wheel.radius) / 2
+        )
+        pin_depth = self.bracket_depth + self.minimum_thickness
+        pin_distance = circular_intersection(
+            mid_radius,
+            pin_depth,
+        )
+        return Point(pin_distance, pin_depth)
 
     def frame_bracket_exterior_x_distance(self, y_value) -> float:
         """
@@ -429,12 +442,14 @@ class BenderConfig:
             include_lock_pin=LockStyle.PIN in self.frame_lock_style,
             wall_bracket_post_count=self.wall_bracket_post_count,
             lock_pin_tolerance=self.frame_lock_pin_tolerance,
+            lock_pin_point=self.lock_pin_point,
             screw_head_radius=self.wall_bracket_screw_head_radius,
             screw_head_sink=self.wall_bracket_screw_head_sink,
             screw_shaft_radius=self.wall_bracket_screw_radius,
             drybox=self.wall_style == WallStyle.DRYBOX,
         )
 
+    @property
     def filament_bracket_config(
         self, connector_index=0
     ) -> FilamentBracketConfig:
@@ -459,6 +474,7 @@ class BenderConfig:
             frame_lock_pin_tolerance=self.frame_lock_pin_tolerance,
             frame_lock_style=self.frame_lock_style,
             lock_pin=self.lock_pin_config,
+            lock_pin_point=self.lock_pin_point,
             minimum_structural_thickness=self.minimum_structural_thickness,
             minimum_thickness=self.minimum_thickness,
             sidewall_section_depth=self.sidewall_section_depth,
@@ -594,4 +610,4 @@ if __name__ == "__main__":
     print(test.frame_bracket_exterior_radius)
     print(test.wheel.radius, test.bracket_depth, test.bracket_height)
     print(test.stl_folder)
-    print(test.frame_lock_style)
+    print(test.lock_pin_point)

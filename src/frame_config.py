@@ -5,6 +5,8 @@ from pathlib import Path
 
 from partomatic import PartomaticConfig
 
+from shapely.geometry import Point
+
 
 class FrameStyle(Flag):
     """What sort of frame to have"""
@@ -48,6 +50,7 @@ class FrameConfig(PartomaticConfig):
     cut_hanger: bool = True
     wall_bracket_post_count: int = 3
     lock_pin_tolerance: float = 0.5
+    lock_pin_point: Point = (Point(50.89, 10),)
     screw_head_radius: float = 4.5
     screw_head_sink: float = 1.4
     screw_shaft_radius: float = 2.25

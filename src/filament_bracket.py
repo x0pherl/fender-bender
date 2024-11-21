@@ -351,10 +351,8 @@ class FilamentBracket(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.wheel.radius
-                            + self._config.bracket_depth / 2,
-                            self._config.bracket_depth
-                            + self._config.minimum_structural_thickness / 2,
+                            self._config.lock_pin_point.x,
+                            self._config.lock_pin_point.y,
                             0,
                         ),
                         (-90, 0, 0),
@@ -464,10 +462,8 @@ class FilamentBracket(Partomatic):
                 with BuildPart(
                     Location(
                         (
-                            self._config.wheel.radius
-                            + self._config.bracket_depth / 2,
-                            self._config.bracket_depth
-                            + self._config.minimum_structural_thickness / 2,
+                            self._config.lock_pin_point.x,
+                            self._config.lock_pin_point.y,
                             0,
                         ),
                         (-90, 0, 0),
@@ -565,7 +561,7 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
 
-    bracket = FilamentBracket(bender_config.filament_bracket_config(1))
+    bracket = FilamentBracket(bender_config.filament_bracket_config)
     bracket._config.channel_pair_direction = ChannelPairDirection.LEAN_REVERSE
     bracket.compile()
     bracket.display()

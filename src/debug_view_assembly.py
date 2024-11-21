@@ -26,11 +26,12 @@ from frame_connector import ConnectorFrame
 from lock_pin import LockPin
 from sidewall import Sidewall
 from guidewall import Guidewall
+from sidewall_config import WallStyle
 from tongue_groove import tongue_pair, groove_pair
 
 _config_file = Path(__file__).parent / "../build-configs/debug.conf"
 _config = BenderConfig(_config_file)
-filamentbracket = FilamentBracket(_config_file)
+filamentbracket = FilamentBracket(_config.filament_bracket_config)
 topframe = TopFrame(_config.frame_config)
 bottomframe = BottomFrame(_config.frame_config)
 connectorframe = ConnectorFrame(_config.frame_config)
@@ -339,10 +340,15 @@ def generate_funnel_test_parts():
 if __name__ == "__main__":
     gw = Guidewall(_config.guidewall_config)
     sw = Sidewall(_config.sidewall_config)
+    rswconfig = _config.sidewall_config
+    rswconfig.reinforced = True
+    rsw = Sidewall(rswconfig)
     gw.compile()
     sw.compile()
+    rsw.compile()
     bwall = (
-        gw.wall.rotate(Axis.Z, 90)
+        gw.parts[0]
+        .part.rotate(Axis.Z, 90)
         .rotate(Axis.Y, 90)
         .move(
             Location(
@@ -357,7 +363,8 @@ if __name__ == "__main__":
         )
     )
     fwall = (
-        gw.wall.rotate(Axis.Z, 90)
+        gw.parts[0]
+        .part.rotate(Axis.Z, 90)
         .rotate(Axis.Y, -90)
         .move(
             Location(
@@ -371,14 +378,18 @@ if __name__ == "__main__":
             )
         )
     )
-    swall = sw.reinforcedsidewall.rotate(Axis.X, 90).move(
-        Location(
-            (
-                _config.frame_hanger_offset,
-                -_config.top_frame_interior_width / 2
-                - _config.minimum_structural_thickness
-                - _config.wall_thickness / 2,
-                0,
+    swall = (
+        rsw.parts[0]
+        .part.rotate(Axis.X, 90)
+        .move(
+            Location(
+                (
+                    _config.frame_hanger_offset,
+                    -_config.top_frame_interior_width / 2
+                    - _config.minimum_structural_thickness
+                    - _config.wall_thickness / 2,
+                    0,
+                )
             )
         )
     )
@@ -386,18 +397,22 @@ if __name__ == "__main__":
     tf = TopFrame(_config.frame_config)
     tf.compile()
 
-    topframe = tf._hybridframe
+    topframe = tf.parts[0].part
 
     bf = BottomFrame(_config.frame_config)
     bf.compile()
-    bframe = bf._hybridframe.rotate(Axis.X, 180).move(
-        Location(
-            (
-                0,
-                0,
-                -_config.sidewall_straight_depth
-                - _config.frame_connector_depth
-                - _config.sidewall_straight_depth,
+    bframe = (
+        bf.parts[0]
+        .part.rotate(Axis.X, 180)
+        .move(
+            Location(
+                (
+                    0,
+                    0,
+                    -_config.sidewall_straight_depth
+                    - _config.frame_connector_depth
+                    - _config.sidewall_straight_depth,
+                )
             )
         )
     )
@@ -405,7 +420,7 @@ if __name__ == "__main__":
     cf = ConnectorFrame(_config.frame_config)
     cf.compile()
     cframe = (
-        cf._hanging_frame.move(
+        cf.parts[0].part.move(
             Location(
                 (
                     0,
@@ -421,7 +436,13 @@ if __name__ == "__main__":
         filamentbracket.bottom_bracket()
         .rotate(Axis.X, 90)
         .move(
-            Location((0, _config.bracket_depth / 2, _config.frame_base_depth))
+            Location(
+                (
+                    _config.frame_hanger_offset,
+                    _config.bracket_depth / 2,
+                    _config.frame_base_depth,
+                )
+            )
         )
     )
 
@@ -430,10 +451,9 @@ if __name__ == "__main__":
     ).move(
         Location(
             (
-                _config.wheel.radius + _config.bracket_depth / 2,
+                _config.lock_pin_point.x + _config.frame_hanger_offset,
                 _config.frame_exterior_width / 2,
-                _config.bracket_depth
-                + _config.minimum_structural_thickness / 2
+                _config.lock_pin_point.y
                 + _config.frame_base_depth
                 + _config.frame_lock_pin_tolerance / 2,
             )

@@ -269,14 +269,9 @@ class TopFrame(Partomatic):
         with BuildPart(
             Location(
                 (
-                    self._config.interior_radius
-                    + self._config.bracket_depth / 2
-                    + self._config.lock_pin_tolerance
-                    + offset,
+                    self._config.lock_pin_point.x + offset,
                     0,
-                    self._config.bracket_depth
-                    + self._config.minimum_structural_thickness / 2
-                    + self._config.base_depth,
+                    self._config.lock_pin_point.y + self._config.base_depth,
                 )
             ),
         ) as cuts:
@@ -401,4 +396,4 @@ if __name__ == "__main__":
     # show(frame._bracket_cutblock(), reset_camera=Camera.KEEP)
     frame.compile()
     frame.display()
-    # frame.export_stls()
+    frame.export_stls()

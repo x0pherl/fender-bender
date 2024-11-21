@@ -110,6 +110,7 @@ class FilamentBracketConfig(PartomaticConfig):
     frame_lock_pin_tolerance: float = 0.6
     frame_lock_style: LockStyle = LockStyle.BOTH
     lock_pin: LockPinConfig = field(default_factory=LockPinConfig)
+    lock_pin_point: Point = Point(50.89, 10)
     minimum_structural_thickness: float = 4
     minimum_thickness: float = 1
     sidewall_section_depth: float = 168

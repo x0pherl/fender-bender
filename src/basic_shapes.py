@@ -58,6 +58,21 @@ def distance_to_circle_edge(radius, point, angle) -> float:
     return t
 
 
+def circular_intersection(radius: float, coordinate: float) -> float:
+    """
+    given a positive position along the axis of a circle, find the intersection
+    along the other axis of the perimeter of the circle
+    -------
+    arguments:
+        - radius: the radius of the circle
+        - coordinate: a coordinate along one axis of the circle (must be a
+            positive value less than the radius)
+    """
+    if 0 > coordinate > radius:
+        raise ValueError("The x-coordinate cannot be greater than the radius.")
+    return sqrt(radius**2 - coordinate**2)
+
+
 def diamond_torus(
     major_radius: float, minor_radius: float, stretch: tuple = (1, 1)
 ) -> Part:
