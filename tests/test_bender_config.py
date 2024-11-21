@@ -50,6 +50,12 @@ class TestBenderConfig:
             50.8913548650456, 10
         )
 
+    def test_click_distance(self, default_bender_config):
+        assert (
+            default_bender_config.frame_config.click_fit_distance
+            == default_bender_config.guidewall_config.click_fit_distance
+        )
+
     def test_bare_execution(self):
         loader = SourceFileLoader("__main__", "src/bender_config.py")
         loader.exec_module(

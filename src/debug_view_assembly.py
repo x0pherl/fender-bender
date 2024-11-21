@@ -276,8 +276,7 @@ def tongue_groove_test():
                 length=_config.top_frame_interior_width,
                 depth=_config.frame_tongue_depth,
                 tolerance=_config.tolerance,
-                click_fit_distance=_config.top_frame_interior_width
-                - _config.bracket_depth,
+                click_fit_distance=_config.click_fit_distance,
                 click_fit_radius=_config.frame_click_sphere_radius,
             ).move(
                 Location(
@@ -297,8 +296,7 @@ def tongue_groove_test():
                 length=_config.top_frame_interior_width,
                 depth=_config.frame_tongue_depth,
                 tolerance=_config.tolerance,
-                click_fit_distance=_config.top_frame_interior_width
-                - _config.bracket_depth,
+                click_fit_distance=_config.click_fit_distance,
                 click_fit_radius=_config.frame_click_sphere_radius,
             ).mirror()
         )

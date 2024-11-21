@@ -174,9 +174,7 @@ class Guidewall(Partomatic):
                         self._config.tongue_width,
                         self._config.tongue_depth,
                         0,
-                        (self._config.section_count - 1)
-                        * self._config.section_width
-                        + self._config.tolerance * 2,
+                        self._config.click_fit_distance,
                         self._config.click_fit_radius,
                     )
                     .rotate(Axis.Y, 90)
@@ -241,6 +239,7 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
 
     gw = Guidewall(BenderConfig(config_path).guidewall_config)
+
     gw.compile()
     gw.display()
     gw.export_stls()

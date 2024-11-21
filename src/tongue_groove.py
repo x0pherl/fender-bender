@@ -195,9 +195,9 @@ def tongue_pair(
 
 if __name__ == "__main__":
     show(
-        groove(4, 20, 5, 0.1, 10, 1),
-        tongue(4, 20, 5, 0.1, 10, 1),
-        groove_pair(40, 4, 20, 5, 0.1, 10, 1),
-        tongue_pair(40, 4, 20, 5, 0.1, 10, 1),
+        groove(3, 77, 4.2, 0.2, 61, 1),
+        tongue(3, 76.6, 4, 0, 61, 1),
+        groove_pair(40, 3, 77, 4.2, 0.2, 61, 1),
+        tongue_pair(40, 3, 76.6, 4, 0, 61, 1),
         reset_camera=Camera.KEEP,
     )

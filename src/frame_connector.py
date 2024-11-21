@@ -73,8 +73,7 @@ class ConnectorFrame(Partomatic):
                             self._config.interior_width,
                             self._config.groove_depth,
                             self._config.tolerance,
-                            self._config.interior_width
-                            - self._config.bracket_spacing,
+                            self._config.click_fit_distance,
                             self._config.click_fit_radius,
                         )
                     )

@@ -21,6 +21,7 @@ class GuidewallConfig(PartomaticConfig):
     wall_window_apothem: float = 8
     wall_window_bar_thickness: float = 1.5
     click_fit_radius: float = 1
+    click_fit_distance: float = 61
     tolerance: float = 0.2
     fillet_ratio: float = 4.0
     wall_style: WallStyle = WallStyle.HEX

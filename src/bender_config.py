@@ -215,8 +215,7 @@ class BenderConfig:
         the overall interior width of the top frame
         """
         return (
-            (self.bracket_depth + self.wall_thickness + self.tolerance * 2)
-            * self.filament_count
+            self.frame_bracket_spacing * self.filament_count
         ) - self.wall_thickness
 
     @property
@@ -232,6 +231,10 @@ class BenderConfig:
         if FrameStyle.HANGING in self.frame_style:
             length += self.frame_hanger_offset * 2
         return length
+
+    @property
+    def click_fit_distance(self) -> float:
+        return self.frame_bracket_spacing * (self.filament_count - 1)
 
     @property
     def frame_hanger_offset(self) -> float:
@@ -388,6 +391,7 @@ class BenderConfig:
             wall_window_apothem=self.wall_window_apothem,
             wall_window_bar_thickness=self.wall_window_bar_thickness,
             click_fit_radius=self.frame_click_sphere_radius,
+            click_fit_distance=self.click_fit_distance,
             tolerance=self.tolerance,
             fillet_ratio=self.fillet_ratio,
         )
@@ -411,6 +415,7 @@ class BenderConfig:
             minimum_thickness=self.minimum_thickness,
             tolerance=self.tolerance,
             click_fit_radius=self.frame_click_sphere_radius,
+            click_fit_distance=self.click_fit_distance,
             groove_width=self.wall_thickness + self.tolerance,
             groove_depth=self.frame_tongue_depth + self.tolerance,
             groove_distance=self.sidewall_width + self.wall_thickness,
