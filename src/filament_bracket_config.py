@@ -6,7 +6,7 @@ from typing import List, Optional
 from shapely.geometry import Point
 import yaml
 
-from basic_shapes import distance_to_circle_edge
+from basic_shapes import circular_intersection
 from filament_wheel_config import WheelConfig
 from lock_pin_config import LockPinConfig
 from partomatic import PartomaticConfig
@@ -131,15 +131,11 @@ class FilamentBracketConfig(PartomaticConfig):
         calculates the appropriate filament funnel height
         to clear the filament wheel
         """
-        return distance_to_circle_edge(
-            radius=self.wheel.radius
+        return circular_intersection(
+            self.wheel.radius
             + self.wheel.radial_tolerance
             + self.minimum_thickness,
-            point=(
-                self.wheel.radius - self.connector.tube.outer_radius,
-                0,
-            ),
-            angle=90,
+            self.wheel.radius - self.connector.tube.outer_radius,
         )
 
     @property
@@ -172,3 +168,6 @@ class FilamentBracketConfig(PartomaticConfig):
 
     def __init__(self, configuration: any = None, **kwargs):
         super().__init__(configuration, **kwargs)
+
+
+from basic_shapes import circular_intersection

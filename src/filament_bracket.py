@@ -206,10 +206,16 @@ class FilamentBracket(Partomatic):
             - inset: an inset amount allowing tolerance in the printed parts
             - frame_depth: how deep in the frame to place the clip
         """
-        x_intersection = self._config.frame_bracket_exterior_x_distance
         with BuildPart() as rail_block:
             with BuildPart(
-                Location((x_intersection, 0, frame_depth)), mode=Mode.ADD
+                Location(
+                    (
+                        self._config.frame_clip_point.x,
+                        0,
+                        self._config.frame_clip_point.y,
+                    )
+                ),
+                mode=Mode.ADD,
             ) as railbox:
                 add(
                     rail_block_template(
@@ -226,7 +232,10 @@ class FilamentBracket(Partomatic):
         return rail_block.part
 
     def bracket_clip(
-        self, inset=0, frame_depth=_config.frame_clip_point.y, side_divots=True
+        self,
+        inset=0,
+        frame_depth=_config.frame_clip_point.y,
+        side_divots=True,
     ) -> Part:
         """
         the part for locking the frame bracket into the frame

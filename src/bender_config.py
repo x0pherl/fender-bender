@@ -68,7 +68,7 @@ class BenderConfig:
     frame_click_sphere_radius: float = 1
     frame_lock_style: LockStyle = LockStyle.BOTH
 
-    frame_clip_depth_offset: float = 10
+    frame_clip_depth_offset: float = 8
 
     wall_bracket_screw_radius: float = 2.25
     wall_bracket_screw_head_radius: float = 4.5
@@ -87,12 +87,11 @@ class BenderConfig:
         the x/y coordinates at which the center of the frame clip is positioned
         """
         return Point(
-            distance_to_circle_edge(
+            circular_intersection(
                 self.frame_bracket_exterior_radius,
-                (0, self.frame_clip_depth_offset),
-                angle=0,
+                self.minimum_structural_thickness * 2,
             ),
-            self.frame_clip_depth_offset,
+            self.minimum_structural_thickness * 2,
         )
 
     @property
@@ -429,6 +428,7 @@ class BenderConfig:
             tolerance=self.tolerance,
             click_fit_radius=self.frame_click_sphere_radius,
             click_fit_distance=self.click_fit_distance,
+            clip_point=self.frame_clip_point,
             groove_width=self.wall_thickness + self.tolerance,
             groove_depth=self.frame_tongue_depth + self.tolerance,
             groove_distance=self.sidewall_width + self.wall_thickness,
@@ -467,7 +467,6 @@ class BenderConfig:
             fillet_radius=self.fillet_radius,
             frame_click_sphere_point=self.frame_click_sphere_point,
             frame_click_sphere_radius=self.frame_click_sphere_radius,
-            frame_clip_depth_offset=self.frame_clip_depth_offset,
             frame_clip_point=self.frame_clip_point,
             frame_clip_rail_width=self.frame_clip_rail_width,
             frame_clip_width=self.frame_clip_width,

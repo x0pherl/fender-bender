@@ -46,9 +46,10 @@ class TestBenderConfig:
         assert cfg.bearing.depth == 1
 
     def test_frame_clip_point(self, default_bender_config):
-        assert default_bender_config.frame_clip_point == Point(
-            50.8913548650456, 10
+        assert default_bender_config.frame_clip_point.x == pytest.approx(
+            51.24382889675596
         )
+        assert default_bender_config.frame_clip_point.y == pytest.approx(8)
 
     def test_click_distance(self, default_bender_config):
         assert (

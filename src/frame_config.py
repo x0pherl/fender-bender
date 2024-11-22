@@ -39,6 +39,7 @@ class FrameConfig(PartomaticConfig):
     groove_distance: float = 99.1
     click_fit_radius: float = 1
     click_fit_distance: float = 61
+    clip_point: Point = (50.89, 8)
     base_depth: float = 8
     bracket_height: float = 43.2
     exterior_radius: float = 51.86

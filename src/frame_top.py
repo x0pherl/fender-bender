@@ -28,7 +28,6 @@ from bender_config import BenderConfig
 from basic_shapes import (
     rounded_cylinder,
     rail_block_template,
-    distance_to_circle_edge,
 )
 
 from frame_config import FrameConfig, FrameStyle
@@ -52,13 +51,9 @@ class TopFrame(Partomatic):
         with BuildPart(
             Location(
                 (
-                    distance_to_circle_edge(
-                        self._config.exterior_radius,
-                        (0, self._config.base_depth),
-                        0,
-                    ),
+                    self._config.clip_point.x,
                     0,
-                    self._config.base_depth,
+                    self._config.clip_point.y,
                 )
             )
         ) as clip:

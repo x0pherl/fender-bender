@@ -434,9 +434,7 @@ def build_brackets(bender_config: BenderConfig):
         print(f"\t generating brackets for {direction.name}")
         for connector_index, connector in enumerate(bender_config.connectors):
             print(f"\t\t generating bracket with {connector.name}")
-            bracket = FilamentBracket(
-                bender_config.filament_bracket_config(connector_index)
-            )
+            bracket = FilamentBracket(bender_config.filament_bracket_config)
             bracket._config.channel_pair_direction = direction
             if direction != bender_config.bracket_direction:
                 bracket._config.stl_folder = str(

@@ -33,7 +33,7 @@ class TestFilamentBracket:
             patch("filament_bracket.save_screenshot"),
         ):
             bender_config = BenderConfig(complete_connector_config_yaml)
-            bracket = FilamentBracket(bender_config.filament_bracket_config(0))
+            bracket = FilamentBracket(bender_config.filament_bracket_config)
             bracket.compile()
             bracket.display()
             bracket.export_stls()
@@ -42,7 +42,7 @@ class TestFilamentBracket:
 
     def test_bracket_block(self):
         bender_config = BenderConfig()
-        bracket = FilamentBracket(bender_config.filament_bracket_config(0))
+        bracket = FilamentBracket(bender_config.filament_bracket_config)
         block = bracket.bottom_bracket_block()
         assert block is not None
         assert block.volume > 0
@@ -70,7 +70,7 @@ class TestFilamentBracket:
         self, bender_config_yaml_threaded
     ):
         bender_config = BenderConfig(bender_config_yaml_threaded)
-        channels = FilamentChannels(bender_config.filament_bracket_config(0))
+        channels = FilamentChannels(bender_config.filament_bracket_config)
         assert channels._config.connector.thread_angle == 30
 
     def test_bare_execution(self):
