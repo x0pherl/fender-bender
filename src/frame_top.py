@@ -171,7 +171,7 @@ class TopFrame(Partomatic):
                 )
             widecut_offset = (
                 self._config.interior_length - self._config.interior_diameter
-            ) / 2 - self._config.tube_radius
+            ) / 2 - self._config.bracket_depth / 2
             with BuildPart(Location((widecut_offset / 2, 0, 0))) as widecut:
                 Box(
                     self._config.interior_length - widecut_offset,
@@ -388,7 +388,6 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/debug.conf"
     bender_config = BenderConfig(config_path)
     frame = TopFrame(bender_config.frame_config)
-    # show(frame._bracket_cutblock(), reset_camera=Camera.KEEP)
     frame.compile()
     frame.display()
     frame.export_stls()

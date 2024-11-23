@@ -256,9 +256,9 @@ def cut_frame_test():
         .move(
             Location(
                 (
-                    _config.tolerance,
+                    _config.frame_hanger_offset + _config.tolerance,
                     _config.bracket_depth / 2,
-                    _config.frame_base_depth,
+                    _config.frame_base_depth + _config.tolerance,
                 )
             )
         ),
