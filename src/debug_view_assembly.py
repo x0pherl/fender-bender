@@ -29,8 +29,10 @@ from guidewall import Guidewall
 from sidewall_config import WallStyle
 from tongue_groove import tongue_pair, groove_pair
 
-_config_file = Path(__file__).parent / "../build-configs/debug.conf"
-_config = BenderConfig(_config_file)
+config_path = Path(__file__).parent / "../build-configs/debug.conf"
+if not config_path.exists() or not config_path.is_file():
+    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+_config = BenderConfig(config_path)
 filamentbracket = FilamentBracket(_config.filament_bracket_config)
 topframe = TopFrame(_config.frame_config)
 bottomframe = BottomFrame(_config.frame_config)

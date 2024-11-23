@@ -234,9 +234,9 @@ class Guidewall(Partomatic):
 
 
 if __name__ == "__main__":
-    config_path = Path(__file__).parent / "../build-configs/dev.conf"
+    config_path = Path(__file__).parent / "../build-configs/debug.conf"
     if not config_path.exists() or not config_path.is_file():
-        config_path = Path(__file__).parent / "../build-configs/debug.conf"
+        config_path = Path(__file__).parent / "../build-configs/dev.conf"
 
     gw = Guidewall(BenderConfig(config_path).guidewall_config)
 

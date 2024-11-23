@@ -4,6 +4,12 @@
 stl/*
 step/*
 renders/*
+build-configs/*
+
+# Unignore these config files
+!build-configs/release.conf
+!build-configs/dev.conf
+!build-configs/mini.conf
 
 # development configuration
 ../build-configs/dev.conf

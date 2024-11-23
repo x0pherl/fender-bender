@@ -10,9 +10,9 @@ from sidewall import Sidewall
 
 class TestConfig:
     def test_load(self):
-        config_path = Path(__file__).parent / "../build-configs/dev.conf"
+        config_path = Path(__file__).parent / "../build-configs/debug.conf"
         if not config_path.exists() or not config_path.is_file():
-            config_path = Path(__file__).parent / "../build-configs/debug.conf"
+            config_path = Path(__file__).parent / "../build-configs/dev.conf"
 
         bender_config = BenderConfig(config_path)
         sw_config = bender_config.sidewall_config

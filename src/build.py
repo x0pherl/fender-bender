@@ -201,7 +201,7 @@ parser.add_argument(
     "--config",
     type=str,
     help="The configuration file to run.",
-    default="reference",
+    default="release",
 )
 args = parser.parse_args()
 
