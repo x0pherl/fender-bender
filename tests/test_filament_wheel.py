@@ -83,20 +83,6 @@ class TestConfig:
         assert cfg.bearing.shelf_diameter == 0.2
         assert cfg.bearing.depth == 1
 
-
-class TestWheel:
-    def test_partomate(self):
-        fw = FilamentWheel()
-        with (
-            patch("filament_wheel.export_stl"),
-            patch("pathlib.Path.mkdir"),
-            patch("filament_wheel.show"),
-        ):
-            fw.partomate()
-        assert fw.parts[0].part.volume > 0
-        assert fw.parts[0].part.is_valid()
-        assert fw.parts[0].part.bounding_box().size.Z == pytest.approx(4)
-
     def test_loadconfig(self, wheel_config_subpath_yaml):
         fw = FilamentWheel()
         fw.load_config(
@@ -104,11 +90,31 @@ class TestWheel:
         )
         assert fw._config.diameter == 12.3
 
+
+class TestWheel:
+    def test_partomate(self):
+        fw = FilamentWheel()
+        with (
+            patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
+            patch("ocp_vscode.show"),
+            patch("filament_bracket.save_screenshot"),
+        ):
+            fw.partomate()
+        assert fw.parts[0].part.volume > 0
+        assert fw.parts[0].part.is_valid()
+        assert fw.parts[0].part.bounding_box().size.Z == pytest.approx(4)
+
     def test_display(self):
         with (
-            patch("filament_wheel.export_stl"),
+            patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
-            patch("filament_wheel.show"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
+            patch("ocp_vscode.show"),
+            patch("filament_bracket.save_screenshot"),
         ):
             fw = FilamentWheel()
             fw.compile()

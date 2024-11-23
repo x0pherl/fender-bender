@@ -51,8 +51,12 @@ class TestBearing:
 
     def test_bare_execution(self):
         with (
+            patch("build123d.export_stl"),
             patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
             patch("ocp_vscode.show"),
+            patch("filament_bracket.save_screenshot"),
         ):
             loader = SourceFileLoader("__main__", "src/bearing.py")
             loader.exec_module(

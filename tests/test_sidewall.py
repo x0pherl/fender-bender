@@ -3,6 +3,7 @@ from importlib.util import spec_from_loader, module_from_spec
 from unittest.mock import patch
 from bender_config import BenderConfig
 from pathlib import Path
+import pytest
 
 from sidewall_config import SidewallConfig
 from sidewall import Sidewall
@@ -10,10 +11,7 @@ from sidewall import Sidewall
 
 class TestConfig:
     def test_load(self):
-        config_path = Path(__file__).parent / "../build-configs/debug.conf"
-        if not config_path.exists() or not config_path.is_file():
-            config_path = Path(__file__).parent / "../build-configs/dev.conf"
-
+        config_path = Path(__file__).parent / "../build-configs/release.conf"
         bender_config = BenderConfig(config_path)
         sw_config = bender_config.sidewall_config
         assert isinstance(sw_config, SidewallConfig)
@@ -21,7 +19,7 @@ class TestConfig:
         assert (
             sw_config.straight_length == bender_config.sidewall_straight_depth
         )
-        assert sw_config.complete_length == 153.0677324554909
+        assert sw_config.complete_length == pytest.approx(168.0677324554909)
 
 
 class TestSidewall:
