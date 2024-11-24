@@ -226,9 +226,9 @@ if args.config:
 def build_hanger_set(
     bender_config: BenderConfig, override_filament_count=None
 ):
-    if override_filament_count is not None:
-        bender_config.filament_count = override_filament_count
     hanging_bracket_config = bender_config.hanging_bracket_config
+    if override_filament_count is not None:
+        hanging_bracket_config.filament_count = override_filament_count
     count_name_str = (
         ""
         if override_filament_count is None
@@ -308,9 +308,9 @@ def build_hangers(bender_config):
 
 
 def build_frame_set(bender_config: BenderConfig, override_filament_count=None):
-    if override_filament_count is not None:
-        bender_config.filament_count = override_filament_count
     frame_config = bender_config.frame_config
+    if override_filament_count is not None:
+        frame_config.filament_count = override_filament_count
     lockpin_config = bender_config.lock_pin_config
     count_name_str = (
         ""
@@ -419,7 +419,6 @@ def build_frames(bender_config: BenderConfig):
         print(
             f"\t\t generating frame for {count} filament{"s" if count > 1 else ""}"
         )
-
         build_frame_set(bender_config, override_filament_count=count)
 
 
@@ -458,10 +457,10 @@ def build_brackets(bender_config: BenderConfig):
 def build_guidewall_set(
     bender_config: BenderConfig, override_filament_count=None
 ):
-    if override_filament_count is not None:
-        bender_config.filament_count = override_filament_count
-
     guidewall_config = bender_config.guidewall_config
+    if override_filament_count is not None:
+        guidewall_config.filament_count = override_filament_count
+
     count_name_str = (
         ""
         if override_filament_count is None
@@ -531,7 +530,7 @@ for conf_file in conf_files:
     if bender_config.stl_folder == "NONE":
         continue
     print(headline(f"Generating parts for {conf_file.name}"))
-    # print(f"\t connector diam is {config.default_connector.diameter}")
+
     iteration_start_time = time()
     build_brackets(bender_config)
     build_wheel(bender_config)
@@ -545,7 +544,7 @@ for conf_file in conf_files:
         )
     )
 
-    # TODO -- this is an awful hack for now, but build is not the most important bit of software
+    # TODO --need to get documentation generation sorted
     # loader = SourceFileLoader("__main__", "assembly_documentation.py")
     # loader.exec_module(module_from_spec(spec_from_loader(loader.name, loader)))
 print()
