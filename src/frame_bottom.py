@@ -382,10 +382,15 @@ class BottomFrame(Partomatic):
         return bframe.part
 
     def compile(self):
+        bottom_frame_location = (
+            Location((0, 0, 0), (0, 0, 0))
+            if self._config.frame_style == FrameStyle.HANGING
+            else Location((0, 0, self._config.stand_depth), (180, 0, 0))
+        )
         self.parts.clear()
         self.parts.append(
             BuildablePart(
-                self.bottom_frame(),
+                self.bottom_frame().move(bottom_frame_location),
                 "frame-bottom",
                 stl_folder=self._config.stl_folder,
             )
@@ -397,7 +402,8 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/dev.conf"
     bender_config = BenderConfig(config_path)
-    frame = BottomFrame(bender_config.frame_config)
+    frame_config = bender_config.frame_config
+    frame = BottomFrame(frame_config)
 
     frame.compile()
     frame.display()

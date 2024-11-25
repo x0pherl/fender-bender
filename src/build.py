@@ -532,12 +532,17 @@ for conf_file in conf_files:
     print(headline(f"Generating parts for {conf_file.name}"))
 
     iteration_start_time = time()
-    build_brackets(bender_config)
-    build_wheel(bender_config)
+    # build_brackets(bender_config)
+    # build_wheel(bender_config)
     build_walls(bender_config)
-    build_frames(bender_config)
-    build_hangers(bender_config)
+    # build_frames(bender_config)
+    # build_hangers(bender_config)
 
+    """
+    build notes
+    - bottom bracket orientation is not set for hyrbrid/standing frames
+    -
+    """
     print(
         headline(
             f"{conf_file.stem} configuration built in {(time() - iteration_start_time):.2f} seconds"
