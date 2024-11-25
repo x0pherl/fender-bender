@@ -217,7 +217,7 @@ class Guidewall(Partomatic):
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 )
             add(self._guide_set())
-            if not not self._config.wall_style == WallStyle.SOLID:
+            if self._config.wall_style != WallStyle.SOLID:
                 add(self._hex_outline_cut(), mode=Mode.SUBTRACT)
             add(self._tongues())
         return wall.part
