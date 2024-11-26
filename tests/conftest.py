@@ -34,7 +34,7 @@ BenderConfig:
       shelf_diameter: 6
       depth: 1
   connectors:
-    - name: "3mmx6mmm tube connector"
+    - name: "3mmx6mm tube connector"
       threaded: False
       # file_prefix: "prefix"
       # file_suffix: "suffix"
@@ -85,10 +85,10 @@ BenderConfig:
       shelf_diameter: 6
       depth: 1
   connectors:
-    - name: "3mmx6mmm PC6-01"
+    - name: "3mmx6mm PC6-01"
       threaded: True
       file_prefix: "alt/"
-      file_suffix: "-3mmx6mmm-pc6-01"
+      file_suffix: "-3mmx6mm-pc6-01"
       thread_pitch: 1
       thread_angle: 30
       thread_interference: 0.4
@@ -135,7 +135,7 @@ def bender_config_reference_single_connector_yaml():
       shelf_diameter: 8.5
       depth: 4
   connectors:
-    - name: "3mmx6mmm tube connector"
+    - name: "3mmx6mm tube connector"
       threaded: False
       thread_pitch: 1
       thread_angle: 30
@@ -184,7 +184,7 @@ BenderConfig:
       shelf_diameter: 8.5
       depth: 4
   connectors:
-    - name: "3mmx6mmm tube connector"
+    - name: "3mmx6mm tube connector"
       threaded: False
       thread_pitch: 1
       thread_angle: 30
@@ -194,10 +194,10 @@ BenderConfig:
       tube:
         inner_diameter: 3.6
         outer_diameter: 6.5
-    - name: "3mmx6mmm PC6-01"
+    - name: "3mmx6mm PC6-01"
       threaded: True
       file_prefix: "alt/"
-      file_suffix: "-3mmx6mmm-pc6-01"
+      file_suffix: "-3mmx6mm-pc6-01"
       thread_pitch: 1
       thread_angle: 30
       thread_interference: 0.4
@@ -206,10 +206,10 @@ BenderConfig:
       tube:
         inner_diameter: 3.6
         outer_diameter: 6.5
-    - name: "2.5mmx4mmm no connector"
+    - name: "2.5mmx4mm no connector"
       threaded: False
       file_prefix: "alt/"
-      file_suffix: "-2_5mmx4mmm-no-connector"
+      file_suffix: "-2_5mmx4mm-no-connector"
       thread_pitch: 1
       thread_angle: 30
       thread_interference: 0.2
@@ -257,7 +257,7 @@ BenderConfig:
       shelf_diameter: 6
       depth: 1
   connectors:
-    - name: "3mmx6mmm tube connector"
+    - name: "3mmx6mm tube connector"
       threaded: False
       # file_prefix: "prefix"
       # file_suffix: "suffix"
@@ -320,7 +320,7 @@ BenderConfig:
       shelf_diameter: 6
       depth: 1
   connectors:
-    - name: "3mmx6mmm tube connector"
+    - name: "3mmx6mm tube connector"
       threaded: False
       # file_prefix: "prefix"
       # file_suffix: "suffix"
@@ -426,7 +426,7 @@ FilamentBracket:
       shelf_diameter: 0.2
       depth: 1
   connector:
-    name: "3mmx6mmm tube connector"
+    name: "3mmx6mm tube connector"
     threaded: False
     file_prefix: "prefix"
     file_suffix: "suffix"
@@ -490,7 +490,7 @@ FilamentBracket:
       shelf_diameter: 0.2
       depth: 1
   connector:
-    name: "3mmx6mmm tube connector"
+    name: "3mmx6mm tube connector"
     threaded: False
     file_prefix: "prefix"
     file_suffix: "suffix"
