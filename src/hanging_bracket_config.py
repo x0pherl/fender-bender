@@ -38,3 +38,7 @@ class HangingBracketConfig(PartomaticConfig):
 
     def __init__(self, configuration: any = None, **kwargs):
         super().__init__(configuration, **kwargs)
+
+    @property
+    def surface_bolt_spacing(self):
+        return ((self.width - self.arm_thickness * 2) // 10) * 10

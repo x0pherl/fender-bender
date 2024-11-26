@@ -14,15 +14,17 @@ from build123d import (
     BuildLine,
     BuildPart,
     BuildSketch,
+    CenterArc,
+    CenterArc,
+    Cylinder,
     GridLocations,
     Line,
     Location,
     Mode,
     Part,
+    Plane,
     Sketch,
-    CenterArc,
-    CenterArc,
-    Cylinder,
+    Text,
     add,
     fillet,
     export_stl,
@@ -30,6 +32,7 @@ from build123d import (
     make_face,
 )
 
+from build123d.build_enums import FontStyle
 from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
@@ -129,7 +132,7 @@ class HangingBracket(Partomatic):
             ):
                 with GridLocations(
                     0,
-                    self._config.width - self._config.arm_thickness * 3,
+                    self._config.surface_bolt_spacing,
                     1,
                     2,
                 ):
@@ -138,6 +141,27 @@ class HangingBracket(Partomatic):
                         self._config.bracket_inset / 4,
                         align=(Align.CENTER, Align.CENTER, Align.MIN),
                     )
+            with BuildPart(mode=Mode.SUBTRACT):
+                with BuildSketch(
+                    Location(
+                        (
+                            -self._config.width / 4,
+                            0,
+                            self._config.bracket_inset / 4,
+                        )
+                    )
+                ) as text:
+                    Text(
+                        f"{self._config.surface_bolt_spacing} spacing",
+                        5,
+                        font="Flamante Round Bold",
+                        font_style=FontStyle.BOLD,
+                        mode=Mode.ADD,
+                        rotation=-90,
+                    )
+                extrude(
+                    text.sketch, -self._config.bracket_inset / 8, both=False
+                )
         return tool.part
 
     def _desk_bracket(self, heatsink_nut=False) -> Part:
@@ -158,14 +182,14 @@ class HangingBracket(Partomatic):
                     (
                         -self._config.height + self._config.screw_head_radius,
                         0,
-                        self._config.arm_thickness,
+                        self._config.arm_thickness + self._config.height,
                     )
                 ),
                 mode=Mode.SUBTRACT,
-            ):
+            ) as cuts:
                 with GridLocations(
                     0,
-                    self._config.width - self._config.arm_thickness * 3,
+                    self._config.surface_bolt_spacing,
                     1,
                     2,
                 ):
@@ -173,7 +197,8 @@ class HangingBracket(Partomatic):
                         add(
                             heatsink_cut(
                                 self._config.m4_heatsink_radius,
-                                self._config.m4_heatsink_depth,
+                                self._config.m4_heatsink_depth
+                                + self._config.height,
                                 self._config.m4_shaft_radius,
                                 self._config.height,
                             ).rotate(Axis.X, 180)
@@ -182,7 +207,8 @@ class HangingBracket(Partomatic):
                         add(
                             nut_cut(
                                 self._config.m4_nut_radius,
-                                self._config.m4_nut_depth,
+                                self._config.m4_nut_depth
+                                + self._config.height,
                                 self._config.screw_shaft_radius,
                                 self._config.height,
                             ).rotate(Axis.X, 180)
@@ -234,7 +260,7 @@ class HangingBracket(Partomatic):
             self.parts.append(
                 BuildablePart(
                     self._desk_aligner(),
-                    "surface-mount--alignment-tool",
+                    "surface-mount-alignment-tool",
                     stl_folder=self._config.stl_folder,
                 )
             )
@@ -264,7 +290,8 @@ if __name__ == "__main__":
 
     print(bender_config.hanging_bracket_config)
     brackets = HangingBracket(bender_config.hanging_bracket_config)
-    brackets._config.bracket_style = HangingBracketStyle.SURFACE_TOOL
+    # brackets._config.bracket_style = HangingBracketStyle.SURFACE_MOUNT
+    # brackets._config.heatsink_desk_nut = True
     brackets.compile()
     brackets.display()
     brackets.export_stls()
