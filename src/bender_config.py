@@ -388,7 +388,7 @@ class BenderConfig:
         )
 
     @property
-    def guidewall_config(self) -> SidewallConfig:
+    def guidewall_config(self) -> GuidewallConfig:
         return GuidewallConfig(
             stl_folder=self.stl_folder,
             core_length=self.sidewall_straight_depth - self.wall_thickness / 2,
