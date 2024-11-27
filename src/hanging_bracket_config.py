@@ -35,6 +35,7 @@ class HangingBracketConfig(PartomaticConfig):
     m4_nut_depth: float = 5
     m4_shaft_radius: float = 2.1
     heatsink_desk_nut: bool = False
+    wall_screw_offset: float = 0
 
     def __init__(self, configuration: any = None, **kwargs):
         super().__init__(configuration, **kwargs)

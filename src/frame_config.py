@@ -78,5 +78,9 @@ class FrameConfig(PartomaticConfig):
     def stand_depth(self) -> float:
         return self.base_depth * 2 + self.exterior_radius
 
+    @property
+    def screw_offset(self) -> float:
+        return self.bracket_spacing / 2 if self.filament_count % 2 == 0 else 0
+
     def __init__(self, configuration: any = None, **kwargs):
         super().__init__(configuration, **kwargs)

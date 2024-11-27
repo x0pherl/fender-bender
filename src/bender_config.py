@@ -510,6 +510,11 @@ class BenderConfig:
             m4_nut_depth=self.m4_nut_depth,
             m4_shaft_radius=self.m4_shaft_radius,
             heatsink_desk_nut=False,
+            wall_screw_offset=(
+                -self.frame_bracket_spacing / 2
+                if self.filament_count % 2 == 0
+                else 0
+            ),
         )
 
     @property

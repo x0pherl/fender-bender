@@ -237,7 +237,7 @@ class HangingBracket(Partomatic):
                 Location(
                     (
                         self._config.bracket_inset,
-                        0,
+                        self._config.wall_screw_offset,
                         self._config.height / 2,
                     ),
                     (0, -90, 0),
@@ -287,11 +287,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/dev.conf"
     bender_config = BenderConfig(config_path)
-
-    print(bender_config.hanging_bracket_config)
     brackets = HangingBracket(bender_config.hanging_bracket_config)
-    # brackets._config.bracket_style = HangingBracketStyle.SURFACE_MOUNT
-    # brackets._config.heatsink_desk_nut = True
     brackets.compile()
     brackets.display()
     brackets.export_stls()

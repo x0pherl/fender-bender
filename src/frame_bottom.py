@@ -73,7 +73,13 @@ class BottomFrame(Partomatic):
         a fitting for screwing the bracket to the wall
         """
         with BuildPart(
-            Location((-self._config.exterior_length / 2 - extra_length, 0, 0))
+            Location(
+                (
+                    -self._config.exterior_length / 2 - extra_length,
+                    self._config.screw_offset,
+                    0,
+                )
+            )
         ) as fitting:
             Box(
                 self._config.base_depth,
@@ -102,7 +108,7 @@ class BottomFrame(Partomatic):
             Location(
                 (
                     -self._config.exterior_length / 2 - offset,
-                    0,
+                    self._config.screw_offset,
                     self._config.stand_depth,
                 )
             )
@@ -128,7 +134,7 @@ class BottomFrame(Partomatic):
                         - offset
                         + base_width
                         - self._config.fillet_radius * 1.5,
-                        0,
+                        self._config.screw_offset,
                         self._config.base_depth * 2
                         + self._config.exterior_radius,
                     ),
@@ -211,7 +217,7 @@ class BottomFrame(Partomatic):
                         (
                             -self._config.exterior_length / 2
                             + self._config.screw_shaft_radius,
-                            0,
+                            self._config.screw_offset,
                             self._config.exterior_radius / 4,
                         )
                     )
@@ -236,7 +242,7 @@ class BottomFrame(Partomatic):
                             -self._config.exterior_length / 2
                             - self._config.interior_offset * 2
                             + self._config.exterior_radius / 8,
-                            0,
+                            self._config.screw_offset,
                             self._config.exterior_radius
                             + self._config.base_depth,
                         )
@@ -404,7 +410,6 @@ if __name__ == "__main__":
     bender_config = BenderConfig(config_path)
     frame_config = bender_config.frame_config
     frame = BottomFrame(frame_config)
-
     frame.compile()
     frame.display()
     frame.export_stls()
