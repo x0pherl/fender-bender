@@ -5,9 +5,10 @@ from importlib.machinery import SourceFileLoader
 from importlib.util import module_from_spec, spec_from_loader
 from pathlib import Path
 from time import time
+from copy import deepcopy
 
 from bender_config import BenderConfig, LockStyle
-from frame_config import FrameStyle
+from frame_config import FrameConfig, FrameStyle
 from hanging_bracket import HangingBracket
 from filament_bracket import FilamentBracket
 from filament_wheel import FilamentWheel
@@ -307,108 +308,64 @@ def build_hangers(bender_config):
         build_hanger_set(bender_config, override_filament_count=count)
 
 
+def build_alt_style_frame_set(
+    frame_config: FrameConfig, frame_style=FrameStyle
+):
+    alt_frame_config = deepcopy(frame_config)
+    alt_frame_config.frame_style = frame_style
+    alt_frame_config.stl_folder = str(
+        (Path(alt_frame_config.stl_folder) / "alt-frame-styles")
+    )
+    alt_frame_config.file_prefix = "alt-"
+    alt_frame_config.file_suffix = (
+        f"{alt_frame_config.file_suffix}-{frame_style.name.lower()}"
+    )
+    if (FrameStyle.HANGING in frame_style) != (
+        FrameStyle.HANGING in frame_config.frame_style
+    ):
+        TopFrame(alt_frame_config).partomate()
+        ConnectorFrame(alt_frame_config).partomate()
+    BottomFrame(alt_frame_config).partomate()
+
+    if frame_style != FrameStyle.HANGING:
+        dryflip_frame_config = deepcopy(alt_frame_config)
+        dryflip_frame_config.drybox = not dryflip_frame_config.drybox
+        dryflip_frame_config.file_suffix = f"{dryflip_frame_config.file_suffix}-{"not-" if not dryflip_frame_config.drybox else ""}drybox"
+        BottomFrame(dryflip_frame_config).partomate()
+
+
 def build_frame_set(bender_config: BenderConfig, override_filament_count=None):
-    frame_config = bender_config.frame_config
+    original_filament_count = bender_config.filament_count
+
     if override_filament_count is not None:
-        frame_config.filament_count = override_filament_count
+        bender_config.filament_count = override_filament_count
+    frame_config = bender_config.frame_config
+
     lockpin_config = bender_config.lock_pin_config
-    count_name_str = (
-        ""
-        if override_filament_count is None
-        else f"alt-{override_filament_count}-filament{"s" if override_filament_count > 1 else ""}-parts"
-    )
-    frame_config.stl_folder = str(
-        (Path(frame_config.stl_folder) / count_name_str)
-    )
-    lockpin_config.stl_folder = str(
-        (Path(lockpin_config.stl_folder) / count_name_str)
-    )
+    count_name_str = ""
+    if override_filament_count is not None:
+        count_name_str = f"{override_filament_count}-filament"
+
+        frame_config.stl_folder = str(
+            (Path(frame_config.stl_folder) / f"alt-{count_name_str}-parts")
+        )
+        frame_config.file_prefix = "alt-"
+        frame_config.file_suffix = f"-{count_name_str}"
+
     TopFrame(frame_config).partomate()
     ConnectorFrame(frame_config).partomate()
     BottomFrame(frame_config).partomate()
     LockPin(lockpin_config).partomate()
 
-    if bender_config.skip_alt_file_generation:
-        return
-
-    if frame_config.frame_style == FrameStyle.STANDING:
-        hanging_frame_config = bender_config.frame_config
-        hanging_frame_config.filament_count = frame_config.filament_count
-        hanging_frame_config.frame_style = FrameStyle.HANGING
-        hanging_frame_config.stl_folder = str(
-            (
-                Path(hanging_frame_config.stl_folder)
-                / count_name_str
-                / "alt-frame-styles"
-            )
-        )
-        hanging_frame_config.file_prefix = "alt-"
-        hanging_frame_config.file_suffix = (
-            f"{hanging_frame_config.file_suffix}-hanging"
-        )
-        TopFrame(hanging_frame_config).partomate()
-        ConnectorFrame(hanging_frame_config).partomate()
-        BottomFrame(hanging_frame_config).partomate()
-
-        dryflip_frame_config = bender_config.frame_config
-        dryflip_frame_config.filament_count = frame_config.filament_count
-        dryflip_frame_config.frame_style = FrameStyle.HYBRID
-        dryflip_frame_config.stl_folder = str(
-            (
-                Path(dryflip_frame_config.stl_folder)
-                / count_name_str
-                / "alt-frame-styles"
-            )
-        )
-        dryflip_frame_config.file_prefix = "alt-"
-        dryflip_frame_config.file_suffix = (
-            f"{dryflip_frame_config.file_suffix}-hanging"
-        )
-        dryflip_frame_config.drybox = not dryflip_frame_config.drybox
-        dryflip_frame_config.file_suffix = f"{dryflip_frame_config.file_suffix}-{"" if dryflip_frame_config.drybox else "not-"}drybox"
-        BottomFrame(dryflip_frame_config).partomate()
-
-    if frame_config.frame_style != FrameStyle.STANDING:
-        standing_frame_config = bender_config.frame_config
-        standing_frame_config.filament_count = frame_config.filament_count
-        standing_frame_config.frame_style = FrameStyle.STANDING
-        standing_frame_config.stl_folder = str(
-            (
-                Path(standing_frame_config.stl_folder)
-                / count_name_str
-                / "alt-frame-styles"
-            )
-        )
-        standing_frame_config.file_prefix = "alt-"
-        standing_frame_config.file_suffix = (
-            f"{standing_frame_config.file_suffix}-standing"
-        )
-        TopFrame(standing_frame_config).partomate()
-        ConnectorFrame(standing_frame_config).partomate()
-        BottomFrame(standing_frame_config).partomate()
-        standing_frame_config.drybox = not standing_frame_config.drybox
-        standing_frame_config.file_suffix = f"{standing_frame_config.file_suffix}-{"" if standing_frame_config.drybox else "not-"}drybox"
-        BottomFrame(standing_frame_config).partomate()
-
-    if frame_config.frame_style != FrameStyle.HYBRID:
-        hybrid_frame_config = bender_config.frame_config
-        hybrid_frame_config.filament_count = frame_config.filament_count
-        hybrid_frame_config.frame_style = FrameStyle.HYBRID
-        hybrid_frame_config.stl_folder = str(
-            (
-                Path(hybrid_frame_config.stl_folder)
-                / count_name_str
-                / "alt-frame-styles"
-            )
-        )
-        hybrid_frame_config.file_prefix = "alt-"
-        hybrid_frame_config.file_suffix = (
-            f"{hybrid_frame_config.file_suffix}-hybrid"
-        )
-        BottomFrame(hybrid_frame_config).partomate()
-        hybrid_frame_config.drybox = not hybrid_frame_config.drybox
-        hybrid_frame_config.file_suffix = f"{hybrid_frame_config.file_suffix}-{"" if hybrid_frame_config.drybox else "not-"}drybox"
-        BottomFrame(hybrid_frame_config).partomate()
+    if not bender_config.skip_alt_file_generation:
+        if FrameStyle.HANGING in frame_config.frame_style:
+            build_alt_style_frame_set(frame_config, FrameStyle.STANDING)
+        if frame_config.frame_style == FrameStyle.STANDING:
+            build_alt_style_frame_set(frame_config, FrameStyle.HANGING)
+        if frame_config.frame_style != FrameStyle.HYBRID:
+            build_alt_style_frame_set(frame_config, FrameStyle.HYBRID)
+    bender_config.filament_count = original_filament_count
+    return
 
 
 def build_frames(bender_config: BenderConfig):
