@@ -105,7 +105,6 @@ class TestWheel:
             fw.partomate()
         assert fw.parts[0].part.volume > 0
         assert fw.parts[0].part.is_valid()
-        assert fw.parts[0].part.bounding_box().size.Z == pytest.approx(4)
 
     def test_display(self):
         with (

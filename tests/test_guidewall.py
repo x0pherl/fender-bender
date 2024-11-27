@@ -28,9 +28,12 @@ class TestConfig:
 class TestGuidewall:
     def test_bare_execution(self):
         with (
-            patch("pathlib.Path.mkdir"),
-            patch("ocp_vscode.show"),
             patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
         ):
             loader = SourceFileLoader("__main__", "src/guidewall.py")
             loader.exec_module(
@@ -39,10 +42,13 @@ class TestGuidewall:
 
     def test_none_stl_folder(self):
         with (
-            patch("pathlib.Path.mkdir"),
-            patch("ocp_vscode.show"),
             patch("build123d.export_stl"),
+            patch("pathlib.Path.mkdir"),
+            patch("pathlib.Path.exists"),
+            patch("pathlib.Path.is_dir"),
+            patch("ocp_vscode.show"),
+            patch("ocp_vscode.save_screenshot"),
         ):
-            sidewall = Guidewall()
-            sidewall._config.stl_folder = "NONE"
-            sidewall.export_stls()
+            guidewall = Guidewall()
+            guidewall._config.stl_folder = "NONE"
+            guidewall.export_stls()
