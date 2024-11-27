@@ -118,49 +118,30 @@ def partomate_alt_dry_sidewalls(bender_config: BenderConfig):
     sidewall.partomate()
 
 
-def partomate_alt_dry_guidewall(
-    bender_config: BenderConfig, count_name_str: str = ""
+def partomate_alt_guidewall(
+    bender_config: BenderConfig,
+    wall_style: WallStyle,
+    override_filament_count=None,
 ):
     guidewall = Guidewall(bender_config.guidewall_config)
 
-    guidewall._config.wall_style = WallStyle.DRYBOX
-    guidewall._config.stl_folder = str(
-        (Path(guidewall._config.stl_folder) / count_name_str)
-    )
+    guidewall._config.wall_style = wall_style
+    if override_filament_count is not None:
+        guidewall._config.section_count = override_filament_count
+        guidewall._config.stl_folder = str(
+            (
+                Path(guidewall._config.stl_folder)
+                / f"alt-{override_filament_count}-filament-parts"
+            )
+        )
+        guidewall._config.file_suffix = f"-{override_filament_count}-filament"
+    guidewall._config.file_prefix = "alt-"
     guidewall._config.stl_folder = str(
         (Path(guidewall._config.stl_folder) / "alt-wall-styles")
     )
-    guidewall._config.file_prefix = "alt-"
-    guidewall._config.file_suffix = f"{guidewall._config.file_suffix}-drybox"
-    guidewall.partomate()
-
-
-def partomate_alt_hex_guidewall(bender_config: BenderConfig):
-    guidewall = Guidewall(bender_config.guidewall_config)
-
-    guidewall._config.wall_style = WallStyle.HEX
-    guidewall._config.stl_folder = str(
-        (Path(guidewall._config.stl_folder) / "alt-wall-styles")
+    guidewall._config.file_suffix = (
+        f"{guidewall._config.file_suffix}-{wall_style.name.lower()}"
     )
-    guidewall._config.file_prefix = "alt-"
-    guidewall._config.file_suffix = f"{guidewall._config.file_suffix}-hex"
-    guidewall.partomate()
-
-
-def partomate_alt_solid_guidewall(
-    bender_config: BenderConfig, count_name_str: str = ""
-):
-    guidewall = Guidewall(bender_config.guidewall_config)
-
-    guidewall._config.wall_style = WallStyle.SOLID
-    guidewall._config.stl_folder = str(
-        (Path(guidewall._config.stl_folder) / count_name_str)
-    )
-    guidewall._config.stl_folder = str(
-        (Path(guidewall._config.stl_folder) / "alt-wall-styles")
-    )
-    guidewall._config.file_prefix = "alt-"
-    guidewall._config.file_suffix = f"{guidewall._config.file_suffix}-solid"
     guidewall.partomate()
 
 
@@ -227,69 +208,71 @@ if args.config:
 def build_hanger_set(
     bender_config: BenderConfig, override_filament_count=None
 ):
-    hanging_bracket_config = bender_config.hanging_bracket_config
+    hanger_bender_config = deepcopy(bender_config)
     if override_filament_count is not None:
-        hanging_bracket_config.filament_count = override_filament_count
-    count_name_str = (
-        ""
-        if override_filament_count is None
-        else f"alt-{override_filament_count}-filament{"s" if override_filament_count > 1 else ""}-parts"
-    )
-    hanging_bracket_config.stl_folder = str(
-        (Path(bender_config.stl_folder) / count_name_str)
-    )
+        hanger_bender_config.filament_count = override_filament_count
+    hanging_bracket_config = hanger_bender_config.hanging_bracket_config
+
+    if override_filament_count is not None:
+        hanging_bracket_config.stl_folder = str(
+            Path(bender_config.stl_folder)
+            / f"alt-{override_filament_count}-filament-parts"
+        )
+        hanging_bracket_config.file_prefix = "alt-"
+        hanging_bracket_config.file_suffix = (
+            f"-{override_filament_count}-filament"
+        )
+
     HangingBracket(hanging_bracket_config).partomate()
 
     if bender_config.skip_alt_file_generation:
         return
 
-    hanging_bracket_config.bracket_style = HangingBracketStyle.SURFACE_TOOL
-    hanging_bracket_config.stl_folder = str(
-        (Path(bender_config.stl_folder) / count_name_str)
-    )
-    hanging_bracket_config.stl_folder = str(
-        (Path(hanging_bracket_config.stl_folder) / "tools")
-    )
-    HangingBracket(hanging_bracket_config).partomate()
+    tool_config = deepcopy(hanging_bracket_config)
+    tool_config.bracket_style = HangingBracketStyle.SURFACE_TOOL
+    tool_config.stl_folder = str((Path(tool_config.stl_folder) / "tools"))
+    HangingBracket(tool_config).partomate()
 
-    hanging_bracket_config = bender_config.hanging_bracket_config
     if hanging_bracket_config.bracket_style == HangingBracketStyle.WALL_MOUNT:
-        hanging_bracket_config.bracket_style = (
-            HangingBracketStyle.SURFACE_MOUNT
-        )
-        hanging_bracket_config.stl_folder = str(
-            (Path(bender_config.stl_folder) / count_name_str)
-        )
-        hanging_bracket_config.stl_folder = str(
+        surface_config = deepcopy(hanging_bracket_config)
+        surface_config.bracket_style = HangingBracketStyle.SURFACE_MOUNT
+        surface_config.stl_folder = str(
             (Path(hanging_bracket_config.stl_folder) / "alt-frame-hangers")
         )
-        hanging_bracket_config.file_prefix = "alt-"
-        hanging_bracket_config.heatsink_desk_nut = False
-        hanging_bracket_config.file_suffix = "-m4-nut"
-        HangingBracket(hanging_bracket_config).partomate()
-        hanging_bracket_config.heatsink_desk_nut = True
-        hanging_bracket_config.file_suffix = "-m4-heatsink"
-        HangingBracket(hanging_bracket_config).partomate()
+        surface_config.file_prefix = "alt-"
+        surface_config.heatsink_desk_nut = False
+        surface_config.file_suffix = (
+            f"{hanging_bracket_config.file_suffix}-surface-mount-m4-nut"
+        )
+        HangingBracket(surface_config).partomate()
+        surface_config.heatsink_desk_nut = True
+        surface_config.file_suffix = (
+            f"{hanging_bracket_config.file_suffix}-surface-mount-m4-heatsink"
+        )
+        HangingBracket(surface_config).partomate()
     else:
-        hanging_bracket_config = bender_config.hanging_bracket_config
-        hanging_bracket_config.bracket_style = HangingBracketStyle.WALL_MOUNT
-        hanging_bracket_config.stl_folder = str(
-            (Path(bender_config.stl_folder) / count_name_str)
-        )
-        hanging_bracket_config.stl_folder = str(
+        wall_config = deepcopy(hanging_bracket_config)
+        wall_config.bracket_style = HangingBracketStyle.WALL_MOUNT
+        wall_config.stl_folder = str(
             (Path(hanging_bracket_config.stl_folder) / "alt-frame-hangers")
         )
-        hanging_bracket_config.file_prefix = "alt-"
-        HangingBracket(hanging_bracket_config).partomate()
-        hanging_bracket_config.heatsink_desk_nut = (
-            not hanging_bracket_config.heatsink_desk_nut
+        wall_config.file_prefix = "alt-"
+        wall_config.file_suffix = (
+            f"{hanging_bracket_config.file_suffix}-wall-mount"
         )
-        hanging_bracket_config.file_suffix = (
-            "-m4-nut"
-            if hanging_bracket_config.heatsink_desk_nut
-            else "-m4-heatsink"
+        HangingBracket(wall_config).partomate()
+
+        surface_config = deepcopy(hanging_bracket_config)
+        surface_config.heatsink_desk_nut = not surface_config.heatsink_desk_nut
+        surface_config.stl_folder = str(
+            (Path(hanging_bracket_config.stl_folder) / "alt-frame-hangers")
         )
-        HangingBracket(hanging_bracket_config).partomate()
+        surface_config.file_prefix = "alt-"
+        surface_config.file_suffix = f"{hanging_bracket_config.file_suffix}-surface-mount-{"-m4-nut"
+            if surface_config.heatsink_desk_nut
+            else "-m4-heatsink"}"
+
+        HangingBracket(surface_config).partomate()
 
 
 def build_hangers(bender_config):
@@ -351,6 +334,11 @@ def build_frame_set(bender_config: BenderConfig, override_filament_count=None):
         )
         frame_config.file_prefix = "alt-"
         frame_config.file_suffix = f"-{count_name_str}"
+        lockpin_config.stl_folder = str(
+            (Path(lockpin_config.stl_folder) / f"alt-{count_name_str}-parts")
+        )
+        lockpin_config.file_prefix = "alt-"
+        lockpin_config.file_suffix = f"-{count_name_str}"
 
     TopFrame(frame_config).partomate()
     ConnectorFrame(frame_config).partomate()
@@ -390,7 +378,9 @@ def build_brackets(bender_config: BenderConfig):
         print(f"\t generating brackets for {direction.name}")
         for connector_index, connector in enumerate(bender_config.connectors):
             print(f"\t\t generating bracket with {connector.name}")
-            bracket = FilamentBracket(bender_config.filament_bracket_config)
+            bracket = FilamentBracket(
+                bender_config.filament_bracket_config(connector_index)
+            )
             bracket._config.channel_pair_direction = direction
             if direction != bender_config.bracket_direction:
                 bracket._config.stl_folder = str(
@@ -416,16 +406,17 @@ def build_guidewall_set(
 ):
     guidewall_config = bender_config.guidewall_config
     if override_filament_count is not None:
-        guidewall_config.filament_count = override_filament_count
+        guidewall_config.section_count = override_filament_count
 
-    count_name_str = (
-        ""
-        if override_filament_count is None
-        else f"alt-{override_filament_count}-filament{"s" if override_filament_count > 1 else ""}-parts"
-    )
-    guidewall_config.stl_folder = str(
-        (Path(guidewall_config.stl_folder) / count_name_str)
-    )
+    if override_filament_count is not None:
+        guidewall_config.stl_folder = str(
+            (
+                Path(guidewall_config.stl_folder)
+                / f"alt-{override_filament_count}-filament-parts"
+            )
+        )
+        guidewall_config.file_prefix = "alt-"
+        guidewall_config.file_suffix = f"-{override_filament_count}-filament"
     guidewall = Guidewall(guidewall_config)
     guidewall.partomate()
 
@@ -433,11 +424,17 @@ def build_guidewall_set(
         return
 
     if bender_config.wall_style != WallStyle.DRYBOX:
-        partomate_alt_dry_guidewall(bender_config, count_name_str)
+        partomate_alt_guidewall(
+            bender_config, WallStyle.DRYBOX, override_filament_count
+        )
     if bender_config.wall_style != WallStyle.SOLID:
-        partomate_alt_solid_guidewall(bender_config, count_name_str)
+        partomate_alt_guidewall(
+            bender_config, WallStyle.SOLID, override_filament_count
+        )
     if bender_config.wall_style != WallStyle.HEX:
-        partomate_alt_hex_guidewall(bender_config)
+        partomate_alt_guidewall(
+            bender_config, WallStyle.HEX, override_filament_count
+        )
 
 
 def build_walls(bender_config: BenderConfig):

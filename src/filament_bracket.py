@@ -570,7 +570,10 @@ if __name__ == "__main__":
         config_path = Path(__file__).parent / "../build-configs/dev.conf"
     bender_config = BenderConfig(config_path)
 
-    bracket = FilamentBracket(bender_config.filament_bracket_config)
+    bracket = FilamentBracket(
+        bender_config.filament_bracket_config(connector_index=0)
+    )
+
     bracket._config.channel_pair_direction = ChannelPairDirection.LEAN_REVERSE
     bracket.compile()
     bracket.display()

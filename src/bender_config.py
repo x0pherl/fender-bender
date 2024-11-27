@@ -449,7 +449,6 @@ class BenderConfig:
             drybox=self.wall_style == WallStyle.DRYBOX,
         )
 
-    @property
     def filament_bracket_config(
         self, connector_index=0
     ) -> FilamentBracketConfig:

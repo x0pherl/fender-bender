@@ -446,7 +446,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/dev.conf"
     bender_config = BenderConfig(config_path)
-    bracket_config = bender_config.filament_bracket_config
+    bracket_config = bender_config.filament_bracket_config()
     channels = FilamentChannels(bracket_config)
     channels.channel_mode = ChannelMode.COMPLETE
     channels.compile()
