@@ -9,7 +9,12 @@ from shapely.geometry import Point
 
 
 class FrameStyle(Flag):
-    """What sort of frame to have"""
+    """The style of the generated frame
+    ---------
+    HANGING: Frame is designed to be hung on a wall
+    STANDING: Frame is designed to stand on a surface
+    HYBRID: Frame can be hung or stand
+    """
 
     HANGING = auto()
     STANDING = auto()
