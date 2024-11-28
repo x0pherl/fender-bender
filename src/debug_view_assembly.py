@@ -307,34 +307,33 @@ def tongue_groove_test():
 
 
 def generate_funnel_test_parts():
-    bracket = FilamentBracket(
-        Path(__file__).parent / "../build-configs/reference.conf"
+    bender_config = BenderConfig(
+        Path(__file__).parent / "../build-configs/debug.conf"
     )
+
     with BuildPart(
-        Location((bracket._config.wheel.radius - 5, 0, 0))
+        Location((bender_config.wheel.radius - 5, 0, 0))
     ) as cutcube:
         Box(
-            bracket._config.bracket_width,
-            bracket._config.bracket_width,
-            bracket._config.bracket_depth,
+            bender_config.bracket_width,
+            bender_config.bracket_width,
+            bender_config.bracket_depth,
             align=(Align.MIN, Align.MIN, Align.MIN),
         )
-    output_directory = Path(__file__).parent / bracket._config.stl_folder
+    output_directory = Path(__file__).parent / bender_config.stl_folder
     output_directory.mkdir(parents=True, exist_ok=True)
 
     # for i in range(len(bracket._config.connectors)):
-    for i in range(
-        len(bracket._config.connectors) - 1, len(bracket._config.connectors)
-    ):
+    for i in range(len(bender_config.connectors)):
         with BuildPart() as bb:
-            add(bracket.bottom_bracket(draft=False, connector_index=i))
+            bracket = FilamentBracket(bender_config.filament_bracket_config(i))
+            add(bracket.bottom_bracket(force_draft=False))
             add(cutcube.part, mode=Mode.INTERSECT)
         show(bb.part, reset_camera=Camera.KEEP)
         export_stl(
             bb.part,
             str(
-                output_directory
-                / f"test{i}{bracket._config.connectors[i].file_suffix}.stl"
+                output_directory / f"test{i}{bracket._config.file_suffix}.stl"
             ),
         )
 

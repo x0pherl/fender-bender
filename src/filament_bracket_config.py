@@ -72,6 +72,7 @@ class ConnectorConfig(PartomaticConfig):
     thread_pitch: float = 1.0
     thread_angle: float = 30.0
     thread_interference: float = 0.4
+    twist_snap_extension: bool = False
     tube: TubeConfig = field(default_factory=TubeConfig)
 
     @property

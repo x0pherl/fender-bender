@@ -35,6 +35,7 @@ from ocp_vscode import Camera, show
 from bender_config import BenderConfig
 from filament_bracket_config import FilamentBracketConfig, ChannelPairDirection
 from partomatic import BuildablePart, Partomatic
+from twist_snap import TwistSnapConfig, TwistSnapConnector, TwistSnapSection
 
 
 class ChannelMode(Enum):
@@ -132,7 +133,11 @@ class FilamentChannels(Partomatic):
             with BuildSketch(Plane.XY.offset(self._config.bracket_height)):
                 Circle(
                     radius=self._config.connector.radius
-                    + self._config.minimum_thickness / 2
+                    + (
+                        0
+                        if self._config.connector.twist_snap_extension
+                        else self._config.minimum_thickness / 2
+                    )
                 )
             loft()
             if self.render_threads and self._config.connector.threaded:
@@ -176,12 +181,41 @@ class FilamentChannels(Partomatic):
             )
         return ingress.part
 
+    def _twist_snap_connector(self) -> Part:
+        connector = TwistSnapConnector(
+            TwistSnapConfig(
+                connector_diameter=4.5,
+                wall_size=2,
+                tolerance=0.12,
+                section=TwistSnapSection.CONNECTOR,
+                snapfit_height=2,
+                snapfit_radius_extension=2 * (2 / 3) - 0.06,
+                wall_width=2,
+                wall_depth=2,
+            )
+        )
+        connector.compile()
+        with BuildPart() as snap_connector:
+            add(connector.parts[0].part)
+            add(
+                Cylinder(
+                    radius=self._config.connector.radius,
+                    height=4,
+                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+                ),
+                mode=Mode.SUBTRACT,
+            )
+        return snap_connector.part
+
     def straight_filament_block(self) -> Part:
         """
         builds a straight filaement channel with the cut in place
         """
         with BuildPart() as path:
             add(self.straight_filament_block_solid())
+            if self._config.connector.twist_snap_extension:
+                with BuildPart(path.faces().sort_by(Axis.Y)[-1]):
+                    add(self._twist_snap_connector())
             if self.channel_mode == ChannelMode.COMPLETE:
                 with BuildPart(mode=Mode.SUBTRACT):
                     add(self.straight_filament_path_cut())
@@ -298,7 +332,11 @@ class FilamentChannels(Partomatic):
                 ):
                     Circle(
                         self._config.connector.radius
-                        + self._config.minimum_thickness / 2
+                        + (
+                            0
+                            if self._config.connector.twist_snap_extension
+                            else self._config.minimum_thickness / 2
+                        )
                     )
                 with BuildSketch(
                     Plane(
@@ -346,6 +384,12 @@ class FilamentChannels(Partomatic):
                 )
                 fillet(path_face.vertices(), self._config.fillet_radius)
             sweep()
+            if self._config.connector.twist_snap_extension:
+                with BuildPart(
+                    Plane(origin=curve.line @ 1, z_dir=(curve.line % 1))
+                ):
+                    add(self._twist_snap_connector())
+
             if not top_exit_fillet:
                 with BuildLine() as curve2:
                     add(self._curved_filament_line().children[1])
@@ -446,6 +490,7 @@ if __name__ == "__main__":
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/dev.conf"
     bender_config = BenderConfig(config_path)
+    bender_config.connectors[0].twist_snap_extension = True
     bracket_config = bender_config.filament_bracket_config()
     channels = FilamentChannels(bracket_config)
     channels.channel_mode = ChannelMode.COMPLETE
