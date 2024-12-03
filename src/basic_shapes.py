@@ -15,16 +15,22 @@ from build123d import (
     Cylinder,
     GridLocations,
     JernArc,
+    Line,
     Location,
     Mode,
     Part,
     Plane,
     PolarLocations,
+    RadiusArc,
     RegularPolygon,
+    RotationLike,
+    Sketch,
     Sphere,
+    add,
     extrude,
     fillet,
     loft,
+    make_face,
     scale,
     sweep,
 )
@@ -285,5 +291,72 @@ def screw_cut(
     return head.part
 
 
+def teardrop_sketch(
+    radius: float,
+    peak_distance: float,
+    align: Align | tuple[Align, Align] = (
+        Align.CENTER,
+        Align.CENTER,
+    ),
+) -> Sketch:
+    from math import sqrt
+
+    x = radius * sqrt(1 - (radius**2 / peak_distance**2))
+    y = radius**2 / peak_distance
+
+    with BuildSketch() as teardrop:
+        with BuildLine() as outline:
+            Line((-x, -y), (0, -peak_distance))
+            Line((0, -peak_distance), (x, -y))
+            RadiusArc((x, -y), (-x, -y), radius, short_sagitta=False)
+        make_face()
+    movex = 0
+    if align[0] == Align.MAX:
+        movex = -radius
+    elif align[0] == Align.MIN:
+        movex = radius
+    movey = -(peak_distance - radius) / 2
+    if align[1] == Align.MAX:
+        movey = -peak_distance
+    elif align[0] == Align.MIN:
+        movey = radius
+
+    return teardrop.sketch.move(Location((movex, movey)))
+
+
+def teardrop_cylinder(
+    radius: float,
+    peak_distance: float,
+    height: float,
+    rotation: RotationLike = (0, 0, 0),
+    align: Align | tuple[Align, Align, Align] = (
+        Align.CENTER,
+        Align.CENTER,
+        Align.CENTER,
+    ),
+    mode: Mode = Mode.ADD,
+):
+    with BuildPart() as cylinder:
+        with BuildSketch():
+            add(teardrop_sketch(radius, peak_distance, align))
+        extrude(amount=height)
+    if align[2] == Align.MAX:
+        cylinder.part.move(Location((0, 0, -height)))
+    elif align[2] == Align.CENTER:
+        cylinder.part.move(Location((0, 0, -height / 2)))
+    return (
+        cylinder.part.rotate(Axis.X, rotation[0])
+        .rotate(Axis.Y, rotation[1])
+        .rotate(Axis.Z, rotation[2])
+    )
+
+
 if __name__ == "__main__":
-    show(rail_block_template(), reset_camera=Camera.KEEP)
+    # show(rail_block_template(), reset_camera=Camera.KEEP)
+
+    show(
+        teardrop_cylinder(
+            10, 11, 10, align=(Align.CENTER, Align.CENTER, Align.MIN)
+        ),
+        reset_camera=Camera.KEEP,
+    )

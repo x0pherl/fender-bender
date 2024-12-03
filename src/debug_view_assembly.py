@@ -10,11 +10,15 @@ from build123d import (
     Axis,
     Box,
     BuildPart,
+    BuildSketch,
+    Cylinder,
     Location,
     Mode,
     Part,
+    Text,
     add,
     export_stl,
+    extrude,
 )
 from ocp_vscode import Camera, show
 
@@ -338,7 +342,74 @@ def generate_funnel_test_parts():
         )
 
 
+from basic_shapes import teardrop_cylinder
+
+
+def test_tubes():
+    base_radius = 3.125
+    # 6.35, 6.375, 6.4, 6.425, 6.45
+    output_directory = Path(__file__).parent / "../stl"
+
+    for i in range(5):
+        current_radius = base_radius + (i * 0.0125)
+        print(i, current_radius, current_radius * 2)
+        with BuildPart() as tube_test:
+            Box(14, 70, 14, align=(Align.CENTER, Align.MIN, Align.MIN))
+            with BuildPart(Location((0, 0, 7)), mode=Mode.SUBTRACT):
+                add(
+                    teardrop_cylinder(
+                        radius=current_radius,
+                        peak_distance=current_radius * 1.1,
+                        height=60,
+                        rotation=(90, 0, 0),
+                        align=(Align.CENTER, Align.CENTER, Align.MAX),
+                        mode=Mode.ADD,
+                    )
+                )
+                add(
+                    teardrop_cylinder(
+                        radius=1.5,
+                        peak_distance=1.65,
+                        height=70,
+                        rotation=(90, 0, 0),
+                        align=(Align.CENTER, Align.CENTER, Align.MAX),
+                        mode=Mode.ADD,
+                    )
+                )
+                # Cylinder(
+                #     radius=current_radius,
+                #     height=60,
+                #     rotation=(90, 0, 0),
+                #     align=(Align.CENTER, Align.CENTER, Align.MAX),
+                #     mode=Mode.ADD,
+                # )
+                # Cylinder(
+                #     radius=1.5,
+                #     height=70,
+                #     rotation=(90, 0, 0),
+                #     align=(Align.CENTER, Align.CENTER, Align.MAX),
+                #     mode=Mode.ADD,
+                # )
+            with BuildPart(mode=Mode.SUBTRACT):
+                with BuildSketch(tube_test.faces().sort_by(Axis.Z)[-1]):
+                    Text(
+                        f"{current_radius*2:.3f} mm",
+                        5,
+                        align=(Align.CENTER, Align.CENTER),
+                        rotation=(0, 0, 90),
+                    )
+                extrude(amount=-0.5)
+        show(tube_test.part, reset_camera=Camera.KEEP)
+        export_stl(
+            tube_test.part,
+            str(output_directory / f"tube-test-{current_radius*2:.3f}.stl"),
+        )
+
+
 if __name__ == "__main__":
+    test_tubes()
+    exit()
+
     gw = Guidewall(_config.guidewall_config)
     sw = Sidewall(_config.sidewall_config)
     rswconfig = _config.sidewall_config

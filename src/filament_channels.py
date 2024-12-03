@@ -32,6 +32,7 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
+from basic_shapes import teardrop_sketch, teardrop_cylinder
 from bender_config import BenderConfig
 from filament_bracket_config import FilamentBracketConfig, ChannelPairDirection
 from partomatic import BuildablePart, Partomatic
@@ -107,38 +108,80 @@ class FilamentChannels(Partomatic):
                 with BuildSketch(
                     Plane.XY.offset(self._config.filament_funnel_height)
                 ):
-                    Circle(radius=self._config.connector.tube.inner_radius)
+                    # Circle(radius=self._config.connector.tube.inner_radius)
+                    add(
+                        teardrop_sketch(
+                            radius=self._config.connector.tube.inner_radius,
+                            peak_distance=self._config.connector.tube.inner_radius
+                            * 1.1,
+                        )
+                    )
                 loft()
-            with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
-                Cylinder(
-                    radius=self._config.connector.tube.outer_radius,
-                    height=self._config.bracket_height
-                    - self._config.filament_funnel_height
-                    - self._config.connector.length,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+            with BuildPart(
+                Plane.XY.offset(self._config.filament_funnel_height)
+            ):
+                add(
+                    teardrop_cylinder(
+                        radius=self._config.connector.tube.outer_radius,
+                        peak_distance=self._config.connector.tube.outer_radius
+                        * 1.1,
+                        height=self._config.bracket_height
+                        - self._config.filament_funnel_height
+                        - self._config.connector.length,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN),
+                    )
                 )
-            with BuildPart(tube.faces().sort_by(Axis.Z)[-1]):
-                Cylinder(
-                    radius=self._config.connector.radius,
-                    height=self._config.connector.length,
-                    align=(Align.CENTER, Align.CENTER, Align.MIN),
+            with BuildPart(
+                Plane.XY.offset(
+                    self._config.bracket_height - self._config.connector.length
                 )
+            ):
+                if self._config.connector.threaded:
+                    Cylinder(
+                        radius=self._config.connector.radius,
+                        height=self._config.connector.length,
+                        align=(Align.CENTER, Align.CENTER, Align.MIN),
+                    )
+                else:
+                    add(
+                        teardrop_cylinder(
+                            radius=self._config.connector.radius,
+                            peak_distance=self._config.connector.radius * 1.1,
+                            height=self._config.connector.length,
+                            align=(Align.CENTER, Align.CENTER, Align.MIN),
+                        )
+                    )
+
             with BuildSketch(
                 Plane.XY.offset(
                     self._config.bracket_height
                     - self._config.minimum_thickness / 2
                 )
             ):
-                Circle(radius=self._config.connector.radius)
-            with BuildSketch(Plane.XY.offset(self._config.bracket_height)):
-                Circle(
-                    radius=self._config.connector.radius
-                    + (
-                        0
-                        if self._config.connector.twist_snap_extension
-                        else self._config.minimum_thickness / 2
+                if self._config.connector.threaded:
+                    Circle(radius=self._config.connector.radius)
+                else:
+                    add(
+                        teardrop_sketch(
+                            radius=self._config.connector.radius,
+                            peak_distance=self._config.connector.radius * 1.1,
+                        )
                     )
+            with BuildSketch(Plane.XY.offset(self._config.bracket_height)):
+                exit_radius = self._config.connector.radius
+                +(
+                    0
+                    if self._config.connector.twist_snap_extension
+                    else self._config.minimum_thickness / 2
                 )
+                if self._config.connector.threaded:
+                    Circle(radius=exit_radius)
+                else:
+                    add(
+                        teardrop_sketch(
+                            radius=exit_radius, peak_distance=exit_radius * 1.1
+                        )
+                    )
             loft()
             if self.render_threads and self._config.connector.threaded:
                 with BuildPart(
@@ -198,8 +241,9 @@ class FilamentChannels(Partomatic):
         with BuildPart() as snap_connector:
             add(connector.parts[0].part)
             add(
-                Cylinder(
+                teardrop_cylinder(
                     radius=self._config.connector.radius,
+                    peak_distance=self._config.connector.radius * 1.1,
                     height=4,
                     align=(Align.CENTER, Align.CENTER, Align.MIN),
                 ),
@@ -290,7 +334,13 @@ class FilamentChannels(Partomatic):
                 with BuildSketch(
                     Plane(origin=intake.line @ 1, z_dir=intake.line % 1)
                 ):
-                    Circle(self._config.connector.tube.inner_radius)
+                    add(
+                        teardrop_sketch(
+                            radius=self._config.connector.tube.inner_radius,
+                            peak_distance=self._config.connector.tube.inner_radius
+                            * 1.1,
+                        ).rotate(Axis.Z, 90)
+                    )
                 loft()
                 extrude(
                     inlet.faces().sort_by(Axis.Y)[0],
@@ -302,7 +352,13 @@ class FilamentChannels(Partomatic):
                 with BuildSketch(
                     Plane(origin=tube_path.line @ 0, z_dir=tube_path.line % 0)
                 ):
-                    Circle(self._config.connector.tube.outer_radius)
+                    add(
+                        teardrop_sketch(
+                            radius=self._config.connector.tube.outer_radius,
+                            peak_distance=self._config.connector.tube.outer_radius
+                            * 1.1,
+                        ).rotate(Axis.Z, 90)
+                    )
                 sweep()
             with BuildPart() as tube_curve:
                 with BuildLine() as tube_path:
@@ -310,7 +366,13 @@ class FilamentChannels(Partomatic):
                 with BuildSketch(
                     Plane(origin=tube_path.line @ 0, z_dir=tube_path.line % 0)
                 ):
-                    Circle(self._config.connector.tube.outer_radius)
+                    add(
+                        teardrop_sketch(
+                            radius=self._config.connector.tube.outer_radius,
+                            peak_distance=self._config.connector.tube.outer_radius
+                            * 1.1,
+                        )
+                    )
                 sweep()
             with BuildPart() as connector:
                 with BuildLine() as connector_path:
@@ -321,7 +383,16 @@ class FilamentChannels(Partomatic):
                         z_dir=connector_path.line % 0,
                     )
                 ):
-                    Circle(self._config.connector.radius)
+                    if self._config.connector.threaded:
+                        Circle(self._config.connector.radius)
+                    else:
+                        add(
+                            teardrop_sketch(
+                                radius=self._config.connector.radius,
+                                peak_distance=self._config.connector.radius
+                                * 1.1,
+                            )
+                        )
                 sweep()
             with BuildPart() as connector_chamfer:
                 with BuildSketch(
@@ -330,25 +401,41 @@ class FilamentChannels(Partomatic):
                         z_dir=connector_path.line % 1,
                     )
                 ):
-                    Circle(
-                        self._config.connector.radius
-                        + (
-                            0
-                            if self._config.connector.twist_snap_extension
-                            else self._config.minimum_thickness / 2
-                        )
+                    exit_radius = self._config.connector.radius
+                    +(
+                        0
+                        if self._config.connector.twist_snap_extension
+                        else self._config.minimum_thickness / 2
                     )
+                    if self._config.connector.threaded:
+                        Circle(exit_radius)
+                    else:
+                        add(
+                            teardrop_sketch(
+                                radius=exit_radius,
+                                peak_distance=exit_radius * 1.1,
+                            )
+                        )
                 with BuildSketch(
                     Plane(
                         origin=connector_path.line @ 1,
                         z_dir=connector_path.line % 1,
                     ).offset(-self._config.minimum_thickness / 2)
-                ):
-                    Circle(self._config.connector.radius)
+                ) as exit:
+                    if self._config.connector.threaded:
+                        Circle(exit_radius)
+                    else:
+                        add(
+                            teardrop_sketch(
+                                radius=exit_radius,
+                                peak_distance=exit_radius * 1.1,
+                            )
+                        )
                 loft()
                 extrude(
-                    connector_chamfer.faces().sort_by(Axis.X)[-1],
+                    exit.sketch,
                     self._config.bracket_depth,
+                    dir=connector_path.line % 1,
                 )
             if self.render_threads and self._config.connector.threaded:
                 with BuildPart(
@@ -493,6 +580,6 @@ if __name__ == "__main__":
     bender_config.connectors[0].twist_snap_extension = True
     bracket_config = bender_config.filament_bracket_config()
     channels = FilamentChannels(bracket_config)
-    channels.channel_mode = ChannelMode.COMPLETE
+    channels.channel_mode = ChannelMode.CUT_PATH
     channels.compile()
     channels.display()

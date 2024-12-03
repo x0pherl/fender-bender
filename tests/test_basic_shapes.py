@@ -11,6 +11,7 @@ from basic_shapes import (
     diamond_cylinder,
     rail_block_template,
     screw_cut,
+    teardrop_cylinder,
 )
 
 
@@ -106,3 +107,14 @@ class TestBareExecution:
             loader.exec_module(
                 module_from_spec(spec_from_loader(loader.name, loader))
             )
+
+
+class TestTearDropCylinder:
+    def test_teardrop_cylinder(self):
+        cyl = teardrop_cylinder(
+            10, 11, 10, align=(Align.CENTER, Align.CENTER, Align.MIN)
+        )
+        assert cyl.is_valid()
+        assert cyl.bounding_box().size.X == pytest.approx(20)
+        assert cyl.bounding_box().size.Y == pytest.approx(21)
+        assert cyl.bounding_box().size.Z == pytest.approx(10)
