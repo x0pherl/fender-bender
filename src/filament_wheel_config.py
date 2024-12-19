@@ -5,7 +5,6 @@ from pathlib import Path
 from partomatic import PartomaticConfig
 
 
-@dataclass
 class BearingConfig(PartomaticConfig):
     diameter: float = 12.1
     inner_diameter: float = 6.1
@@ -34,11 +33,7 @@ class BearingConfig(PartomaticConfig):
         """
         return self.shelf_diameter / 2
 
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)
 
-
-@dataclass
 class WheelConfig(PartomaticConfig):
     yaml_tree = "wheel"
     diameter: float = 70
@@ -58,6 +53,3 @@ class WheelConfig(PartomaticConfig):
     def depth(self) -> float:
         """returns the depth of the bearing"""
         return self.bearing.depth
-
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)

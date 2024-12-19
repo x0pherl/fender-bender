@@ -38,7 +38,6 @@ class ChannelPairDirection(Enum):
     STRAIGHT = auto()
 
 
-@dataclass
 class TubeConfig(PartomaticConfig):
     inner_diameter: float = 3.55
     outer_diameter: float = 6.5
@@ -57,11 +56,7 @@ class TubeConfig(PartomaticConfig):
         """
         return self.outer_diameter / 2
 
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)
 
-
-@dataclass
 class ConnectorConfig(PartomaticConfig):
     name: str = "connector"
     file_prefix: Optional[str] = None
@@ -82,11 +77,7 @@ class ConnectorConfig(PartomaticConfig):
         """
         return self.diameter / 2
 
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)
 
-
-@dataclass
 class FilamentBracketConfig(PartomaticConfig):
     yaml_tree: str = "FilamentBracket"
 
@@ -166,9 +157,3 @@ class FilamentBracketConfig(PartomaticConfig):
                 setattr(self, field.name, field.default_factory())
             else:
                 raise ValueError(f"Field {field.name} has no default value")
-
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)
-
-
-from basic_shapes import circular_intersection

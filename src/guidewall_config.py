@@ -6,7 +6,6 @@ from partomatic import PartomaticConfig
 from sidewall_config import WallStyle
 
 
-@dataclass
 class GuidewallConfig(PartomaticConfig):
     stl_folder: str = "../stl/default"
     core_length: float = 125
@@ -42,6 +41,3 @@ class GuidewallConfig(PartomaticConfig):
         the length of the guiderails, allowing for tolerances
         """
         return self.core_length - self.tolerance * 2
-
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)

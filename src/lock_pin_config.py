@@ -6,7 +6,6 @@ import yaml
 from partomatic import PartomaticConfig
 
 
-@dataclass
 class LockPinConfig(PartomaticConfig):
     yaml_tree: str = "lockpin"
     stl_folder: str = "NONE"
@@ -14,6 +13,3 @@ class LockPinConfig(PartomaticConfig):
     tolerance: float = 0.1
     height: float = 4
     tie_loop: bool = True
-
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)

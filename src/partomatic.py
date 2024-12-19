@@ -15,8 +15,14 @@ import ocp_vscode
 import yaml
 
 
+class AutoDataclassMeta(type):
+    def __new__(cls, name, bases, dct):
+        new_cls = super().__new__(cls, name, bases, dct)
+        return dataclass(init=False)(new_cls)
+
+
 @dataclass
-class PartomaticConfig:
+class PartomaticConfig(metaclass=AutoDataclassMeta):
     yaml_tree: str = "Part"
     stl_folder: str = "NONE"
     file_prefix: str = ""
@@ -314,3 +320,35 @@ class Partomatic(ABC):
         self.compile()
         self.export_stls()
         # self.export_steps()
+
+
+if __name__ == "__main__":
+
+    yaml_str = """
+container:
+    container_field: bespoke container
+    yaml_tree: container
+    sub:
+        sub_field: bespoke sub
+        sub_sub:
+            subsub_field: bespoke sub sub
+"""
+
+    class SubSubConfig(PartomaticConfig):
+        subsub_field: str = "sub sub default"
+
+    class SubConfig(PartomaticConfig):
+        sub_field: str = "sub default"
+        sub_sub: SubSubConfig = field(default_factory=SubSubConfig)
+
+    class ContainerConfig(PartomaticConfig):
+        container_field: str = "container default"
+        yaml_tree = "container"
+        sub: SubConfig = field(default_factory=SubConfig)
+
+    cont = ContainerConfig(
+        configuration=yaml_str,
+    )
+    print(cont.container_field)
+    print(cont.sub.sub_field)
+    print(cont.sub.sub_sub.subsub_field)

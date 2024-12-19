@@ -12,7 +12,6 @@ class WallStyle(Enum):
     HEX = auto()
 
 
-@dataclass
 class SidewallConfig(PartomaticConfig):
     yaml_tree: str = "sidewall"
     stl_folder: str = "../stl/default"
@@ -46,6 +45,3 @@ class SidewallConfig(PartomaticConfig):
         return self.straight_length + (
             (self.top_radius + self.top_extension) * self.end_count
         )
-
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)
