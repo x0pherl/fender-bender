@@ -14,22 +14,14 @@ class FakeEnum(Enum):
     THREE = auto()
 
 
-@dataclass
 class SubConfig(PartomaticConfig):
     sub_field: str = "sub_default"
     sub_enum: FakeEnum = FakeEnum.ONE
 
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)
 
-
-@dataclass
 class ContainerConfig(PartomaticConfig):
     container_field: str = "container_default"
     sub: SubConfig = field(default_factory=SubConfig)
-
-    def __init__(self, configuration: any = None, **kwargs):
-        super().__init__(configuration, **kwargs)
 
 
 class TestPartomaticConfig:

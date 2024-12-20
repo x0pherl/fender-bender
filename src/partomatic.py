@@ -7,9 +7,8 @@ from pathlib import Path
 from typing import Type, Any
 from os import getcwd
 
-from build123d import Part, Location, export_stl, export_step
+from build123d import Part, Location, export_stl
 
-# from ocp_vscode import show, Camera
 import ocp_vscode
 
 import yaml
@@ -144,7 +143,6 @@ class BuildablePart(Part):
     part: Part = field(default_factory=Part)
     display_location: Location = field(default_factory=Location)
     stl_folder: str = getcwd()
-    # step_folder: str = getcwd()
     _file_name: str = "partomatic"
 
     def __init__(self, part, file_name, **kwargs):
@@ -155,8 +153,6 @@ class BuildablePart(Part):
             display_location = kwargs["display_location"]
             if isinstance(display_location, Location):
                 self.display_location = display_location
-        # if "step_folder" in kwargs:
-        #     self.step_folder = kwargs["step_folder"]
         if "stl_folder" in kwargs:
             self.stl_folder = kwargs["stl_folder"]
 
@@ -212,14 +208,6 @@ class Partomatic(ABC):
             ).with_suffix(".stl")
         )
 
-    def complete_step_file_path(self, part: BuildablePart) -> str:
-        return str(
-            Path(
-                Path(part.step_folder)
-                / f"{self._config.file_prefix}{part.file_name}{self._config.file_suffix}"
-            ).with_suffix(".step")
-        )
-
     def export_stls(self):
         """
         Generates the relevant STLs in the configured
@@ -240,27 +228,6 @@ class Partomatic(ABC):
                 )
             export_stl(part.part, self.complete_stl_file_path(part))
 
-        # def export_steps(self):
-        #     """
-        #     Generates the relevant STEPs in the configured
-        #     folder
-        #     """
-        # if self._config.step_folder == "NONE":
-        #     return
-
-        # for part in self.parts:
-        #     Path(self.complete_step_file_path(part)).parent.mkdir(
-        #         parents=True, exist_ok=self._config.create_folders_if_missing
-        #     )
-        #     if (
-        #         not Path(self.complete_step_file_path(part)).parent.exists()
-        #         or not Path(self.complete_step_file_path(part)).parent.is_dir()
-        #     ):
-        #         raise FileNotFoundError(
-        #             f"Directory {Path(self.complete_step_file_path(part)).parent} does not exist"
-        #         )
-        #     export_step(part.part, self.complete_step_file_path(part))
-
     def load_config(self, configuration: any, **kwargs):
         """
         loads a partomatic configuration from a file or valid yaml
@@ -277,15 +244,6 @@ class Partomatic(ABC):
             (example: "BigObject/Partomatic")
         """
         self._config.load_config(configuration, **kwargs)
-
-    # def __init_subclass__(cls, **kwargs):
-    #     super().__init_subclass__(**kwargs)
-    #     if not hasattr(cls, "_config") or not issubclass(
-    #         cls._config.__class__, PartomaticConfig
-    #     ):
-    #         raise TypeError(
-    #             f"{cls.__name__} must define a '_config' attribute that is a PartomaticConfig or a subclass of PartomaticConfig"
-    #         )
 
     def __init__(self, configuration: any = None, **kwargs):
         """
@@ -319,36 +277,3 @@ class Partomatic(ABC):
         """
         self.compile()
         self.export_stls()
-        # self.export_steps()
-
-
-if __name__ == "__main__":
-
-    yaml_str = """
-container:
-    container_field: bespoke container
-    yaml_tree: container
-    sub:
-        sub_field: bespoke sub
-        sub_sub:
-            subsub_field: bespoke sub sub
-"""
-
-    class SubSubConfig(PartomaticConfig):
-        subsub_field: str = "sub sub default"
-
-    class SubConfig(PartomaticConfig):
-        sub_field: str = "sub default"
-        sub_sub: SubSubConfig = field(default_factory=SubSubConfig)
-
-    class ContainerConfig(PartomaticConfig):
-        container_field: str = "container default"
-        yaml_tree = "container"
-        sub: SubConfig = field(default_factory=SubConfig)
-
-    cont = ContainerConfig(
-        configuration=yaml_str,
-    )
-    print(cont.container_field)
-    print(cont.sub.sub_field)
-    print(cont.sub.sub_sub.subsub_field)
