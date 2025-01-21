@@ -28,7 +28,7 @@ from build123d.build_common import PolarLocations
 from build123d.objects_part import Cylinder
 from ocp_vscode import Camera, show
 from bender_config import BenderConfig
-from hexwall import HexWall
+from fb_library import HexWall
 from partomatic import Partomatic, BuildablePart
 from guidewall_config import GuidewallConfig
 from tongue_groove import tongue

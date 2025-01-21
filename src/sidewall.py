@@ -27,7 +27,7 @@ from build123d import (
 from ocp_vscode import Camera, show, save_screenshot
 
 from bender_config import BenderConfig
-from hexwall import HexWall
+from fb_library import HexWall
 from partomatic import BuildablePart, Partomatic
 from sidewall_config import SidewallConfig, WallStyle
 
