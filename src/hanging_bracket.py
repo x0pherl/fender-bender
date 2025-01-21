@@ -36,7 +36,7 @@ from build123d.build_enums import FontStyle
 from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 from basic_shapes import screw_cut, heatsink_cut, nut_cut
 from frame_config import FrameConfig
 
@@ -258,7 +258,7 @@ class HangingBracket(Partomatic):
         self.parts.clear()
         if self._config.bracket_style == HangingBracketStyle.SURFACE_TOOL:
             self.parts.append(
-                BuildablePart(
+                AutomatablePart(
                     self._desk_aligner(),
                     "surface-mount-alignment-tool",
                     stl_folder=self._config.stl_folder,
@@ -266,7 +266,7 @@ class HangingBracket(Partomatic):
             )
         elif self._config.bracket_style == HangingBracketStyle.SURFACE_MOUNT:
             self.parts.append(
-                BuildablePart(
+                AutomatablePart(
                     self._desk_bracket(self._config.heatsink_desk_nut),
                     "frame-surface-mount-bracket",
                     stl_folder=self._config.stl_folder,
@@ -274,7 +274,7 @@ class HangingBracket(Partomatic):
             )
         else:
             self.parts.append(
-                BuildablePart(
+                AutomatablePart(
                     self._wall_bracket(),
                     "frame-wall-bracket",
                     stl_folder=self._config.stl_folder,

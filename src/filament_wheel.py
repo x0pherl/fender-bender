@@ -29,7 +29,7 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig
-from partomatic import Partomatic, BuildablePart
+from partomatic import Partomatic, AutomatablePart
 from basic_shapes import diamond_torus
 from bearing import print_in_place_bearing
 
@@ -126,7 +126,7 @@ class FilamentWheel(Partomatic):
         """
         self.parts.clear()
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.filament_wheel(),
                 "filament-bracket-wheel",
                 stl_folder=self._config.stl_folder,

@@ -46,7 +46,7 @@ from basic_shapes import rail_block_template, rounded_cylinder
 from bender_config import BenderConfig
 from filament_channels import ChannelMode, FilamentChannels
 from lock_pin import LockPin
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 from filament_bracket_config import (
     LockStyle,
     FilamentBracketConfig,
@@ -522,14 +522,14 @@ class FilamentBracket(Partomatic):
         """
         self.parts.clear()
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.bottom_bracket(),
                 "filament-bracket-bottom",
                 stl_folder=self._config.stl_folder,
             )
         )
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.top_bracket(),
                 f"filament-bracket-top",
                 display_location=Location(
@@ -549,7 +549,7 @@ class FilamentBracket(Partomatic):
             and not self._config.block_pin_generation
         ):
             self.parts.append(
-                BuildablePart(
+                AutomatablePart(
                     self.bracket_clip(inset=self._config.tolerance / 2),
                     "filament-bracket-clip",
                     display_location=Location(

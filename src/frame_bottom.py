@@ -2,7 +2,7 @@ from basic_shapes import screw_cut
 from frame_common import chamber_cuts, core_cut, wallslots
 from tongue_groove import groove_pair
 from frame_config import FrameConfig, FrameStyle
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 from bender_config import BenderConfig
 
 from dataclasses import asdict
@@ -395,7 +395,7 @@ class BottomFrame(Partomatic):
         )
         self.parts.clear()
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.bottom_frame().move(bottom_frame_location),
                 "frame-bottom",
                 stl_folder=self._config.stl_folder,

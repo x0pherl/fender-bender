@@ -382,17 +382,16 @@ wheel:
 def wheel_config_subpath_yaml():
     return """
 tree1:
-  tree2:
-    wheel:
-      diameter: 12.3
-      spoke_count: 25
-      lateral_tolerance: 1.111
-      radial_tolerance: 0.222
-      bearing:
-        diameter: 1.2
-        inner_diameter: 0.1
-        shelf_diameter: 0.2
-        depth: 1
+  wheel:
+    diameter: 12.3
+    spoke_count: 25
+    lateral_tolerance: 1.111
+    radial_tolerance: 0.222
+    bearing:
+      diameter: 1.2
+      inner_diameter: 0.1
+      shelf_diameter: 0.2
+      depth: 1
 """
 
 
@@ -412,63 +411,63 @@ def bearing_config():
 def filament_bracket_config_yaml():
     return """
 FilamentBracket:
-  stl_folder: "NONE"
-  file_prefix: ""
-  file_suffix: ""
-  wheel:
-    diameter: 12.3
-    spoke_count: 25
-    lateral_tolerance: 1.111
-    radial_tolerance: 0.222
-    bearing:
-      diameter: 1.2
-      inner_diameter: 0.1
-      shelf_diameter: 0.2
-      depth: 1
-  connector:
-    name: "3mmx6mm tube connector"
-    threaded: False
-    file_prefix: "prefix"
-    file_suffix: "suffix"
-    thread_pitch: 1
-    thread_angle: 30
-    thread_interference: 0.4
-    diameter: 6.5
-    length: 6.7
-    tube:
-      inner_diameter: 3.6
-      outer_diameter: 6.5
-  wheel_support_height: 0.2
-  bracket_depth: 12.6
-  bracket_height: 43.5
-  bracket_width: 96.3
-  exterior_radius: 52
-  frame_bracket_exterior_x_distance: 1
-  fillet_radius: 3.15
-  frame_click_sphere_point: (47.86, 4.15)
-  frame_click_sphere_radius: 1
-  frame_clip_depth_offset: 10
-  frame_clip_point: (50.89, 10)
-  frame_clip_rail_width: 1.41
-  frame_clip_width: 15.1
-  frame_lock_pin_tolerance: 0.6
-  frame_lock_style: "BOTH"
-  lock_pin:
     stl_folder: "NONE"
-    pin_length: 100
-    tolerance: 0.1
-    height: 4
-    tie_loop: True
-  minimum_structural_thickness: 4
-  minimum_thickness: 1
-  sidewall_section_depth: 168
-  sidewall_width: 96.1
-  tolerance: 0.2
-  wall_thickness: 3
-  wall_window_apothem: 8
-  wall_window_bar_thickness: 1.5
-  bearing_shelf_height: 4.3
-  channel_pair_direction: "LEAN_FORWARD"
+    file_prefix: ""
+    file_suffix: ""
+    wheel:
+        diameter: 12.3
+        spoke_count: 25
+        lateral_tolerance: 1.111
+        radial_tolerance: 0.222
+        bearing:
+            diameter: 1.2
+            inner_diameter: 0.1
+            shelf_diameter: 0.2
+            depth: 1
+    connector:
+        name: "3mmx6mm tube connector"
+        threaded: False
+        file_prefix: "prefix"
+        file_suffix: "suffix"
+        thread_pitch: 1
+        thread_angle: 30
+        thread_interference: 0.4
+        diameter: 6.5
+        length: 6.7
+        tube:
+            inner_diameter: 3.6
+            outer_diameter: 6.5
+    wheel_support_height: 0.2
+    bracket_depth: 12.6
+    bracket_height: 43.5
+    bracket_width: 96.3
+    exterior_radius: 52
+    frame_bracket_exterior_x_distance: 1
+    fillet_radius: 3.15
+    frame_click_sphere_point: (47.86, 4.15)
+    frame_click_sphere_radius: 1
+    frame_clip_depth_offset: 10
+    frame_clip_point: (50.89, 10)
+    frame_clip_rail_width: 1.41
+    frame_clip_width: 15.1
+    frame_lock_pin_tolerance: 0.6
+    frame_lock_style: "BOTH"
+    lock_pin:
+        stl_folder: "NONE"
+        pin_length: 100
+        tolerance: 0.1
+        height: 4
+        tie_loop: True
+    minimum_structural_thickness: 4
+    minimum_thickness: 1
+    sidewall_section_depth: 168
+    sidewall_width: 96.1
+    tolerance: 0.2
+    wall_thickness: 3
+    wall_window_apothem: 8
+    wall_window_bar_thickness: 1.5
+    bearing_shelf_height: 4.3
+    channel_pair_direction: "LEAN_FORWARD"
 """
 
 

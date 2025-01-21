@@ -22,7 +22,7 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from frame_common import chamber_cuts
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 from tongue_groove import groove_pair
 from frame_config import FrameConfig, FrameStyle
 
@@ -100,7 +100,7 @@ class ConnectorFrame(Partomatic):
     def compile(self):
         self.parts.clear()
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.connector_frame(),
                 "frame-connector",
                 stl_folder=self._config.stl_folder,

@@ -35,7 +35,7 @@ from ocp_vscode import Camera, show
 from basic_shapes import teardrop_sketch, teardrop_cylinder
 from bender_config import BenderConfig
 from filament_bracket_config import FilamentBracketConfig, ChannelPairDirection
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 from twist_snap import TwistSnapConfig, TwistSnapConnector, TwistSnapSection
 
 
@@ -564,7 +564,7 @@ class FilamentChannels(Partomatic):
             add(right)
         channels.part.label = "filament channels"
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 channels.part,
                 "filament-bracket-channels",
                 stl_folder="NONE",

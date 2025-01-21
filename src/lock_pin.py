@@ -20,7 +20,7 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from lock_pin_config import LockPinConfig
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 
 
 class LockPin(Partomatic):
@@ -108,7 +108,7 @@ class LockPin(Partomatic):
     def compile(self):
         self.parts.clear()
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.lock_pin(
                     inset=self._config.tolerance / 2,
                     tie_loop=self._config.tie_loop,

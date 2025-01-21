@@ -34,7 +34,7 @@ from frame_config import FrameConfig, FrameStyle
 from frame_common import core_cut, wallslots
 from lock_pin import LockPin
 from lock_pin_config import LockPinConfig
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 from tongue_groove import groove_pair
 from wall_hanger_cut_template import wall_hanger_cut_template
 
@@ -374,7 +374,7 @@ class TopFrame(Partomatic):
     def compile(self):
         self.parts.clear()
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.top_frame(),
                 "frame-top",
                 stl_folder=self._config.stl_folder,

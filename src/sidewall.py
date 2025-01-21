@@ -28,7 +28,7 @@ from ocp_vscode import Camera, show, save_screenshot
 
 from bender_config import BenderConfig
 from fb_library import HexWall
-from partomatic import BuildablePart, Partomatic
+from partomatic import AutomatablePart, Partomatic
 from sidewall_config import SidewallConfig, WallStyle
 
 
@@ -267,7 +267,7 @@ class Sidewall(Partomatic):
         self.parts.clear()
 
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self._sidewall(
                     reinforced=True,
                     solid=self._config.wall_style == WallStyle.SOLID,
@@ -287,7 +287,7 @@ class Sidewall(Partomatic):
         )
         if not self._config.block_inner_wall_generation:
             self.parts.append(
-                BuildablePart(
+                AutomatablePart(
                     self._sidewall(
                         reinforced=False,
                         solid=self._config.wall_style == WallStyle.SOLID,

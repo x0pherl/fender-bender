@@ -45,7 +45,7 @@ from build123d import (
 
 from ocp_vscode import Camera, show
 
-from partomatic import BuildablePart, Partomatic, PartomaticConfig
+from partomatic import AutomatablePart, Partomatic, PartomaticConfig
 
 
 class TwistSnapSection(Flag):
@@ -276,7 +276,7 @@ class TwistSnapConnector(Partomatic):
         self.parts.clear()
         if TwistSnapSection.SOCKET in self._config.section:
             self.parts.append(
-                BuildablePart(
+                AutomatablePart(
                     self.twist_snap_socket(),
                     "socket",
                     stl_folder=self._config.stl_folder,
@@ -284,7 +284,7 @@ class TwistSnapConnector(Partomatic):
             )
         if TwistSnapSection.CONNECTOR in self._config.section:
             self.parts.append(
-                BuildablePart(
+                AutomatablePart(
                     self.twist_snap_connector(),
                     "connector",
                     stl_folder=self._config.stl_folder,

@@ -29,7 +29,7 @@ from build123d.objects_part import Cylinder
 from ocp_vscode import Camera, show
 from bender_config import BenderConfig
 from fb_library import HexWall
-from partomatic import Partomatic, BuildablePart
+from partomatic import Partomatic, AutomatablePart
 from guidewall_config import GuidewallConfig
 from tongue_groove import tongue
 from sidewall_config import WallStyle
@@ -225,7 +225,7 @@ class Guidewall(Partomatic):
     def compile(self):
         self.parts.clear()
         self.parts.append(
-            BuildablePart(
+            AutomatablePart(
                 self.build_guidewall(),
                 "wall-guide",
                 stl_folder=self._config.stl_folder,

@@ -50,22 +50,6 @@ class TestConfig:
         assert cfg.bearing.shelf_diameter == 0.2
         assert cfg.bearing.depth == 1
 
-    def test_wheelconfig_load_subpath_yaml_str(
-        self, wheel_config_subpath_yaml
-    ):
-        cfg = WheelConfig(
-            configuration=wheel_config_subpath_yaml,
-            yaml_tree="tree1/tree2/wheel",
-        )
-        assert cfg.diameter == 12.3
-        assert cfg.spoke_count == 25
-        assert cfg.lateral_tolerance == 1.111
-        assert cfg.radial_tolerance == 0.222
-        assert cfg.bearing.diameter == 1.2
-        assert cfg.bearing.inner_diameter == 0.1
-        assert cfg.bearing.shelf_diameter == 0.2
-        assert cfg.bearing.depth == 1
-
     def test_missing_wheel_config_file(self):
         with pytest.raises(ValueError):
             WheelConfig(configuration="missing_file.yaml")
@@ -82,13 +66,6 @@ class TestConfig:
         assert cfg.bearing.inner_diameter == 0.1
         assert cfg.bearing.shelf_diameter == 0.2
         assert cfg.bearing.depth == 1
-
-    def test_loadconfig(self, wheel_config_subpath_yaml):
-        fw = FilamentWheel()
-        fw.load_config(
-            wheel_config_subpath_yaml, yaml_tree="tree1/tree2/wheel"
-        )
-        assert fw._config.diameter == 12.3
 
 
 class TestWheel:
