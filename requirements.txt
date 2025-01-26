@@ -1,3 +1,5 @@
+fb_library
+partomatic
 pytest
 mock
 pytest-mock

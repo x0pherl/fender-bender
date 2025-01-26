@@ -30,6 +30,7 @@ from build123d import (
     Plane,
     PolarLocations,
     Rectangle,
+    RegularPolygon,
     Sketch,
     Sphere,
     add,
@@ -52,6 +53,8 @@ from filament_bracket_config import (
     FilamentBracketConfig,
     ChannelPairDirection,
 )
+
+from fb_library import twist_snap_connector, twist_snap_socket
 
 
 class FilamentBracket(Partomatic):
@@ -563,8 +566,52 @@ class FilamentBracket(Partomatic):
                 )
             )
 
+    def _twist_snap_socket(self) -> Part:
+        with BuildPart() as snap_socket:
+            add(
+                twist_snap_socket(
+                    connector_diameter=4.5,
+                    tolerance=0.12,
+                    snapfit_height=2,
+                    snapfit_radius_extension=2 * (2 / 3) - 0.06,
+                    wall_width=2,
+                    wall_depth=2,
+                )
+            )
+            with BuildPart():
+                with BuildSketch() as sketch:
+                    Circle(4.25)
+                with BuildSketch(
+                    Plane.XY.offset(-self._config.connector.length * 2)
+                ):
+                    RegularPolygon(
+                        4.5 + 2 * 4 / 3,
+                        side_count=6,
+                    )
+                loft()
+                Cylinder(
+                    radius=bracket._config.connector.tube.outer_radius,
+                    height=self._config.connector.length * 2,
+                    align=(Align.CENTER, Align.CENTER, Align.MAX),
+                    mode=Mode.SUBTRACT,
+                )
+            Cylinder(
+                radius=bracket._config.connector.tube.outer_radius,
+                height=1,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+                mode=Mode.SUBTRACT,
+            )
+            Cylinder(
+                radius=bracket._config.connector.tube.inner_radius,
+                height=2,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+                mode=Mode.SUBTRACT,
+            )
+        return snap_socket.part
+
 
 if __name__ == "__main__":
+
     config_path = Path(__file__).parent / "../build-configs/debug.conf"
     if not config_path.exists() or not config_path.is_file():
         config_path = Path(__file__).parent / "../build-configs/dev.conf"
@@ -575,6 +622,14 @@ if __name__ == "__main__":
     )
 
     bracket._config.channel_pair_direction = ChannelPairDirection.LEAN_REVERSE
+
+    # with BuildPart() as socket:
+    #     add(bracket._twist_snap_socket())
+    # show(socket.part, reset_camera=Camera.KEEP)
+    # export_stl(
+    #     socket.part,
+    #     str(Path(__file__).parent / "../stl" / "twist-snap-socket.stl"),
+    # )
     bracket.compile()
     bracket.display()
     bracket.export_stls()

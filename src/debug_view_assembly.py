@@ -407,9 +407,6 @@ def test_tubes():
 
 
 if __name__ == "__main__":
-    test_tubes()
-    exit()
-
     gw = Guidewall(_config.guidewall_config)
     sw = Sidewall(_config.sidewall_config)
     rswconfig = _config.sidewall_config

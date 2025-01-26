@@ -36,7 +36,7 @@ from basic_shapes import teardrop_sketch, teardrop_cylinder
 from bender_config import BenderConfig
 from filament_bracket_config import FilamentBracketConfig, ChannelPairDirection
 from partomatic import AutomatablePart, Partomatic
-from twist_snap import TwistSnapConfig, TwistSnapConnector, TwistSnapSection
+from fb_library import twist_snap_connector, twist_snap_socket
 
 
 class ChannelMode(Enum):
@@ -225,21 +225,17 @@ class FilamentChannels(Partomatic):
         return ingress.part
 
     def _twist_snap_connector(self) -> Part:
-        connector = TwistSnapConnector(
-            TwistSnapConfig(
-                connector_diameter=4.5,
-                wall_size=2,
-                tolerance=0.12,
-                section=TwistSnapSection.CONNECTOR,
-                snapfit_height=2,
-                snapfit_radius_extension=2 * (2 / 3) - 0.06,
-                wall_width=2,
-                wall_depth=2,
-            )
-        )
-        connector.compile()
         with BuildPart() as snap_connector:
-            add(connector.parts[0].part)
+            add(
+                twist_snap_connector(
+                    connector_diameter=4.5,
+                    tolerance=0.12,
+                    snapfit_height=2,
+                    snapfit_radius_extension=2 * (2 / 3) - 0.12,
+                    wall_width=2,
+                    wall_depth=2,
+                )
+            )
             add(
                 teardrop_cylinder(
                     radius=self._config.connector.radius,

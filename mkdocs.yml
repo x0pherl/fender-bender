@@ -17,6 +17,7 @@ markdown_extensions:
 nav:
   - Overview: index.md
   - Components Overview: components.md
+  - Part Selector Tool: selection_tool.md
   - Printing Guide: printing.md
   - Assembly:
     - Filament Bracket Assembly : assembly/filament_bracket.md
