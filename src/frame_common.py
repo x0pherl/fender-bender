@@ -11,7 +11,7 @@ from build123d import (
     Axis,
     GridLocations,
 )
-from basic_shapes import diamond_cylinder, diamond_torus
+from fb_library import diamond_cylinder, diamond_torus
 
 
 def wallslot(

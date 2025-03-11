@@ -6,7 +6,7 @@ from typing import List, Optional
 from shapely.geometry import Point
 import yaml
 
-from basic_shapes import circular_intersection
+from fb_library import circular_intersection
 from filament_wheel_config import WheelConfig
 from lock_pin_config import LockPinConfig
 from partomatic import PartomaticConfig

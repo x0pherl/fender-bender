@@ -1,4 +1,4 @@
-from basic_shapes import screw_cut
+from fb_library import screw_cut
 from frame_common import chamber_cuts, core_cut, wallslots
 from tongue_groove import groove_pair
 from frame_config import FrameConfig, FrameStyle

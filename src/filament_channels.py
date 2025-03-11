@@ -32,11 +32,15 @@ from build123d import (
 )
 from ocp_vscode import Camera, show
 
-from basic_shapes import teardrop_sketch, teardrop_cylinder
 from bender_config import BenderConfig
 from filament_bracket_config import FilamentBracketConfig, ChannelPairDirection
 from partomatic import AutomatablePart, Partomatic
-from fb_library import twist_snap_connector, twist_snap_socket
+from fb_library import (
+    twist_snap_connector,
+    twist_snap_socket,
+    teardrop_sketch,
+    teardrop_cylinder,
+)
 
 
 class ChannelMode(Enum):

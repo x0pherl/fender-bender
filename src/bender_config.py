@@ -11,7 +11,7 @@ from pathlib import Path
 
 from shapely.geometry import Point
 
-from basic_shapes import distance_to_circle_edge, circular_intersection
+from fb_library import distance_to_circle_edge, circular_intersection
 
 from filament_wheel_config import WheelConfig
 from guidewall_config import GuidewallConfig

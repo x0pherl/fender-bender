@@ -43,7 +43,8 @@ from build123d import (
 
 from ocp_vscode import show, Camera, save_screenshot
 
-from basic_shapes import rail_block_template, rounded_cylinder
+from fb_library import rounded_cylinder
+from rail_block import rail_block_template
 from bender_config import BenderConfig
 from filament_channels import ChannelMode, FilamentChannels
 from lock_pin import LockPin

@@ -342,7 +342,7 @@ def generate_funnel_test_parts():
         )
 
 
-from basic_shapes import teardrop_cylinder
+from fb_library import teardrop_cylinder
 
 
 def test_tubes():

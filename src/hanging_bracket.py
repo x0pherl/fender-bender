@@ -37,7 +37,7 @@ from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
 from partomatic import AutomatablePart, Partomatic
-from basic_shapes import screw_cut, heatsink_cut, nut_cut
+from fb_library import screw_cut, heatsink_cut, nut_cut
 from frame_config import FrameConfig
 
 from hanging_bracket_config import (

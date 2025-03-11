@@ -30,7 +30,7 @@ from ocp_vscode import Camera, show
 from bender_config import BenderConfig
 from filament_wheel_config import WheelConfig
 from partomatic import Partomatic, AutomatablePart
-from basic_shapes import diamond_torus
+from fb_library import diamond_torus
 from bearing import print_in_place_bearing
 
 

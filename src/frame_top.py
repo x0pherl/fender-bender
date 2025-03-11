@@ -25,10 +25,7 @@ from build123d import (
 from ocp_vscode import Camera, show
 
 from bender_config import BenderConfig
-from basic_shapes import (
-    rounded_cylinder,
-    rail_block_template,
-)
+
 
 from frame_config import FrameConfig, FrameStyle
 from frame_common import core_cut, wallslots
@@ -37,6 +34,8 @@ from lock_pin_config import LockPinConfig
 from partomatic import AutomatablePart, Partomatic
 from tongue_groove import groove_pair
 from wall_hanger_cut_template import wall_hanger_cut_template
+from rail_block import rail_block_template
+from fb_library import rounded_cylinder
 
 
 class TopFrame(Partomatic):
