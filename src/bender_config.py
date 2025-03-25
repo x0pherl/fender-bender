@@ -9,7 +9,7 @@ from enum import Enum, Flag, auto
 from math import sqrt
 from pathlib import Path
 
-from shapely.geometry import Point
+from fb_library import Point
 
 from fb_library import distance_to_circle_edge, circular_intersection
 
@@ -190,7 +190,7 @@ class BenderConfig:
         """
         the correct exterior radius for the cylinder of the frame bracket
         """
-        return Point(0, 0).distance(
+        return Point(0, 0).distance_to(
             Point(
                 self.wheel.radius - self.bracket_depth / 2, self.bracket_height
             )

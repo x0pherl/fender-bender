@@ -3,10 +3,9 @@ from enum import Enum, Flag, auto
 from pathlib import Path
 from typing import List, Optional
 
-from shapely.geometry import Point
 import yaml
 
-from fb_library import circular_intersection
+from fb_library import Point, circular_intersection
 from filament_wheel_config import WheelConfig
 from lock_pin_config import LockPinConfig
 from partomatic import PartomaticConfig
@@ -93,16 +92,16 @@ class FilamentBracketConfig(PartomaticConfig):
     exterior_radius: float = 52
     frame_bracket_exterior_x_distance: float = 1
     fillet_radius: float = 3.15
-    frame_click_sphere_point: Point = Point(47.86, 4.15)
+    frame_click_sphere_point: Point = field(default_factory=lambda: Point(47.86, 4.15))
     frame_click_sphere_radius: float = 1
     frame_clip_depth_offset: float = 10
-    frame_clip_point: Point = Point(50.89, 10)
+    frame_clip_point: Point = field(default_factory=lambda: Point(50.89, 10))
     frame_clip_rail_width: float = 1.41
     frame_clip_width: float = 15.1
     frame_lock_pin_tolerance: float = 0.6
     frame_lock_style: LockStyle = LockStyle.BOTH
     lock_pin: LockPinConfig = field(default_factory=LockPinConfig)
-    lock_pin_point: Point = Point(50.89, 10)
+    lock_pin_point: Point = field(default_factory=lambda: Point(50.89, 10))
     minimum_structural_thickness: float = 4
     minimum_thickness: float = 1
     sidewall_section_depth: float = 168

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from partomatic import PartomaticConfig
 
-from shapely.geometry import Point
+from fb_library import Point
 
 
 class FrameStyle(Flag):

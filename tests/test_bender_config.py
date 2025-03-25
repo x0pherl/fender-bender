@@ -13,7 +13,7 @@ from bender_config import (
     BenderConfig,
     FrameStyle,
 )
-from shapely.geometry import Point
+from fb_library import Point
 
 
 class TestBenderConfig:
