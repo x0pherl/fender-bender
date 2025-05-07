@@ -4,7 +4,7 @@
 
 ## Recommended Print Settings
 
-Other than where noted, the standard Prusa Slicer "structural" profiles will be fine. Some components will require supports to print properly, and we strongly recommend using organic supports. You'll get best results from hand painting areas for support and using PETG supports for PLA parts or vice-versa (although that's not strictly required)
+Other than where noted, the standard Prusa Slicer "structural" profiles will be fine. Some components will require supports to print properly, and we strongly recommend using organic supports. We've tested with both PLA and PETG; the filament choice shouldn't matter much unless you plan on installing this within a heated chamber. You'll get best results from hand painting areas for support and using PETG supports for PLA parts or vice-versa (although that's not strictly required)
 
 ## The "Filament Bracket"
 
